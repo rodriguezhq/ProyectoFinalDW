@@ -14,6 +14,8 @@ def create_app(env="development"):
     jwt.init_app(app)
     cors.init_app(app)
 
+    from app import models  # noqa: F401  registra los modelos en SQLAlchemy
+
     register_blueprints(app)
 
     return app

@@ -68,18 +68,13 @@ Rol ── Usuario ── Auditoria
 
 El récord académico **no tiene tabla propia** — se calcula en `record_service.py` agregando `Nota` + `Matricula_Detalle` + `Matricula` del estudiante. Solo `Documento` guarda el registro de cuándo se solicitó/emitió como PDF.
 
-## 3. Mapeo tabla → archivo de modelo
+## 3. Modelos: 1 tabla = 1 archivo
 
-| Archivo `models/` | Tablas que contiene |
-|---|---|
-| `academic.py` *(nuevo)* | Facultad, Especialidad, PlanEstudios, PlanCurso, Curso, PeriodoAcademico, Seccion |
-| `user.py` | Usuario, Rol |
-| `student.py` | Estudiante |
-| `teacher.py` | Docente, Silabo |
-| `enrollment.py` | Matricula, MatriculaDetalle, Pago |
-| `grade.py` | Nota |
-| `certificate.py` | Documento |
-| `audit.py` | Auditoria |
+Cada tabla vive en su propio archivo dentro de `models/` (`facultad.py` → clase `Facultad`, `plan_estudios.py` → clase `PlanEstudios`, etc.). Se eligió así en vez de agrupar por dominio para que sea más fácil ubicar cada tabla y para que dos personas trabajando en paralelo no choquen editando el mismo archivo por tocar tablas distintas.
+
+`models/__init__.py` importa las 18 clases para que Flask-Migrate las detecte automáticamente al generar migraciones — cualquier modelo nuevo debe agregarse ahí también.
+
+Las relaciones entre archivos (`db.relationship("Docente", ...)`, `db.ForeignKey("facultad.id_facultad")`) usan **strings**, no imports directos entre archivos de modelos — así se evita cualquier problema de import circular, incluso con el ciclo real `Facultad ↔ Docente` (decano/facultad).
 
 ## 4. Mapeo módulo del enunciado → Controller / Service / Route
 
