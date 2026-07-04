@@ -19,6 +19,7 @@ def login_user(username, password):
         additional_claims=additional_claims,
         expires_delta=timedelta(hours=8),
     )
+    
     refresh_token = create_refresh_token(
         identity=str(user.id_usuario), expires_delta=timedelta(days=30)
     )

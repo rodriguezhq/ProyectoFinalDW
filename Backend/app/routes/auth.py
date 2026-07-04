@@ -1,24 +1,47 @@
-from flask import Blueprint, request, jsonify
+from pydantic import BaseModel
+
+from flask_openapi3.blueprint import APIBlueprint
 from app.services.auth_service import login_user
 
-auth_bp = Blueprint("auth", __name__)
+auth_bp = APIBlueprint("auth", __name__)
 
 
-@auth_bp.route("/login", methods=["POST"])
-def login():
-    data = request.get_json()
-    username = data.get("username")
-    password = data.get("password")
+class LoginBody(BaseModel):
+    username: str
+    password: str
 
-    if not username or not password:
-        return jsonify({"msg": "Nombre de usuario y contraseña son requeridos"}), 400
 
-    user = login_user(username, password)
-    if not user:
-        return jsonify({"msg": "Credenciales inválidas"}), 401
+class UserData(BaseModel):
+    id_usuario: int
+    username: str
+    nombres: str | None
+    apellidos: str | None
+    correo: str | None
+    id_rol: int
+    rol: str | None
 
-    return jsonify({"msg": "Login exitoso", "user": user}), 200
 
-@auth_bp.route("/logout", methods=["POST"])
+class LoginResponse(BaseModel):
+    msg: str
+    access_token: str
+    refresh_token: str
+    user: UserData
+
+
+class MessageResponse(BaseModel):
+    msg: str
+
+
+@auth_bp.post("/login", summary="Iniciar sesión", responses={200: LoginResponse, 401: MessageResponse})
+def login(body: LoginBody):
+    """Autentica un usuario y devuelve tokens JWT."""
+    result = login_user(body.username, body.password)
+    if not result:
+        return {"msg": "Credenciales inválidas"}, 401
+    return {"msg": "Login exitoso", **result}, 200
+
+
+@auth_bp.post("/logout", summary="Cerrar sesión", responses={200: MessageResponse})
 def logout():
-    return jsonify({"msg": "Logout exitoso"}), 200
+    """Cierra la sesión del usuario."""
+    return {"msg": "Logout exitoso"}, 200

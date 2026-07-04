@@ -68,7 +68,7 @@ El proyecto incluye **Scalar** como interfaz gráfica para probar los endpoints.
 Una vez iniciado el servidor, abrir en el navegador:
 
 ```
-http://localhost:5000/scalar
+http://localhost:5000/openapi/scalar
 ```
 
 > Scalar se carga desde CDN, **no requiere instalar dependencias adicionales** en Python.
