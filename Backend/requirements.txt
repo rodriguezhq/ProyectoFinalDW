@@ -7,3 +7,6 @@ PyMySQL==1.1.1
 cryptography==43.0.1
 marshmallow==3.22.0
 python-dotenv==1.0.1
+flask-openapi3==4.3.2
+flask-openapi3-scalar==1.44.15
+pydantic==2.13.4

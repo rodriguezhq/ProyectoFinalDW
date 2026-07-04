@@ -1,16 +1,16 @@
 # sistema academico - backend
 
-API REST de sistema academico con falsk
+API REST de sistema academico con Flask
 
-## requsitos
+## Requisitos
 
 - Python 3.10+
 - MySQL 8.0+
 - Entorno virtual (recomendado)
 
-## instalacion
+## Instalación
 
-1. crear y activar el entorno virutal
+1. Crear y activar el entorno virtual
 
     ```bash
     python -m venv venv
@@ -71,7 +71,7 @@ Una vez iniciado el servidor, abrir en el navegador:
 http://localhost:5000/openapi/scalar
 ```
 
-> Scalar se carga desde CDN, **no requiere instalar dependencias adicionales** en Python.
+> Aunque requiere la librería `flask-openapi3-scalar` en Python (incluida en `requirements.txt`), los recursos estáticos de Scalar (CSS/JS) se cargan vía CDN de forma automática.
 >
 ### Usuarios de prueba (seed)
 
@@ -91,6 +91,9 @@ http://localhost:5000/openapi/scalar
 - **Flask-Migrate** — Migraciones de BD
 - **Flask-JWT-Extended** — Autenticación con JWT
 - **Flask-CORS** — Soporte CORS
+- **flask-openapi3** — Generación de OpenAPI y documentación de APIs
+- **flask-openapi3-scalar** — Interfaz interactiva de documentación con Scalar
+- **pydantic** — Validación de datos y modelos de esquemas
 - **PyMySQL** — Conector MySQL
 - **marshmallow** — Serialización/validación
 - **python-dotenv** — Variables de entorno
