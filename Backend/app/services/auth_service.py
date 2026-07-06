@@ -1,7 +1,21 @@
-from app.models.usuario import Usuario
-from flask_jwt_extended import create_access_token, create_refresh_token
-from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import timedelta
+
+from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity
+from werkzeug.security import check_password_hash, generate_password_hash
+
+from app.extensions import db
+from app.models.usuario import Usuario
+
+
+def usuario_actual():
+    """El Usuario autenticado en la petición actual, segun el JWT.
+
+    Se usa en cualquier Controller que necesite saber "quien esta haciendo
+    esta peticion" (matricula, notas, certificados, admin, etc.) sin que
+    cada uno reimplemente su propia version.
+    """
+    id_usuario = int(get_jwt_identity())
+    return db.session.get(Usuario, id_usuario)
 
 
 def login_user(username, password):

@@ -11,43 +11,39 @@ División: **por módulo funcional, full-stack** (backend + frontend de cada mó
 
 ## Fase 0 — Setup base (bloqueante, hacer primero) — **Cristhian**
 
-- [ ] `requirements.txt` (Flask, Flask-SQLAlchemy, Flask-Migrate, Flask-JWT-Extended, PyMySQL, Flask-CORS, marshmallow)
-- [ ] `app/config.py` (URI de conexión MySQL, JWT secret)
-- [ ] `app/extensions.py` (`db`, `migrate`, `jwt`)
-- [ ] `app/__init__.py` (app factory + registro de blueprints)
-- [ ] `run.py`
-- [ ] Crear base de datos MySQL vacía y probar conexión
+- [x] `requirements.txt`
+- [x] `app/config.py` (URI de conexión MySQL, JWT secret, Development/Production/Testing)
+- [x] `app/extensions.py` (`db`, `migrate`, `jwt`, `cors`)
+- [x] `app/__init__.py` (app factory + registro de blueprints)
+- [x] `run.py`
+- [x] Crear base de datos MySQL vacía y probar conexión
 
 ## Fase 1 — Modelos completos, las 18 tablas (bloqueante, hacer segundo) — **Cristhian**
 
-- [ ] `models/academic.py` (Facultad, Especialidad, PlanEstudios, PlanCurso, Curso, PeriodoAcademico, Seccion)
-- [ ] `models/user.py` (Usuario, Rol)
-- [ ] `models/student.py` (Estudiante)
-- [ ] `models/teacher.py` (Docente, Silabo)
-- [ ] `models/enrollment.py` (Matricula, MatriculaDetalle, Pago)
-- [ ] `models/grade.py` (Nota)
-- [ ] `models/certificate.py` (Documento)
-- [ ] `models/audit.py` (Auditoria)
-- [ ] `flask db init` / `flask db migrate` / `flask db upgrade`
-- [ ] Seed de datos de prueba (roles, 1 facultad, 1 especialidad, 1 periodo)
+- [x] Modelos (1 archivo por tabla, ver `ARQUITECTURA.md`)
+- [x] `flask db init` / `flask db migrate` / `flask db upgrade`
+- [x] Seed completo de datos de prueba (`seed.py`)
 
 **Una vez terminada la Fase 1, ambos pueden trabajar en paralelo.**
 
 ## Fase 2 — Auth (apenas exista el modelo Usuario/Rol) — **Scoot**
 
-- [ ] `services/auth_service.py` (login, hash de password, generación JWT)
-- [ ] `utils/decorators.py` (`@role_required("ADMIN", "DIRECCION", ...)`)
-- [ ] `routes/auth.py` (`POST /api/auth/login`, `POST /api/auth/logout`)
-- [ ] Frontend: pantalla de login + guardado de token + rutas protegidas por rol
+- [x] `services/auth_service.py` (login, hash de password, generación JWT)
+- [x] `utils/decorators.py` (`@role_required("Administrador", "Direccion", ...)`)
+- [x] `routes/auth.py` (`POST /api/auth/login`, `POST /api/auth/logout`)
+- [x] `Controllers/authController.py` + `schemas/auth_schema.py` + `schemas/user_schema.py` + `schemas/common_schema.py`
+- [x] Tests (`tests/test_auth.py`, `tests/test_models.py`) — 23 casos, funcionales + seguridad
+- [ ] Frontend: pantalla de login + guardado de token + rutas protegidas por rol (hoy es un mock, sin conexión real al backend)
 
 ---
 
 ## Cristhian — Módulo 1: Matrícula
 
-- [ ] `schemas/enrollment_schema.py`
-- [ ] `services/enrollment_service.py` (solicitar matrícula, validar requisitos, generar ficha)
-- [ ] `Controllers/enrollmentController.py`
-- [ ] `routes/enrollment.py`
+- [x] `schemas/enrollment_schema.py`
+- [x] `services/enrollment_service.py` (solicitar matrícula, validar requisitos, registrar pago, generar ficha PDF, estadísticas)
+- [x] `Controllers/enrollmentController.py`
+- [x] `routes/enrollment.py` (6 endpoints: solicitar, mías, validar, pago, ficha, estadísticas)
+- [x] Tests (`tests/test_enrollment.py`) — 18 casos, funcionales + seguridad + roles
 - [ ] Frontend estudiante: solicitar matrícula, descargar ficha
 - [ ] Frontend admin: validar requisitos, registrar pago, generar ficha oficial
 - [ ] Frontend dirección: dashboard de estadísticas de matrícula
