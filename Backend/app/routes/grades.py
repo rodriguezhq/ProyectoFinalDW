@@ -48,7 +48,7 @@ def registrar_notas(path: MatriculaDetallePath, body: GradeBody):
     summary="Consultar notas de un estudiante",
     description="Devuelve todas las notas del estudiante con info del curso, "
     "sección y periodo. Requiere autenticación JWT.",
-    responses={200: GradeListResponse},
+    responses={200: GradeListResponse, 404: MessageResponse},
     security=[{"jwt": []}],
 )
 @role_required("Estudiante", "Docente", "Administrador", "Direccion")
