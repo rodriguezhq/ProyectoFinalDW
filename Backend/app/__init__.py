@@ -8,7 +8,10 @@ from app.routes import register_blueprints
 
 def create_app(env="development"):
     info = Info(title="Sistema Académico API", version="1.0.0")
-    app = OpenAPI(__name__, info=info)
+    security_schemes = {
+        "jwt": {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"}
+    }
+    app = OpenAPI(__name__, info=info, security_schemes=security_schemes)
     app.config.from_object(config_by_name[env])
 
     db.init_app(app)

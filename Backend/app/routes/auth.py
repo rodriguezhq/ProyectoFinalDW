@@ -1,13 +1,18 @@
 from flask_openapi3.blueprint import APIBlueprint
-
 from app.Controllers import authController
 from app.schemas.auth_schema import LoginBody, LoginResponse
+from flask_openapi3.models.tag import Tag
 from app.schemas.common_schema import MessageResponse
 
-auth_bp = APIBlueprint("auth", __name__)
+auth_tag = Tag(name="Autenticación", description="login y Logout de usuarios")
+auth_bp = APIBlueprint("auth", __name__, abp_tags=[auth_tag])
 
 
-@auth_bp.post("/login", summary="Iniciar sesión", responses={200: LoginResponse, 401: MessageResponse})
+@auth_bp.post(
+    "/login",
+    summary="Iniciar sesión",
+    responses={200: LoginResponse, 401: MessageResponse},
+)
 def login(body: LoginBody):
     return authController.login(body)
 
