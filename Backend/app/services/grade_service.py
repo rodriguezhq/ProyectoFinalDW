@@ -9,6 +9,7 @@ from app.models.plan_curso import PlanCurso
 from app.models.curso import Curso
 from app.models.periodo_academico import PeriodoAcademico
 from app.models.docente import Docente
+from app.models.estudiante import Estudiante
 
 
 def _calcular_promedio(parcial1, parcial2, final, sustitutorio):
@@ -105,6 +106,18 @@ def registrar_notas(id_matricula_detalle, data):
 
 
 def obtener_notas_estudiante(id_estudiante):
+    estudiante = Estudiante.query.get(id_estudiante)
+    if not estudiante:
+        return None, []
+
+    estudiante_dict = {
+        "id_estudiante": estudiante.id_estudiante,
+        "codigo": estudiante.codigo,
+        "nombres": estudiante.nombres,
+        "apellidos": estudiante.apellidos,
+        "dni": estudiante.dni,
+        "correo": estudiante.correo,
+    }
 
     notas = (
         Nota.query.join(
@@ -115,7 +128,7 @@ def obtener_notas_estudiante(id_estudiante):
         .filter(Matricula.id_estudiante == id_estudiante)
         .all()
     )
-    return [_nota_a_dict(n) for n in notas]
+    return estudiante_dict, [_nota_a_dict(n) for n in notas]
 
 
 def obtener_notas_seccion(id_seccion):

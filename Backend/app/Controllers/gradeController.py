@@ -19,8 +19,10 @@ def consultar_notas_estudiante(id_estudiante):
     Devuelve todas las notas de un estudiante (todos los periodos).
     Retorna: (dict_respuesta, status_code)
     """
-    notas = grade_service.obtener_notas_estudiante(id_estudiante)
-    return {"msg": "Notas del estudiante", "notas": notas}, 200
+    estudiante, notas = grade_service.obtener_notas_estudiante(id_estudiante)
+    if not estudiante:
+        return {"msg": "Estudiante no encontrado"}, 404
+    return {"msg": "Notas del estudiante", "estudiante": estudiante, "notas": notas}, 200
 
 
 def consultar_notas_seccion(id_seccion):

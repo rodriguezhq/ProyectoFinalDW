@@ -38,8 +38,18 @@ class GradeResponse(BaseModel):
     nota: GradeItem
 
 
+class StudentGradeSummary(BaseModel):
+    id_estudiante: int
+    codigo: str
+    nombres: str
+    apellidos: str
+    dni: str
+    correo: Optional[str] = None
+
+
 class GradeListResponse(BaseModel):
     msg: str
+    estudiante: Optional[StudentGradeSummary] = None
     notas: list[GradeItem]
 
 
