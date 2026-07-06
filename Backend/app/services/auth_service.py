@@ -10,6 +10,7 @@ def login_user(username, password):
         return None
     if user.estado != "activo":
         return None
+
     additional_claims = {
         "id_rol": user.id_rol,
         "rol": user.rol.nombre if user.rol else None,
@@ -29,9 +30,9 @@ def login_user(username, password):
         "user": {
             "id_usuario": user.id_usuario,
             "username": user.username,
-            "nombres": user.nombres,
-            "apellidos": user.apellidos,
-            "correo": user.correo,
+            "nombres": user.nombres_efectivos,
+            "apellidos": user.apellidos_efectivos,
+            "correo": user.correo_efectivo,
             "id_rol": user.id_rol,
             "rol": user.rol.nombre if user.rol else None,
         },

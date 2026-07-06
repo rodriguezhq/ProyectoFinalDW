@@ -8,23 +8,25 @@ Para el reparto de trabajo entre el equipo, ver [`BACKLOG.md`](./BACKLOG.md).
 ```
 Backend/
 ├── run.py                  # Entry point: arranca la app Flask
-├── requirements.txt        # Flask, Flask-SQLAlchemy, Flask-Migrate, Flask-JWT-Extended, PyMySQL, Flask-CORS, marshmallow
+├── requirements.txt        # Flask, Flask-SQLAlchemy, Flask-Migrate, Flask-JWT-Extended, PyMySQL, Flask-CORS, flask-openapi3, pydantic
 └── app/
-    ├── __init__.py         # App factory: crea Flask app, inicializa extensions, registra blueprints
+    ├── __init__.py         # App factory: crea la app (OpenAPI de flask-openapi3), inicializa extensions, registra blueprints
     ├── config.py           # Config (DB URI MySQL, JWT secret, etc.) por entorno (dev/prod)
     ├── extensions.py       # Instancias compartidas: db = SQLAlchemy(), migrate = Migrate(), jwt = JWTManager()
     │
     ├── models/             # SQLAlchemy ORM: 1 clase = 1 tabla. Solo define columnas y relationships.
-    ├── schemas/             # Marshmallow: serialización/validación de entrada-salida de la API.
+    ├── schemas/             # Pydantic: define el shape de entrada/salida de cada endpoint (valida + genera la doc de Scalar).
     ├── services/            # Lógica de negocio (queries, validaciones, reglas). No conoce HTTP.
-    ├── Controllers/          # Reciben el request ya parseado, llaman al service, devuelven respuesta.
-    ├── routes/               # Blueprints: definen URL + método HTTP → controller. Sin lógica.
+    ├── Controllers/          # Reciben el request ya validado por el schema, llaman al service, devuelven la respuesta.
+    ├── routes/               # Blueprints (APIBlueprint): solo URL + método + que schema usar + a que Controller llamar. Sin lógica.
     └── utils/
-        ├── decorators.py    # @jwt_required, @role_required("ADMIN", "DIRECCION"), etc.
+        ├── decorators.py    # @jwt_required, @role_required("Administrador", "Direccion"), etc.
         └── helpers.py       # Funciones puras reutilizables (formateo, generación de códigos QR, etc.)
 ```
 
-Flujo de una request: `routes/*.py` → `Controllers/*.py` → `services/*.py` → `models/*.py` (db) → `schemas/*.py` (serializa respuesta).
+Flujo de una request: `routes/*.py` (valida con el schema de Pydantic) → `Controllers/*.py` (orquesta) → `services/*.py` (lógica) → `models/*.py` (db) → el Controller arma la respuesta usando el shape del schema.
+
+> Se usa **Pydantic** en vez de Marshmallow para la capa `schemas/` porque `flask-openapi3` (la librería que genera la documentación interactiva en `/openapi/scalar`) necesita que las clases de request/response sean modelos Pydantic — es un requisito técnico de la librería, no una preferencia de estilo. Ver `routes/auth.py` / `Controllers/userController.py` / `schemas/user_schema.py` como ejemplo de referencia para los próximos módulos.
 
 ## 2. Modelo de datos (18 tablas)
 
@@ -76,17 +78,23 @@ Cada tabla vive en su propio archivo dentro de `models/` (`facultad.py` → clas
 
 Las relaciones entre archivos (`db.relationship("Docente", ...)`, `db.ForeignKey("facultad.id_facultad")`) usan **strings**, no imports directos entre archivos de modelos — así se evita cualquier problema de import circular, incluso con el ciclo real `Facultad ↔ Docente` (decano/facultad).
 
-## 4. Mapeo módulo del enunciado → Controller / Service / Route
+## 4. Mapeo módulo del enunciado → Schema / Controller / Service / Route
 
-| Módulo (enunciado) | Controller | Service | Route |
-|---|---|---|---|
-| Auth / login | `userController.py` | `auth_service.py` | `auth.py` |
-| 1. Matrícula | `enrollmentController.py` | `enrollment_service.py` | `enrollment.py` |
-| 2. Cursos y Docentes | `courseController.py` + `teacherController.py` | `course_service.py` | `courses.py` |
-| 3. Notas | `gradeController.py` | `grade_service.py` | `grades.py` |
-| 4. Récord Académico | `studentController.py` | `record_service.py` | `records.py` |
-| 5. Certificados y Documentos | `certificateController.py` | `certificate_service.py` | `certificates.py` |
-| 6. Administración y Seguridad | `userController.py` + `auditController.py` | `admin_service.py` | `admin.py` |
+| Módulo (enunciado) | Schema (Pydantic) | Controller | Service | Route |
+|---|---|---|---|---|
+| Auth / login | `auth_schema.py` + `user_schema.py` (reusa `UserData`) ✅ | `authController.py` ✅ | `auth_service.py` ✅ | `auth.py` ✅ |
+| 1. Matrícula | `enrollment_schema.py` | `enrollmentController.py` | `enrollment_service.py` | `enrollment.py` |
+| 2. Cursos y Docentes | `course_schema.py` | `courseController.py` + `teacherController.py` | `course_service.py` | `courses.py` |
+| 3. Notas | `grade_schema.py` | `gradeController.py` | `grade_service.py` | `grades.py` |
+| 4. Récord Académico | `record_schema.py` | `studentController.py` | `record_service.py` | `records.py` |
+| 5. Certificados y Documentos | `certificate_schema.py` | `certificateController.py` | `certificate_service.py` | `certificates.py` |
+| 6. Administración y Seguridad | `user_schema.py` | `userController.py` + `auditController.py` | `admin_service.py` | `admin.py` |
+
+✅ = ya implementado (Fase 2, Auth). El resto son los archivos que cada módulo debe crear siguiendo ese mismo patrón de 4 capas.
+
+`schemas/common_schema.py` tiene `MessageResponse` — genérico para cualquier respuesta de error/mensaje simple (401/403/404/409), lo puede usar cualquier módulo, no es específico de ninguno.
+
+**Regla para nombrar archivos de una capa cuando un módulo tiene varias responsabilidades (como Auth vs Administración, que ambos tocan `Usuario`):** si la acción es específica de un flujo (loguearse), va en su propio archivo (`auth_*`); si es genérica y reusable entre módulos (la forma de un usuario, un mensaje de error), va en un archivo compartido (`user_schema.py`, `common_schema.py`).
 
 ## 5. Rutas generales de la API (prefijo `/api`)
 

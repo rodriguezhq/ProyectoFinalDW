@@ -33,3 +33,24 @@ class Usuario(db.Model):
         foreign_keys="Documento.id_usuario_autoriza",
     )
     auditorias = db.relationship("Auditoria", back_populates="usuario")
+
+    @property
+    def _persona(self):
+        """Estudiante o Docente vinculado (Admin/Direccion no tienen ninguno)."""
+        return self.estudiante or self.docente
+
+    @property
+    def nombres_efectivos(self):
+        """nombres directo (Admin/Direccion) o heredado de Estudiante/Docente."""
+        persona = self._persona
+        return self.nombres or (persona.nombres if persona else None)
+
+    @property
+    def apellidos_efectivos(self):
+        persona = self._persona
+        return self.apellidos or (persona.apellidos if persona else None)
+
+    @property
+    def correo_efectivo(self):
+        persona = self._persona
+        return self.correo or (persona.correo if persona else None)

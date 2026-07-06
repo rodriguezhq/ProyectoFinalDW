@@ -14,7 +14,12 @@ class Docente(db.Model):
     categoria = db.Column(db.String(50), nullable=True)
     condicion = db.Column(db.String(50), nullable=True)
     estado = db.Column(db.String(20), nullable=False, default="activo")
-    id_facultad = db.Column(db.Integer, db.ForeignKey("facultad.id_facultad"), nullable=False)
+    # use_alter=True: le avisa a SQLAlchemy que esta FK forma un ciclo con
+    # facultad.id_decano (a proposito, ver facultad.py) y que puede crearla/
+    # borrarla por separado con ALTER TABLE, en vez de tirar un warning.
+    id_facultad = db.Column(
+        db.Integer, db.ForeignKey("facultad.id_facultad", use_alter=True), nullable=False
+    )
 
     facultad = db.relationship(
         "Facultad", back_populates="docentes", foreign_keys=[id_facultad]

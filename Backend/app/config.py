@@ -6,8 +6,10 @@ load_dotenv()
 
 
 class Config:
-    SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key")
-    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "dev-jwt-secret-key")
+    # Los defaults son solo para que arranque sin .env configurado. En produccion
+    # SIEMPRE deben venir de variables de entorno reales (>= 32 bytes para HMAC-SHA256).
+    SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-not-for-production-32b")
+    JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "dev-jwt-secret-key-not-for-production-32b")
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "DATABASE_URL", "mysql+pymysql://root:@localhost:3306/sistema_academico"
     )
@@ -22,7 +24,14 @@ class ProductionConfig(Config):
     DEBUG = False
 
 
+class TestingConfig(Config):
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    JWT_SECRET_KEY = "test-jwt-secret-key-32-bytes-long-ok"
+
+
 config_by_name = {
     "development": DevelopmentConfig,
     "production": ProductionConfig,
+    "testing": TestingConfig,
 }
