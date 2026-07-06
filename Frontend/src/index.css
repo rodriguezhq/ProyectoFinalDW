@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 :root {
   --primary: #0D522C;
   --primary-hover: #093C20;
@@ -15,7 +17,7 @@
   --sans: 'Inter', system-ui, -apple-system, sans-serif;
   --heading: 'Outfit', system-ui, -apple-system, sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  
+
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
@@ -37,7 +39,8 @@
   padding: 0;
 }
 
-html, body {
+html,
+body {
   background-color: var(--bg-base);
   color: var(--text-main);
   font-family: var(--sans);
@@ -49,7 +52,12 @@ html, body {
   scroll-behavior: smooth;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--heading);
   color: var(--text-heading);
   font-weight: 700;
@@ -69,7 +77,10 @@ a {
   transition: var(--transition-fast);
 }
 
-button, input, select, textarea {
+button,
+input,
+select,
+textarea {
   font-family: inherit;
   font-size: inherit;
 }
@@ -84,13 +95,16 @@ button {
 ::-webkit-scrollbar {
   width: 10px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--bg-alt);
 }
+
 ::-webkit-scrollbar-thumb {
   background: #CBD5E1;
   border-radius: var(--radius-sm);
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
 }
