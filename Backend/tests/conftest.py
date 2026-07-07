@@ -7,6 +7,7 @@ from app import create_app
 from app.extensions import db
 from app.models import (
     Curso,
+    Docente,
     Especialidad,
     Estudiante,
     Facultad,
@@ -74,6 +75,18 @@ def _seed_minimo():
     db.session.add_all([estudiante, estudiante_2])
     db.session.commit()
 
+    docente = Docente(
+        codigo="D001",
+        dni="11223344",
+        nombres="Carlos",
+        apellidos="Torres",
+        correo="carlos.torres@test.com",
+        estado="activo",
+        id_facultad=facultad.id_facultad,
+    )
+    db.session.add(docente)
+    db.session.commit()
+
     usuario_estudiante = Usuario(
         username="jperez",
         password_hash=generate_password_hash(TEST_PASSWORD),
@@ -112,8 +125,22 @@ def _seed_minimo():
         apellidos="Direccion",
         correo="direccion@test.com",
     )
+    usuario_docente = Usuario(
+        username="ctorres",
+        password_hash=generate_password_hash(TEST_PASSWORD),
+        estado="activo",
+        id_rol=rol_docente.id_rol,
+        id_docente=docente.id_docente,
+    )
     db.session.add_all(
-        [usuario_estudiante, usuario_estudiante_2, usuario_inactivo, usuario_admin, usuario_direccion]
+        [
+            usuario_estudiante,
+            usuario_estudiante_2,
+            usuario_inactivo,
+            usuario_admin,
+            usuario_direccion,
+            usuario_docente,
+        ]
     )
     db.session.commit()
 

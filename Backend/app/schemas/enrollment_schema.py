@@ -18,6 +18,8 @@ class MatriculaDetalleResponse(BaseModel):
 
 class MatriculaResponse(BaseModel):
     id_matricula: int
+    id_estudiante: int
+    estudiante_nombre: str
     id_periodo: int
     fecha_matricula: datetime
     estado: str

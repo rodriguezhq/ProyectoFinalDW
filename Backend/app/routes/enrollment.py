@@ -27,6 +27,11 @@ class PeriodoPath(BaseModel):
     id_periodo: int = Field(..., description="ID del periodo académico")
 
 
+class ListarMatriculasQuery(BaseModel):
+    id_periodo: int | None = None
+    estado: str | None = None
+
+
 @enrollment_bp.post(
     "/",
     summary="Solicitar matrícula",
@@ -36,6 +41,18 @@ class PeriodoPath(BaseModel):
 @role_required("Estudiante")
 def solicitar(body: SolicitarMatriculaBody):
     response, status = enrollmentController.solicitar(body)
+    return response, status
+
+
+@enrollment_bp.get(
+    "/",
+    summary="Listar todas las matrículas (Administrador)",
+    responses={200: MatriculaListResponse},
+    security=[{"jwt": []}],
+)
+@role_required("Administrador")
+def listar_todas(query: ListarMatriculasQuery):
+    response, status = enrollmentController.listar_todas(query.id_periodo, query.estado)
     return response, status
 
 

@@ -146,6 +146,39 @@ def test_mis_matriculas_devuelve_solo_las_propias(client, app):
 
     assert resp.status_code == 200
     assert len(body["matriculas"]) == 1
+    assert body["matriculas"][0]["estudiante_nombre"] == "Juan Perez"
+
+
+def test_listar_todas_como_admin_incluye_estudiante_y_todas_las_matriculas(client, app):
+    client.post(
+        ENROLLMENT_URL + "/",
+        json={"id_periodo": _id_periodo(app), "secciones": [_id_seccion(app)]},
+        headers=_auth_headers(client, "jperez"),
+    )
+
+    resp = client.get(ENROLLMENT_URL + "/", headers=_auth_headers(client, "admin_test"))
+    body = resp.get_json()
+
+    assert resp.status_code == 200
+    assert len(body["matriculas"]) == 1
+    assert body["matriculas"][0]["estudiante_nombre"] == "Juan Perez"
+
+
+def test_listar_todas_con_rol_no_admin_devuelve_403(client, app):
+    resp = client.get(ENROLLMENT_URL + "/", headers=_auth_headers(client, "jperez"))
+    assert resp.status_code == 403
+
+
+def test_listar_todas_filtra_por_estado(client, app):
+    id_matricula = _crear_matricula(client, app)
+    admin_headers = _auth_headers(client, "admin_test")
+    client.post(f"{ENROLLMENT_URL}/{id_matricula}/validar", headers=admin_headers)
+
+    resp_pendientes = client.get(f"{ENROLLMENT_URL}/?estado=pendiente", headers=admin_headers)
+    resp_validadas = client.get(f"{ENROLLMENT_URL}/?estado=validada", headers=admin_headers)
+
+    assert len(resp_pendientes.get_json()["matriculas"]) == 0
+    assert len(resp_validadas.get_json()["matriculas"]) == 1
 
 
 # ---------------------------------------------------------------------------

@@ -50,22 +50,26 @@ División: **por módulo funcional, full-stack** (backend + frontend de cada mó
 
 ## Cristhian — Módulo 2: Cursos y Docentes
 
-- [ ] `schemas/course_schema.py`
-- [ ] `services/course_service.py` (CRUD Facultad/Especialidad/PlanEstudios/Curso/Seccion, asignación docente)
-- [ ] `Controllers/courseController.py` + `Controllers/teacherController.py`
-- [ ] `routes/courses.py`
+- [x] `schemas/course_schema.py`
+- [x] `services/course_service.py` (CRUD Facultad/Especialidad/PlanEstudios/Curso/PlanCurso/Seccion, asignación docente, sílabo, reportes de Dirección)
+- [x] `Controllers/courseController.py` + `Controllers/teacherController.py`
+- [x] `routes/courses.py` (18 endpoints: CRUD académico + secciones + mis-secciones + subir sílabo real (multipart) + carga docente + cumplimiento de plan)
+- [x] Tests (`tests/test_courses.py`) — 20 casos
 - [ ] Frontend docente: ver cursos asignados, subir sílabo, subir notas (link a módulo 3)
 - [ ] Frontend admin: asignar docentes, gestionar horarios/secciones
 - [ ] Frontend dirección: carga docente y cumplimiento de plan de estudios
 
 ## Cristhian — Módulo 6: Administración y Seguridad
 
-- [ ] `services/admin_service.py` (gestión de usuarios y roles)
-- [ ] `Controllers/userController.py` (CRUD usuarios) + `Controllers/auditController.py` (lectura de bitácora)
-- [ ] `routes/admin.py`
-- [ ] Middleware de auditoría (registra automáticamente en `Auditoria` sobre creates/updates/deletes sensibles)
+- [x] `services/admin_service.py` (CRUD usuarios + roles) + `services/audit_service.py` (compartido)
+- [x] `Controllers/userController.py` (CRUD usuarios/roles) + `Controllers/auditController.py` (lectura de bitácora)
+- [x] `routes/admin.py` (7 endpoints)
+- [x] Auditoría real: login exitoso/fallido, crear/actualizar usuario quedan registrados (con IP) — verificado, ya no es una tabla vacía
+- [x] Tests (`tests/test_admin.py`) — 17 casos
 - [ ] Frontend admin: gestión de perfiles de acceso (roles)
 - [ ] Frontend dirección: panel de auditorías y reportes estratégicos
+
+**Backend de Cristhian: 3/3 módulos completos** (Matrícula, Cursos y Docentes, Administración y Seguridad).
 
 ---
 
