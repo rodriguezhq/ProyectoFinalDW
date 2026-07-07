@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
 import './App.css';
+import DashboardLayout from './components/DashboardLayout';
+import ScheduleView from './components/ScheduleView';
+import StatsDashboardView from './components/StatsDashboardView';
+import { Eye, EyeOff } from 'lucide-react';
 
 // Academic Modules Data - 100% compliant with requested features
 const modulesData = [
@@ -235,14 +239,14 @@ function LandingPage({ activeTab, setActiveTab, navigate }) {
 }
 
 // Standalone LoginForm Component to avoid hook nested call warnings
-function LoginForm({ navigate }) {
+function LoginForm({ navigate, onLoginSuccess }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [alertMsg, setAlertMsg] = useState(null);
 
-  const handleLoginSubmit = (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
     
     // Basic input validation
@@ -251,27 +255,61 @@ function LoginForm({ navigate }) {
       return;
     }
 
-    if (!email.includes("@")) {
-      setAlertMsg({ type: "error", text: "Por favor ingrese un correo institucional válido." });
-      return;
-    }
-
     setIsLoading(true);
     setAlertMsg(null);
 
-    // Simulate a network latency login callback
-    setTimeout(() => {
-      setIsLoading(false);
+    // Support both direct username and institutional email prefixes
+    const username = email.includes("@") ? email.split("@")[0] : email;
+
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setAlertMsg({ type: "error", text: data.msg || "Usuario o contraseña incorrectos." });
+        setIsLoading(false);
+        return;
+      }
+
+      // Save token data and user information
+      localStorage.setItem("access_token", data.access_token);
+      localStorage.setItem("refresh_token", data.refresh_token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      
+      // Update app session state
+      onLoginSuccess(data.user);
+
       setAlertMsg({ 
         type: "success", 
-        text: "¡Inicio de sesión exitoso! Redireccionando al portal..." 
+        text: "¡Inicio de sesión exitoso! Accediendo al portal..." 
       });
-      
-      // Mock successful login redirection back to Landing
+
+      // Redirection delay for user experience
       setTimeout(() => {
-        navigate("/");
-      }, 1500);
-    }, 1500);
+        setIsLoading(false);
+        const role = data.user.rol;
+        if (role === "Estudiante") navigate("/student");
+        else if (role === "Docente") navigate("/teacher");
+        else if (role === "Administrador") navigate("/admin");
+        else if (role === "Direccion") navigate("/direction");
+        else navigate("/");
+      }, 1200);
+
+    } catch (err) {
+      console.error(err);
+      setAlertMsg({ 
+        type: "error", 
+        text: "No se pudo conectar con el servidor. Por favor, asegúrese de que el backend esté ejecutándose." 
+      });
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -303,12 +341,12 @@ function LoginForm({ navigate }) {
         {/* Form */}
         <form onSubmit={handleLoginSubmit} id="sga-login-form">
           <div className="form-group">
-            <label className="form-label" htmlFor="sga-user-email">Correo Institucional</label>
+            <label className="form-label" htmlFor="sga-user-email">Usuario / Correo Institucional</label>
             <input
               id="sga-user-email"
-              type="email"
+              type="text"
               className="form-input"
-              placeholder="usuario@uncp.edu.pe"
+              placeholder="usuario@uncp.edu.pe o admin"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
@@ -335,16 +373,12 @@ function LoginForm({ navigate }) {
                 aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                 onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? "👁️" : "🙈"}
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
           </div>
 
-          <div className="form-options">
-            <label className="remember-me" htmlFor="sga-remember">
-              <input type="checkbox" id="sga-remember" className="remember-checkbox" />
-              Recordarme
-            </label>
+          <div className="form-options" style={{ justifyContent: 'flex-end' }}>
             <a href="#forgot" className="forgot-password-link" onClick={(e) => { e.preventDefault(); alert("Contacto de soporte: soporte.sga@uncp.edu.pe"); }}>
               ¿Olvidó su contraseña?
             </a>
@@ -378,6 +412,12 @@ function LoginForm({ navigate }) {
 function App() {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
   const [activeTab, setActiveTab] = useState("matricula");
+  
+  // Synchronous session restore to avoid screen flashes
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem("user");
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
 
   // Synchronize state with browser back/forward buttons
   useEffect(() => {
@@ -394,92 +434,155 @@ function App() {
     window.scrollTo(0, 0);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem("user");
+    setUser(null);
+    navigate("/");
+  };
+
+  const isDashboardRoute = ["/student", "/teacher", "/admin", "/direction"].includes(currentPath);
+
   return (
     <div className="app-container">
-      {/* Navigation Bar - Shared by Landing and Login */}
-      <header className="main-header">
-        <nav className="navbar" aria-label="Navegación Principal">
-          <div className="brand" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-            <img src="/Escudo_UNCP.png" alt="Escudo de la UNCP" className="brand-logo" />
-            <div className="brand-text">
-              <span className="brand-title">SGA - UNCP</span>
-              <span className="brand-sub">Universidad Nacional del Centro del Perú</span>
+      {/* Navigation Bar - Shared by Landing and Login, hidden in Dashboard */}
+      {!isDashboardRoute && (
+        <header className="main-header">
+          <nav className="navbar" aria-label="Navegación Principal">
+            <div className="brand" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+              <img src="/Escudo_UNCP.png" alt="Escudo de la UNCP" className="brand-logo" />
+              <div className="brand-text">
+                <span className="brand-title">SGA - UNCP</span>
+                <span className="brand-sub">Universidad Nacional del Centro del Perú</span>
+              </div>
             </div>
-          </div>
-          <ul className="nav-links">
-            <li>
-              <a href="#modulos" className="nav-link" onClick={(e) => { 
-                e.preventDefault(); 
-                if (currentPath !== "/") {
-                  navigate('/');
-                  setTimeout(() => {
+            <ul className="nav-links">
+              <li>
+                <a href="#modulos" className="nav-link" onClick={(e) => { 
+                  e.preventDefault(); 
+                  if (currentPath !== "/") {
+                    navigate('/');
+                    setTimeout(() => {
+                      document.getElementById('modulos')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                  } else {
                     document.getElementById('modulos')?.scrollIntoView({ behavior: 'smooth' });
-                  }, 100);
-                } else {
-                  document.getElementById('modulos')?.scrollIntoView({ behavior: 'smooth' });
-                }
-              }}>
-                Módulos
-              </a>
-            </li>
-            <li>
-              <a href="#roles" className="nav-link" onClick={(e) => { 
-                e.preventDefault(); 
-                if (currentPath !== "/") {
-                  navigate('/');
-                  setTimeout(() => {
+                  }
+                }}>
+                  Módulos
+                </a>
+              </li>
+              <li>
+                <a href="#roles" className="nav-link" onClick={(e) => { 
+                  e.preventDefault(); 
+                  if (currentPath !== "/") {
+                    navigate('/');
+                    setTimeout(() => {
+                      document.getElementById('roles')?.scrollIntoView({ behavior: 'smooth' });
+                    }, 100);
+                  } else {
                     document.getElementById('roles')?.scrollIntoView({ behavior: 'smooth' });
-                  }, 100);
-                } else {
-                  document.getElementById('roles')?.scrollIntoView({ behavior: 'smooth' });
-                }
-              }}>
-                Roles
-              </a>
-            </li>
-            <li>
-              <a href="https://uncp.edu.pe" target="_blank" rel="noopener noreferrer" className="nav-link">
-                Universidad
-              </a>
-            </li>
-          </ul>
-          <div>
-            {currentPath !== "/login" && (
-              <button 
-                id="btn-nav-login"
-                type="button" 
-                className="btn-primary-outline" 
-                onClick={() => navigate('/login')}
-              >
-                Acceder al Portal
-              </button>
-            )}
-          </div>
-        </nav>
-      </header>
+                  }
+                }}>
+                  Roles
+                </a>
+              </li>
+              <li>
+                <a href="https://uncp.edu.pe" target="_blank" rel="noopener noreferrer" className="nav-link">
+                  Universidad
+                </a>
+              </li>
+            </ul>
+            <div>
+              {currentPath !== "/login" && (
+                user ? (
+                  <button 
+                    id="btn-nav-dashboard"
+                    type="button" 
+                    className="btn-primary" 
+                    onClick={() => {
+                      const role = user.rol;
+                      if (role === "Estudiante") navigate("/student");
+                      else if (role === "Docente") navigate("/teacher");
+                      else if (role === "Administrador") navigate("/admin");
+                      else if (role === "Direccion") navigate("/direction");
+                    }}
+                  >
+                    Ir a mi Panel
+                  </button>
+                ) : (
+                  <button 
+                    id="btn-nav-login"
+                    type="button" 
+                    className="btn-primary-outline" 
+                    onClick={() => navigate('/login')}
+                  >
+                    Acceder al Portal
+                  </button>
+                )
+              )}
+            </div>
+          </nav>
+        </header>
+      )}
 
       {/* Main View Router Switch */}
       {currentPath === "/login" ? (
-        <LoginForm navigate={navigate} />
+        <LoginForm navigate={navigate} onLoginSuccess={setUser} />
+      ) : currentPath === "/student" ? (
+        user && user.rol === "Estudiante" ? (
+          <DashboardLayout user={user} onLogout={handleLogout}>
+            <ScheduleView isTeacher={false} />
+          </DashboardLayout>
+        ) : (
+          <LoginForm navigate={navigate} onLoginSuccess={setUser} />
+        )
+      ) : currentPath === "/teacher" ? (
+        user && user.rol === "Docente" ? (
+          <DashboardLayout user={user} onLogout={handleLogout}>
+            <ScheduleView isTeacher={true} />
+          </DashboardLayout>
+        ) : (
+          <LoginForm navigate={navigate} onLoginSuccess={setUser} />
+        )
+      ) : currentPath === "/admin" ? (
+        user && user.rol === "Administrador" ? (
+          <DashboardLayout user={user} onLogout={handleLogout}>
+            <StatsDashboardView isDirection={false} />
+          </DashboardLayout>
+        ) : (
+          <LoginForm navigate={navigate} onLoginSuccess={setUser} />
+        )
+      ) : currentPath === "/direction" ? (
+        user && user.rol === "Direccion" ? (
+          <DashboardLayout user={user} onLogout={handleLogout}>
+            <StatsDashboardView isDirection={true} />
+          </DashboardLayout>
+        ) : (
+          <LoginForm navigate={navigate} onLoginSuccess={setUser} />
+        )
       ) : (
         <LandingPage activeTab={activeTab} setActiveTab={setActiveTab} navigate={navigate} />
       )}
 
-      {/* Footer - Shared by Landing and Login */}
-      <footer className="main-footer">
-        <div className="footer-content">
-          <div className="footer-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-            <img src="/Escudo_UNCP.png" alt="Logo UNCP Blanco" className="footer-logo-img" />
+      {/* Footer - Shared by Landing and Login, hidden in Dashboard */}
+      {!isDashboardRoute && (
+        <footer className="main-footer">
+          <div className="footer-content">
+            <div className="footer-logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
+              <img src="/Escudo_UNCP.png" alt="Logo UNCP Blanco" className="footer-logo-img" />
+              <div>
+                <h4 className="footer-logo-title">SGA - UNCP</h4>
+                <p className="footer-logo-sub">Facultad de Ingeniería de Sistemas</p>
+              </div>
+            </div>
             <div>
-              <h4 className="footer-logo-title">SGA - UNCP</h4>
-              <p className="footer-logo-sub">Facultad de Ingeniería de Sistemas</p>
+              <p>UNCP 2026. Todos los derechos reservados.</p>
             </div>
           </div>
-          <div>
-            <p>UNCP 2026. Todos los derechos reservados.</p>
-          </div>
-        </div>
-      </footer>
+        </footer>
+      )}
     </div>
   );
 }
