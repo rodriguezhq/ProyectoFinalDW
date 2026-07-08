@@ -88,10 +88,10 @@ export default function ScheduleView({ isTeacher = false }) {
     const fetchSchedule = async () => {
       setIsLoading(true);
       setErrorMsg(null);
-      
+
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
-      const url = isTeacher 
-        ? `${apiBaseUrl}/api/courses/mis-secciones` 
+      const url = isTeacher
+        ? `${apiBaseUrl}/api/courses/mis-secciones`
         : `${apiBaseUrl}/api/enrollment/mias`;
 
       try {
@@ -130,14 +130,14 @@ export default function ScheduleView({ isTeacher = false }) {
   // Helper to find a course for a specific slot
   const getCourseForSlot = (day, hourSlot) => {
     const slotStart = hourSlot.split(' - ')[0];
-    
+
     return scheduleData.find(item => {
       if (item.day !== day) return false;
-      
+
       const startVal = parseInt(item.startHour.replace(':', ''));
       const endVal = parseInt(item.endHour.replace(':', ''));
       const currentVal = parseInt(slotStart.replace(':', ''));
-      
+
       return currentVal >= startVal && currentVal < endVal;
     });
   };
@@ -166,7 +166,7 @@ export default function ScheduleView({ isTeacher = false }) {
       <div className="mb-7">
         <h3 className="font-heading text-[1.35rem] font-extrabold text-text-heading mb-1.5">📅 Horario Académico — Periodo 2026-I</h3>
         <p className="text-[0.95rem] text-text-muted">
-          {isTeacher 
+          {isTeacher
             ? 'Vista de dictado de clases asignadas y laboratorios programados.'
             : 'Consulta tus asignaturas matriculadas, secciones y distribución de aulas.'}
         </p>
@@ -207,9 +207,9 @@ export default function ScheduleView({ isTeacher = false }) {
 
                       if (isStart) {
                         return (
-                          <td 
-                            key={day} 
-                            rowSpan={duration} 
+                          <td
+                            key={day}
+                            rowSpan={duration}
                             className="p-1.5 border-b border-r border-border last:border-r-0 text-center text-[0.88rem] align-middle"
                           >
                             <div className={`p-3 px-2.5 rounded-md flex flex-col gap-1 h-full shadow-[0_2px_6px_rgba(0,0,0,0.02)] text-left animate-fade-in ${colorClasses[activeCourse.color] || ''}`}>
