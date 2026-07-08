@@ -23,7 +23,7 @@ const colorClasses = {
   pink: 'bg-pink-50 border-l-4 border-pink-600 text-pink-800'
 };
 
-// Parser to convert backend schedule strings like "Lun/Mie 08:00-10:00" into separate slots
+// Parser para convertir la cadena del horario del backend (ej: "Lun/Mie 08:00-10:00") en slots independientes
 const parseBackendSchedule = (backendSections) => {
   const result = [];
   const dayMap = {
@@ -42,7 +42,6 @@ const parseBackendSchedule = (backendSections) => {
     const horarioStr = sec.horario;
     if (!horarioStr) return;
 
-    // Split day indicator and time range
     const parts = horarioStr.split(' ');
     if (parts.length < 2) return;
 
@@ -55,7 +54,6 @@ const parseBackendSchedule = (backendSections) => {
     const startHour = timeRange[0];
     const endHour = timeRange[1];
 
-    // Split days by slash
     const individualDays = daysPart.split('/');
 
     const color = colors[colorIdx % colors.length];
@@ -79,7 +77,7 @@ const parseBackendSchedule = (backendSections) => {
   return result;
 };
 
-export default function ScheduleView({ isTeacher = false }) {
+export default function VistaHorario({ onSessionExpired }) {
   const [scheduleData, setScheduleData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState(null);
@@ -90,29 +88,56 @@ export default function ScheduleView({ isTeacher = false }) {
       setErrorMsg(null);
       
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
-      const url = isTeacher 
-        ? `${apiBaseUrl}/api/courses/mis-secciones` 
-        : `${apiBaseUrl}/api/enrollment/mias`;
+      const url = `${apiBaseUrl}/api/enrollment/mias`;
 
       try {
-        const response = await fetch(url, {
+        let response = await fetch(url, {
           method: "GET",
           credentials: "include"
         });
+
+        if (response.status === 401) {
+          const getCookie = (name) => {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return null;
+          };
+
+          const csrfRefreshToken = getCookie("csrf_refresh_token");
+
+          try {
+            const refreshResponse = await fetch(`${apiBaseUrl}/api/auth/refresh`, {
+              method: "POST",
+              headers: {
+                "X-CSRF-TOKEN": csrfRefreshToken || ""
+              },
+              credentials: "include"
+            });
+
+            if (refreshResponse.ok) {
+              response = await fetch(url, {
+                method: "GET",
+                credentials: "include"
+              });
+            } else {
+              if (onSessionExpired) onSessionExpired();
+              return;
+            }
+          } catch (refreshErr) {
+            console.error("Error al intentar refrescar el token:", refreshErr);
+            if (onSessionExpired) onSessionExpired();
+            return;
+          }
+        }
 
         if (!response.ok) {
           throw new Error("No se pudo obtener la información de horarios desde el servidor.");
         }
 
         const data = await response.json();
-
-        let sections = [];
-        if (isTeacher) {
-          sections = data.secciones || [];
-        } else {
-          const matriculas = data.matriculas || [];
-          sections = matriculas.flatMap(m => m.detalles || []);
-        }
+        const matriculas = data.matriculas || [];
+        const sections = matriculas.flatMap(m => m.detalles || []);
 
         const parsed = parseBackendSchedule(sections);
         setScheduleData(parsed);
@@ -125,9 +150,8 @@ export default function ScheduleView({ isTeacher = false }) {
     };
 
     fetchSchedule();
-  }, [isTeacher]);
+  }, [onSessionExpired]);
 
-  // Helper to find a course for a specific slot
   const getCourseForSlot = (day, hourSlot) => {
     const slotStart = hourSlot.split(' - ')[0];
     
@@ -166,9 +190,7 @@ export default function ScheduleView({ isTeacher = false }) {
       <div className="mb-7">
         <h3 className="font-heading text-[1.35rem] font-extrabold text-text-heading mb-1.5">📅 Horario Académico — Periodo 2026-I</h3>
         <p className="text-[0.95rem] text-text-muted">
-          {isTeacher 
-            ? 'Vista de dictado de clases asignadas y laboratorios programados.'
-            : 'Consulta tus asignaturas matriculadas, secciones y distribución de aulas.'}
+          Consulta tus asignaturas matriculadas, secciones y distribución de aulas.
         </p>
       </div>
 
@@ -216,7 +238,7 @@ export default function ScheduleView({ isTeacher = false }) {
                               <span className="font-bold text-text-heading text-[0.88rem] leading-tight">{activeCourse.course}</span>
                               <span className="text-[0.75rem] font-semibold opacity-85">📍 {activeCourse.room}</span>
                               <span className="text-[0.65rem] font-bold uppercase tracking-wider mt-1 self-start py-0.5 px-1.5 rounded bg-white/40">
-                                {isTeacher ? '🎓 Docente Principal' : '📚 Teoría y Práctica'}
+                                📚 Teoría y Práctica
                               </span>
                             </div>
                           </td>
@@ -234,7 +256,6 @@ export default function ScheduleView({ isTeacher = false }) {
         </table>
       </div>
 
-      {/* Schedule Legend */}
       <div className="mt-6 flex items-center flex-wrap gap-4 text-[0.85rem]">
         <span className="font-bold text-text-heading">Código de colores:</span>
         <div className="flex flex-wrap gap-2">

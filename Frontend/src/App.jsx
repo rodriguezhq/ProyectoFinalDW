@@ -542,13 +542,13 @@ function App() {
       ) : currentPath === "/student" ? (
         user && user.rol === "Estudiante" ? (
           <DashboardLayout user={user} onLogout={handleLogout}>
-            <ScheduleView isTeacher={false} />
+            <ScheduleView isTeacher={false} onSessionExpired={handleLogout} />
           </DashboardLayout>
         ) : null
       ) : currentPath === "/teacher" ? (
         user && user.rol === "Docente" ? (
           <DashboardLayout user={user} onLogout={handleLogout}>
-            <ScheduleView isTeacher={true} />
+            <ScheduleView isTeacher={true} onSessionExpired={handleLogout} />
           </DashboardLayout>
         ) : null
       ) : currentPath === "/admin" ? (

@@ -5,6 +5,8 @@ from app.schemas.auth_schema import LoginBody, LoginResponse
 from flask_openapi3.models.tag import Tag
 from app.schemas.common_schema import MessageResponse
 
+from flask_jwt_extended import jwt_required
+
 auth_tag = Tag(name="Autenticación", description="login y Logout de usuarios")
 auth_bp = APIBlueprint("auth", __name__, abp_tags=[auth_tag])
 
@@ -22,3 +24,9 @@ def login(body: LoginBody):
 @auth_bp.post("/logout", summary="Cerrar sesión", responses={200: MessageResponse})
 def logout():
     return authController.logout()
+
+
+@auth_bp.post("/refresh", summary="Refrescar token de acceso", responses={200: MessageResponse, 401: MessageResponse})
+@jwt_required(refresh=True)
+def refresh():
+    return authController.refresh()

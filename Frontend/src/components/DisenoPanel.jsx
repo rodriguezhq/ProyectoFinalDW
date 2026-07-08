@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
-// Options list matching tasks from modulesData per role
-const roleMenuOptions = {
+// Lista de opciones correspondientes a las tareas de cada rol de usuario
+const opcionesMenuRol = {
   Estudiante: [
     { icon: '🗓️', label: 'Horario de Clases', active: true },
     { icon: '📝', label: 'Solicitar Matrícula' },
@@ -36,7 +36,7 @@ const roleMenuOptions = {
   ]
 };
 
-export default function DashboardLayout({ user, onLogout, children }) {
+export default function DisenoPanel({ user, onLogout, children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeMenuIndex, setActiveMenuIndex] = useState(0);
@@ -44,7 +44,7 @@ export default function DashboardLayout({ user, onLogout, children }) {
   const [profileModalOpen, setProfileModalOpen] = useState(false);
 
   const role = user?.rol || 'Estudiante';
-  const menuOptions = roleMenuOptions[role] || roleMenuOptions['Estudiante'];
+  const menuOptions = opcionesMenuRol[role] || opcionesMenuRol['Estudiante'];
 
   const handleToggle = () => {
     if (window.innerWidth < 1024) {

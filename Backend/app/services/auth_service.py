@@ -60,6 +60,22 @@ def login_user(username, password, ip=None):
     }
 
 
+def refresh_user_token(user_id):
+    user = db.session.get(Usuario, int(user_id))
+    if not user or user.estado != "activo":
+        return None
+    additional_claims = {
+        "id_rol": user.id_rol,
+        "rol": user.rol.nombre if user.rol else None,
+    }
+    access_token = create_access_token(
+        identity=str(user.id_usuario),
+        additional_claims=additional_claims,
+        expires_delta=timedelta(hours=8),
+    )
+    return access_token
+
+
 def hash_password(password: str):
     return generate_password_hash(password)
 
