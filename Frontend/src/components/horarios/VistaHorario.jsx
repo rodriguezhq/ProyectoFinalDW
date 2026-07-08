@@ -77,7 +77,7 @@ const parseBackendSchedule = (backendSections) => {
   return result;
 };
 
-export default function VistaHorario({ onSessionExpired }) {
+export default function VistaHorario({ isTeacher = false, onSessionExpired }) {
   const [scheduleData, setScheduleData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState(null);
@@ -88,7 +88,9 @@ export default function VistaHorario({ onSessionExpired }) {
       setErrorMsg(null);
       
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
-      const url = `${apiBaseUrl}/api/enrollment/mias`;
+      const url = isTeacher 
+        ? `${apiBaseUrl}/api/courses/mis-secciones`
+        : `${apiBaseUrl}/api/enrollment/mias`;
 
       try {
         let response = await fetch(url, {
@@ -136,8 +138,14 @@ export default function VistaHorario({ onSessionExpired }) {
         }
 
         const data = await response.json();
-        const matriculas = data.matriculas || [];
-        const sections = matriculas.flatMap(m => m.detalles || []);
+        
+        let sections = [];
+        if (isTeacher) {
+          sections = data.secciones || [];
+        } else {
+          const matriculas = data.matriculas || [];
+          sections = matriculas.flatMap(m => m.detalles || []);
+        }
 
         const parsed = parseBackendSchedule(sections);
         setScheduleData(parsed);
@@ -150,7 +158,7 @@ export default function VistaHorario({ onSessionExpired }) {
     };
 
     fetchSchedule();
-  }, [onSessionExpired]);
+  }, [isTeacher, onSessionExpired]);
 
   const getCourseForSlot = (day, hourSlot) => {
     const slotStart = hourSlot.split(' - ')[0];
@@ -190,7 +198,9 @@ export default function VistaHorario({ onSessionExpired }) {
       <div className="mb-7">
         <h3 className="font-heading text-[1.35rem] font-extrabold text-text-heading mb-1.5">📅 Horario Académico — Periodo 2026-I</h3>
         <p className="text-[0.95rem] text-text-muted">
-          Consulta tus asignaturas matriculadas, secciones y distribución de aulas.
+          {isTeacher 
+            ? 'Vista de dictado de clases asignadas y laboratorios programados.'
+            : 'Consulta tus asignaturas matriculadas, secciones y distribución de aulas.'}
         </p>
       </div>
 
@@ -238,7 +248,7 @@ export default function VistaHorario({ onSessionExpired }) {
                               <span className="font-bold text-text-heading text-[0.88rem] leading-tight">{activeCourse.course}</span>
                               <span className="text-[0.75rem] font-semibold opacity-85">📍 {activeCourse.room}</span>
                               <span className="text-[0.65rem] font-bold uppercase tracking-wider mt-1 self-start py-0.5 px-1.5 rounded bg-white/40">
-                                📚 Teoría y Práctica
+                                {isTeacher ? '🎓 Docente Principal' : '📚 Teoría y Práctica'}
                               </span>
                             </div>
                           </td>

@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import DashboardLayout from './components/DashboardLayout';
-import ScheduleView from './components/ScheduleView';
-import StatsDashboardView from './components/StatsDashboardView';
+import DisenoPanel from './components/DisenoPanel';
+import VistaHorario from './components/horarios/VistaHorario';
+import VistaPanel from './components/estadisticas/VistaPanel';
+import MantenimientoAcademico from './components/academico/MantenimientoAcademico';
+import { Toaster, toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
 
 // Academic Modules Data - 100% compliant with requested features
@@ -243,19 +245,17 @@ function LoginForm({ navigate, onLoginSuccess }) {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [alertMsg, setAlertMsg] = useState(null);
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     
     // Basic input validation
     if (!email.trim() || !password.trim()) {
-      setAlertMsg({ type: "error", text: "Por favor complete todos los campos." });
+      toast.error("Por favor complete todos los campos.");
       return;
     }
 
     setIsLoading(true);
-    setAlertMsg(null);
 
     // Support both direct username and institutional email prefixes
     const username = email.includes("@") ? email.split("@")[0] : email;
@@ -274,7 +274,7 @@ function LoginForm({ navigate, onLoginSuccess }) {
       const data = await response.json();
 
       if (!response.ok) {
-        setAlertMsg({ type: "error", text: data.msg || "Usuario o contraseña incorrectos." });
+        toast.error(data.msg || "Usuario o contraseña incorrectos.");
         setIsLoading(false);
         return;
       }
@@ -285,28 +285,22 @@ function LoginForm({ navigate, onLoginSuccess }) {
       // Update app session state
       onLoginSuccess(data.user);
 
-      setAlertMsg({ 
-        type: "success", 
-        text: "¡Inicio de sesión exitoso! Accediendo al portal..." 
-      });
+      toast.success("¡Inicio de sesión exitoso! Accediendo al portal...");
 
       // Redirection delay for user experience
       setTimeout(() => {
         setIsLoading(false);
         const role = data.user.rol;
-        if (role === "Estudiante") navigate("/student");
-        else if (role === "Docente") navigate("/teacher");
-        else if (role === "Administrador") navigate("/admin");
-        else if (role === "Direccion") navigate("/direction");
+        if (role === "Estudiante") navigate("/estudiante");
+        else if (role === "Docente") navigate("/docente");
+        else if (role === "Administrador") navigate("/administrador");
+        else if (role === "Direccion") navigate("/direccion");
         else navigate("/");
       }, 1200);
 
     } catch (err) {
       console.error(err);
-      setAlertMsg({ 
-        type: "error", 
-        text: "No se pudo conectar con el servidor. Por favor, asegúrese de que el backend esté ejecutándose." 
-      });
+      toast.error("No se pudo conectar con el servidor. Por favor, asegúrese de que el backend esté ejecutándose.");
       setIsLoading(false);
     }
   };
@@ -328,14 +322,6 @@ function LoginForm({ navigate, onLoginSuccess }) {
           <h1 className="text-[1.85rem] font-bold text-text-heading mb-2 tracking-tight">Iniciar Sesión</h1>
           <p className="text-text-muted text-[0.95rem]">Ingresa tus credenciales institucionales para acceder</p>
         </div>
-
-        {/* Alert Message Box */}
-        {alertMsg && (
-          <div className={`p-3 px-4 rounded-md text-[0.88rem] font-medium mb-5 flex items-center gap-2.5 animate-slide-up ${alertMsg.type === 'success' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-red-100 text-red-700 border border-red-200'}`} role="alert">
-            <span>{alertMsg.type === "success" ? "✓" : "⚠"}</span>
-            <span>{alertMsg.text}</span>
-          </div>
-        )}
 
         {/* Form */}
         <form onSubmit={handleLoginSubmit} id="sga-login-form">
@@ -378,7 +364,7 @@ function LoginForm({ navigate, onLoginSuccess }) {
           </div>
 
           <div className="flex justify-end mb-6 text-[0.85rem]">
-            <a href="#forgot" className="text-primary font-semibold hover:text-primary-hover hover:underline" onClick={(e) => { e.preventDefault(); alert("Contacto de soporte: soporte.sga@uncp.edu.pe"); }}>
+            <a href="#forgot" className="text-primary font-semibold hover:text-primary-hover hover:underline" onClick={(e) => { e.preventDefault(); toast.info("Contacto de soporte: soporte.sga@uncp.edu.pe"); }}>
               ¿Olvidó su contraseña?
             </a>
           </div>
@@ -401,7 +387,7 @@ function LoginForm({ navigate, onLoginSuccess }) {
         </form>
 
         <div className="mt-8 text-center text-[0.85rem] text-text-muted">
-          ¿No tienes una cuenta activa? <a href="#contacto" className="text-primary font-semibold hover:underline" onClick={(e) => { e.preventDefault(); alert("Dirígete a la Oficina de Asuntos Académicos de tu facultad."); }}>Solicita acceso</a>
+          ¿No tienes una cuenta activa? <a href="#contacto" className="text-primary font-semibold hover:underline" onClick={(e) => { e.preventDefault(); toast.info("Dirígete a la Oficina de Asuntos Académicos de tu facultad."); }}>Solicita acceso</a>
         </div>
       </div>
     </main>
@@ -417,6 +403,12 @@ function App() {
     const savedUser = localStorage.getItem("user");
     return savedUser ? JSON.parse(savedUser) : null;
   });
+
+  const [activeMenuIndex, setActiveMenuIndex] = useState(0);
+
+  useEffect(() => {
+    setActiveMenuIndex(0);
+  }, [user]);
 
   // Synchronize state with browser back/forward buttons
   useEffect(() => {
@@ -434,16 +426,16 @@ function App() {
   };
 
   const redirectToDashboard = (role) => {
-    if (role === "Estudiante") navigate("/student");
-    else if (role === "Docente") navigate("/teacher");
-    else if (role === "Administrador") navigate("/admin");
-    else if (role === "Direccion") navigate("/direction");
+    if (role === "Estudiante") navigate("/estudiante");
+    else if (role === "Docente") navigate("/docente");
+    else if (role === "Administrador") navigate("/administrador");
+    else if (role === "Direccion") navigate("/direccion");
     else navigate("/");
   };
 
   // Centralized Route Protection Guard
   useEffect(() => {
-    const isDashboardRoute = ["/student", "/teacher", "/admin", "/direction"].includes(currentPath);
+    const isDashboardRoute = ["/estudiante", "/docente", "/administrador", "/direccion"].includes(currentPath);
 
     if (user) {
       // 1. If authenticated user attempts to access login, redirect to their dashboard
@@ -452,13 +444,13 @@ function App() {
       }
       
       // 2. Prevent role-mismatch access (e.g. Student accessing /admin, etc.)
-      if (currentPath === "/student" && user.rol !== "Estudiante") {
+      if (currentPath === "/estudiante" && user.rol !== "Estudiante") {
         redirectToDashboard(user.rol);
-      } else if (currentPath === "/teacher" && user.rol !== "Docente") {
+      } else if (currentPath === "/docente" && user.rol !== "Docente") {
         redirectToDashboard(user.rol);
-      } else if (currentPath === "/admin" && user.rol !== "Administrador") {
+      } else if (currentPath === "/administrador" && user.rol !== "Administrador") {
         redirectToDashboard(user.rol);
-      } else if (currentPath === "/direction" && user.rol !== "Direccion") {
+      } else if (currentPath === "/direccion" && user.rol !== "Direccion") {
         redirectToDashboard(user.rol);
       }
     } else {
@@ -484,7 +476,7 @@ function App() {
     navigate("/");
   };
 
-  const isDashboardRoute = ["/student", "/teacher", "/admin", "/direction"].includes(currentPath);
+  const isDashboardRoute = ["/estudiante", "/docente", "/administrador", "/direccion"].includes(currentPath);
 
   return (
     <div className="min-h-screen flex flex-col bg-bg-base animate-fade-in">
@@ -512,10 +504,10 @@ function App() {
                     className="bg-primary text-white py-2 px-3.5 sm:py-2.5 sm:px-6 text-[0.82rem] sm:text-base font-semibold rounded-md transition-all duration-300 inline-flex items-center gap-2 shadow-[0_4px_14px_rgba(13,82,44,0.18)] hover:bg-primary-hover hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(13,82,44,0.25)]" 
                     onClick={() => {
                       const role = user.rol;
-                      if (role === "Estudiante") navigate("/student");
-                      else if (role === "Docente") navigate("/teacher");
-                      else if (role === "Administrador") navigate("/admin");
-                      else if (role === "Direccion") navigate("/direction");
+                      if (role === "Estudiante") navigate("/estudiante");
+                      else if (role === "Docente") navigate("/docente");
+                      else if (role === "Administrador") navigate("/administrador");
+                      else if (role === "Direccion") navigate("/direccion");
                     }}
                   >
                     <span className="sm:hidden">Mi Panel</span><span className="hidden sm:inline">Ir a mi Panel</span>
@@ -539,29 +531,55 @@ function App() {
       {/* Main View Router Switch */}
       {currentPath === "/login" ? (
         user ? null : <LoginForm navigate={navigate} onLoginSuccess={setUser} />
-      ) : currentPath === "/student" ? (
+      ) : currentPath === "/estudiante" ? (
         user && user.rol === "Estudiante" ? (
-          <DashboardLayout user={user} onLogout={handleLogout}>
-            <ScheduleView isTeacher={false} onSessionExpired={handleLogout} />
-          </DashboardLayout>
+          <DisenoPanel user={user} onLogout={handleLogout} activeMenuIndex={activeMenuIndex} setActiveMenuIndex={setActiveMenuIndex}>
+            {activeMenuIndex === 0 ? (
+              <VistaHorario isTeacher={false} onSessionExpired={handleLogout} />
+            ) : (
+              <div className="p-8 text-center text-text-muted font-medium bg-white rounded-2xl border border-border shadow-md">
+                Esta sección del portal de Estudiante estará disponible próximamente.
+              </div>
+            )}
+          </DisenoPanel>
         ) : null
-      ) : currentPath === "/teacher" ? (
+      ) : currentPath === "/docente" ? (
         user && user.rol === "Docente" ? (
-          <DashboardLayout user={user} onLogout={handleLogout}>
-            <ScheduleView isTeacher={true} onSessionExpired={handleLogout} />
-          </DashboardLayout>
+          <DisenoPanel user={user} onLogout={handleLogout} activeMenuIndex={activeMenuIndex} setActiveMenuIndex={setActiveMenuIndex}>
+            {activeMenuIndex === 0 ? (
+              <VistaHorario isTeacher={true} onSessionExpired={handleLogout} />
+            ) : (
+              <div className="p-8 text-center text-text-muted font-medium bg-white rounded-2xl border border-border shadow-md">
+                Esta sección del portal de Docente estará disponible próximamente.
+              </div>
+            )}
+          </DisenoPanel>
         ) : null
-      ) : currentPath === "/admin" ? (
+      ) : currentPath === "/administrador" ? (
         user && user.rol === "Administrador" ? (
-          <DashboardLayout user={user} onLogout={handleLogout}>
-            <StatsDashboardView isDirection={false} />
-          </DashboardLayout>
+          <DisenoPanel user={user} onLogout={handleLogout} activeMenuIndex={activeMenuIndex} setActiveMenuIndex={setActiveMenuIndex}>
+            {activeMenuIndex === 0 ? (
+              <VistaPanel isDirection={false} />
+            ) : activeMenuIndex === 1 ? (
+              <MantenimientoAcademico />
+            ) : (
+              <div className="p-8 text-center text-text-muted font-medium bg-white rounded-2xl border border-border shadow-md">
+                Esta sección de Administración estará disponible próximamente.
+              </div>
+            )}
+          </DisenoPanel>
         ) : null
-      ) : currentPath === "/direction" ? (
+      ) : currentPath === "/direccion" ? (
         user && user.rol === "Direccion" ? (
-          <DashboardLayout user={user} onLogout={handleLogout}>
-            <StatsDashboardView isDirection={true} />
-          </DashboardLayout>
+          <DisenoPanel user={user} onLogout={handleLogout} activeMenuIndex={activeMenuIndex} setActiveMenuIndex={setActiveMenuIndex}>
+            {activeMenuIndex === 0 ? (
+              <VistaPanel isDirection={true} />
+            ) : (
+              <div className="p-8 text-center text-text-muted font-medium bg-white rounded-2xl border border-border shadow-md">
+                Esta sección de Dirección estará disponible próximamente.
+              </div>
+            )}
+          </DisenoPanel>
         ) : null
       ) : (
         <LandingPage activeTab={activeTab} setActiveTab={setActiveTab} navigate={navigate} />
@@ -584,6 +602,7 @@ function App() {
           </div>
         </footer>
       )}
+      <Toaster position="top-right" richColors />
     </div>
   );
 }

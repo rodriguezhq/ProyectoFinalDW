@@ -19,6 +19,7 @@ const opcionesMenuRol = {
   ],
   Administrador: [
     { icon: '📈', label: 'Dashboard de Control', active: true },
+    { icon: '🏫', label: 'Mantenimiento Académico' },
     { icon: '📝', label: 'Validar Matrículas' },
     { icon: '💵', label: 'Registrar Pagos' },
     { icon: '🏫', label: 'Asignar Docentes' },
@@ -36,10 +37,9 @@ const opcionesMenuRol = {
   ]
 };
 
-export default function DisenoPanel({ user, onLogout, children }) {
+export default function DisenoPanel({ user, onLogout, activeMenuIndex = 0, setActiveMenuIndex, children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [activeMenuIndex, setActiveMenuIndex] = useState(0);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
 
@@ -65,7 +65,7 @@ export default function DisenoPanel({ user, onLogout, children }) {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed lg:static inset-y-0 left-0 h-screen bg-primary-light text-text-main flex flex-col overflow-y-auto border-r border-primary/10 transition-all duration-300 z-[99] ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} ${isCollapsed ? 'lg:w-[90px]' : 'w-[300px]'}`}>
+      <aside className={`fixed lg:static inset-y-0 left-0 h-screen bg-primary-light text-text-main flex flex-col overflow-y-auto border-r border-primary/10 transition-all duration-300 z-[99] shrink-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} ${isCollapsed ? 'lg:w-[90px]' : 'w-[270px]'}`}>
         <div className={`flex items-center gap-3 p-6 border-b border-primary/10 ${isCollapsed ? 'lg:justify-center lg:p-5' : ''}`}>
           <img src="/Escudo_UNCP.png" alt="UNCP logo" className="h-10 w-auto drop-shadow-sm" />
           <div className={`flex flex-col ${isCollapsed ? 'lg:hidden' : ''}`}>
