@@ -13,6 +13,7 @@ from app.services.enrollment_service import (
     SeccionNoEncontradaError,
     estadisticas_periodo,
     generar_ficha_pdf,
+    listar_todas_matriculas,
     obtener_matricula,
     obtener_matriculas_estudiante,
     registrar_pago,
@@ -22,8 +23,11 @@ from app.services.enrollment_service import (
 
 
 def _serializar_matricula(matricula):
+    estudiante = matricula.estudiante
     return MatriculaResponse(
         id_matricula=matricula.id_matricula,
+        id_estudiante=estudiante.id_estudiante,
+        estudiante_nombre=f"{estudiante.nombres} {estudiante.apellidos}",
         id_periodo=matricula.id_periodo,
         fecha_matricula=matricula.fecha_matricula,
         estado=matricula.estado,
@@ -34,6 +38,8 @@ def _serializar_matricula(matricula):
                 curso=d.seccion.plan_curso.curso.nombre,
                 codigo_seccion=d.seccion.codigo,
                 estado=d.estado,
+                horario=d.seccion.horario,
+                aula=d.seccion.aula,
             )
             for d in matricula.detalles
         ],
@@ -69,6 +75,11 @@ def mis_matriculas():
         return {"msg": "Solo un estudiante tiene matrículas propias"}, 403
 
     matriculas = obtener_matriculas_estudiante(usuario.estudiante.id_estudiante)
+    return {"matriculas": [_serializar_matricula(m) for m in matriculas]}, 200
+
+
+def listar_todas(id_periodo=None, estado=None):
+    matriculas = listar_todas_matriculas(id_periodo, estado)
     return {"matriculas": [_serializar_matricula(m) for m in matriculas]}, 200
 
 

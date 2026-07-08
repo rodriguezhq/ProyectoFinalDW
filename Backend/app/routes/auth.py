@@ -1,5 +1,6 @@
 from flask_openapi3.blueprint import APIBlueprint
 from app.Controllers import authController
+from app.extensions import limiter
 from app.schemas.auth_schema import LoginBody, LoginResponse
 from flask_openapi3.models.tag import Tag
 from app.schemas.common_schema import MessageResponse
@@ -13,6 +14,7 @@ auth_bp = APIBlueprint("auth", __name__, abp_tags=[auth_tag])
     summary="Iniciar sesión",
     responses={200: LoginResponse, 401: MessageResponse},
 )
+@limiter.limit("5 per minute")
 def login(body: LoginBody):
     return authController.login(body)
 

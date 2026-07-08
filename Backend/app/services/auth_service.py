@@ -5,6 +5,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.extensions import db
 from app.models.usuario import Usuario
+from app.services.audit_service import registrar_auditoria
 
 
 def usuario_actual():
@@ -18,12 +19,18 @@ def usuario_actual():
     return db.session.get(Usuario, id_usuario)
 
 
-def login_user(username, password):
+def login_user(username, password, ip=None):
     user = Usuario.query.filter_by(username=username).first()
     if not user or not verify_password(password, user.password_hash):
+        registrar_auditoria(
+            "login_fallido", "usuario", registro=username, id_usuario=user.id_usuario if user else None, ip=ip
+        )
         return None
     if user.estado != "activo":
+        registrar_auditoria("login_fallido_cuenta_inactiva", "usuario", registro=user.id_usuario, id_usuario=user.id_usuario, ip=ip)
         return None
+
+    registrar_auditoria("login_exitoso", "usuario", registro=user.id_usuario, id_usuario=user.id_usuario, ip=ip)
 
     additional_claims = {
         "id_rol": user.id_rol,

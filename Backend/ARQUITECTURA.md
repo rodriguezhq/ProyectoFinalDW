@@ -19,10 +19,14 @@ Backend/
     ├── services/            # Lógica de negocio (queries, validaciones, reglas). No conoce HTTP.
     ├── Controllers/          # Reciben el request ya validado por el schema, llaman al service, devuelven la respuesta.
     ├── routes/               # Blueprints (APIBlueprint): solo URL + método + que schema usar + a que Controller llamar. Sin lógica.
-    └── utils/
+    └── utils/                # "Middleware" del proyecto: todo lo que intercepta el request/response
+                                #   de forma transversal a todos los módulos, no lógica de un módulo puntual.
         ├── decorators.py    # @jwt_required, @role_required("Administrador", "Direccion"), etc.
+        ├── error_handlers.py # Manejador global: excepciones no controladas -> JSON (nunca HTML), 500 genérico sin filtrar detalles internos
         └── helpers.py       # Funciones puras reutilizables (formateo, generación de códigos QR, etc.)
 ```
+
+> `Flask-Limiter` (rate limiting) vive como instancia en `extensions.py` (`limiter = Limiter(...)`), igual que `db`/`jwt`/`cors` — y se aplica con `@limiter.limit(...)` directo sobre la ruta que lo necesite (hoy solo `/api/auth/login`, 5 intentos/minuto), no centralizado en `utils/`, porque cada ruta puede necesitar un límite distinto.
 
 Flujo de una request: `routes/*.py` (valida con el schema de Pydantic) → `Controllers/*.py` (orquesta) → `services/*.py` (lógica) → `models/*.py` (db) → el Controller arma la respuesta usando el shape del schema.
 

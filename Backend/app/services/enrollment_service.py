@@ -96,6 +96,15 @@ def obtener_matriculas_estudiante(id_estudiante):
     return Matricula.query.filter_by(id_estudiante=id_estudiante).all()
 
 
+def listar_todas_matriculas(id_periodo=None, estado=None):
+    query = Matricula.query
+    if id_periodo is not None:
+        query = query.filter_by(id_periodo=id_periodo)
+    if estado is not None:
+        query = query.filter_by(estado=estado)
+    return query.all()
+
+
 def obtener_matricula(id_matricula):
     matricula = db.session.get(Matricula, id_matricula)
     if not matricula:
