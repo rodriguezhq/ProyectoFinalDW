@@ -1,6 +1,7 @@
 from datetime import date
 
 import pytest
+from flask_jwt_extended import create_access_token
 from werkzeug.security import generate_password_hash
 
 from app import create_app
@@ -20,6 +21,15 @@ from app.models import (
 )
 
 TEST_PASSWORD = "Secret123!"
+
+
+def token_para(client, username):
+    with client.application.app_context():
+        user = Usuario.query.filter_by(username=username).first()
+        return create_access_token(
+            identity=str(user.id_usuario),
+            additional_claims={"id_rol": user.id_rol, "rol": user.rol.nombre if user.rol else None},
+        )
 
 
 @pytest.fixture

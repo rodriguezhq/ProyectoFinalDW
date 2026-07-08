@@ -14,17 +14,23 @@ LOGOUT_URL = "/api/auth/logout"
 # Casos funcionales
 # ---------------------------------------------------------------------------
 
-def test_login_estudiante_exitoso_devuelve_200_y_tokens(client):
+def test_login_estudiante_exitoso_devuelve_200_y_setea_cookies_httponly(client):
     resp = client.post(LOGIN_URL, json={"username": "jperez", "password": TEST_PASSWORD})
     body = resp.get_json()
 
     assert resp.status_code == 200
-    assert "access_token" in body
-    assert "refresh_token" in body
+    # los tokens van SOLO en cookies httpOnly, nunca en el body
+    assert "access_token" not in body
+    assert "refresh_token" not in body
     assert body["user"]["nombres"] == "Juan"
     assert body["user"]["apellidos"] == "Perez"
     assert body["user"]["correo"] == "juan.perez@test.com"
     assert body["user"]["rol"] == "Estudiante"
+
+    access_cookie = client.get_cookie("access_token_cookie")
+    refresh_cookie = client.get_cookie("refresh_token_cookie")
+    assert access_cookie is not None and access_cookie.http_only
+    assert refresh_cookie is not None and refresh_cookie.http_only
 
 
 def test_login_admin_exitoso_usa_datos_directos_de_usuario(client):
@@ -120,8 +126,8 @@ def test_dos_hashes_del_mismo_password_son_distintos_por_el_salt():
 
 
 def test_jwt_access_token_incluye_claims_de_rol(client, app):
-    resp = client.post(LOGIN_URL, json={"username": "jperez", "password": TEST_PASSWORD})
-    token = resp.get_json()["access_token"]
+    client.post(LOGIN_URL, json={"username": "jperez", "password": TEST_PASSWORD})
+    token = client.get_cookie("access_token_cookie").value
 
     with app.app_context():
         claims = decode_token(token)
@@ -132,12 +138,13 @@ def test_jwt_access_token_incluye_claims_de_rol(client, app):
 
 
 def test_access_token_y_refresh_token_tienen_expiraciones_distintas(client, app):
-    resp = client.post(LOGIN_URL, json={"username": "jperez", "password": TEST_PASSWORD})
-    body = resp.get_json()
+    client.post(LOGIN_URL, json={"username": "jperez", "password": TEST_PASSWORD})
+    access_token = client.get_cookie("access_token_cookie").value
+    refresh_token = client.get_cookie("refresh_token_cookie").value
 
     with app.app_context():
-        access_claims = decode_token(body["access_token"])
-        refresh_claims = decode_token(body["refresh_token"])
+        access_claims = decode_token(access_token)
+        refresh_claims = decode_token(refresh_token)
 
     # el refresh (30 dias) vence mucho despues que el access (8 horas)
     assert refresh_claims["exp"] > access_claims["exp"]

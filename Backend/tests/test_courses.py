@@ -2,18 +2,13 @@ import io
 
 from app.extensions import db
 from app.models import Curso, Docente, Especialidad, Facultad, PeriodoAcademico, PlanCurso, PlanEstudios, Seccion
-from tests.conftest import TEST_PASSWORD
+from tests.conftest import token_para
 
 COURSES_URL = "/api/courses"
 
 
-def _login(client, username):
-    resp = client.post("/api/auth/login", json={"username": username, "password": TEST_PASSWORD})
-    return resp.get_json()["access_token"]
-
-
 def _auth_headers(client, username):
-    return {"Authorization": f"Bearer {_login(client, username)}"}
+    return {"Authorization": f"Bearer {token_para(client, username)}"}
 
 
 def _ids(app):

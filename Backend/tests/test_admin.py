@@ -1,16 +1,15 @@
 from app.models import Estudiante, Rol
-from tests.conftest import TEST_PASSWORD
+from tests.conftest import TEST_PASSWORD, token_para
 
 ADMIN_URL = "/api/admin"
 
 
 def _login(client, username, password=TEST_PASSWORD):
-    resp = client.post("/api/auth/login", json={"username": username, "password": password})
-    return resp.get_json()["access_token"]
+    return client.post("/api/auth/login", json={"username": username, "password": password})
 
 
 def _auth_headers(client, username):
-    return {"Authorization": f"Bearer {_login(client, username)}"}
+    return {"Authorization": f"Bearer {token_para(client, username)}"}
 
 
 def _id_rol_estudiante(app):
