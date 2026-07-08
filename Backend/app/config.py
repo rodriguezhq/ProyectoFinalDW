@@ -14,6 +14,11 @@ class Config:
         "DATABASE_URL", "mysql+pymysql://root:@localhost:3306/sistema_academico"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    
+    # JWT Cookie configuration
+    JWT_TOKEN_LOCATION = ["headers", "cookies"]
+    JWT_COOKIE_SECURE = False
+    JWT_COOKIE_CSRF_PROTECT = False
 
 
 class DevelopmentConfig(Config):

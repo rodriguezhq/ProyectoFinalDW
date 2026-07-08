@@ -38,6 +38,8 @@ def _serializar_matricula(matricula):
                 curso=d.seccion.plan_curso.curso.nombre,
                 codigo_seccion=d.seccion.codigo,
                 estado=d.estado,
+                horario=d.seccion.horario,
+                aula=d.seccion.aula,
             )
             for d in matricula.detalles
         ],

@@ -18,7 +18,7 @@ def create_app(env="development"):
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
-    cors.init_app(app)
+    cors.init_app(app, supports_credentials=True)
     limiter.init_app(app)
 
     from app import models  # noqa: F401

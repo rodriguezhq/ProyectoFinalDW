@@ -14,6 +14,8 @@ class MatriculaDetalleResponse(BaseModel):
     curso: str
     codigo_seccion: str
     estado: str
+    horario: str | None = None
+    aula: str | None = None
 
 
 class MatriculaResponse(BaseModel):
