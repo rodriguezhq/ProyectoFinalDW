@@ -116,6 +116,7 @@ def _seed_minimo():
         password_hash=generate_password_hash(TEST_PASSWORD),
         estado="inactivo",
         id_rol=rol_estudiante.id_rol,
+        correo="inactivo@test.com",
     )
     usuario_admin = Usuario(
         username="admin_test",

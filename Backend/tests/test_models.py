@@ -18,8 +18,15 @@ def test_nombres_efectivos_usa_datos_directos_para_admin(app):
 
 
 def test_nombres_efectivos_es_none_sin_estudiante_docente_ni_nombre_directo(app):
+    from app.extensions import db
     with app.app_context():
-        user = Usuario.query.filter_by(username="inactivo").first()
-        assert user.nombres_efectivos is None
-        assert user.apellidos_efectivos is None
-        assert user.correo_efectivo is None
+        empty_user = Usuario(username="empty_test", password_hash="hash", id_rol=1)
+        db.session.add(empty_user)
+        db.session.commit()
+        
+        assert empty_user.nombres_efectivos is None
+        assert empty_user.apellidos_efectivos is None
+        assert empty_user.correo_efectivo is None
+
+        db.session.delete(empty_user)
+        db.session.commit()

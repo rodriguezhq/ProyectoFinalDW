@@ -15,7 +15,7 @@ LOGOUT_URL = "/api/auth/logout"
 # ---------------------------------------------------------------------------
 
 def test_login_estudiante_exitoso_devuelve_200_y_setea_cookies_httponly(client):
-    resp = client.post(LOGIN_URL, json={"username": "jperez", "password": TEST_PASSWORD})
+    resp = client.post(LOGIN_URL, json={"email": "juan.perez@test.com", "password": TEST_PASSWORD})
     body = resp.get_json()
 
     assert resp.status_code == 200
@@ -34,7 +34,7 @@ def test_login_estudiante_exitoso_devuelve_200_y_setea_cookies_httponly(client):
 
 
 def test_login_admin_exitoso_usa_datos_directos_de_usuario(client):
-    resp = client.post(LOGIN_URL, json={"username": "admin_test", "password": TEST_PASSWORD})
+    resp = client.post(LOGIN_URL, json={"email": "admin@test.com", "password": TEST_PASSWORD})
     body = resp.get_json()
 
     assert resp.status_code == 200
@@ -43,18 +43,18 @@ def test_login_admin_exitoso_usa_datos_directos_de_usuario(client):
 
 
 def test_login_password_incorrecta_devuelve_401(client):
-    resp = client.post(LOGIN_URL, json={"username": "jperez", "password": "clave-mala"})
+    resp = client.post(LOGIN_URL, json={"email": "juan.perez@test.com", "password": "clave-mala"})
     assert resp.status_code == 401
     assert resp.get_json()["msg"] == "Credenciales inválidas"
 
 
 def test_login_usuario_inexistente_devuelve_401(client):
-    resp = client.post(LOGIN_URL, json={"username": "no_existe", "password": TEST_PASSWORD})
+    resp = client.post(LOGIN_URL, json={"email": "no_existe@test.com", "password": TEST_PASSWORD})
     assert resp.status_code == 401
 
 
 def test_login_usuario_inactivo_devuelve_401(client):
-    resp = client.post(LOGIN_URL, json={"username": "inactivo", "password": TEST_PASSWORD})
+    resp = client.post(LOGIN_URL, json={"email": "inactivo@test.com", "password": TEST_PASSWORD})
     assert resp.status_code == 401
 
 
@@ -69,11 +69,11 @@ def test_logout_devuelve_200(client):
 # ---------------------------------------------------------------------------
 
 def test_login_sin_password_devuelve_422(client):
-    resp = client.post(LOGIN_URL, json={"username": "jperez"})
+    resp = client.post(LOGIN_URL, json={"email": "juan.perez@test.com"})
     assert resp.status_code == 422
 
 
-def test_login_sin_username_devuelve_422(client):
+def test_login_sin_email_devuelve_422(client):
     resp = client.post(LOGIN_URL, json={"password": TEST_PASSWORD})
     assert resp.status_code == 422
 
@@ -83,8 +83,8 @@ def test_login_body_vacio_devuelve_422(client):
     assert resp.status_code == 422
 
 
-def test_login_username_con_tipo_incorrecto_devuelve_422(client):
-    resp = client.post(LOGIN_URL, json={"username": 12345, "password": TEST_PASSWORD})
+def test_login_email_con_tipo_incorrecto_devuelve_422(client):
+    resp = client.post(LOGIN_URL, json={"email": 12345, "password": TEST_PASSWORD})
     assert resp.status_code == 422
 
 
@@ -93,21 +93,21 @@ def test_login_username_con_tipo_incorrecto_devuelve_422(client):
 # ---------------------------------------------------------------------------
 
 def test_respuesta_de_login_nunca_expone_el_hash_de_password(client):
-    resp = client.post(LOGIN_URL, json={"username": "jperez", "password": TEST_PASSWORD})
+    resp = client.post(LOGIN_URL, json={"email": "juan.perez@test.com", "password": TEST_PASSWORD})
     crudo = resp.get_data(as_text=True)
     assert "password_hash" not in crudo
     assert "scrypt" not in crudo  # prefijo tipico de un hash de werkzeug
 
 
 def test_login_con_intento_de_sql_injection_no_autentica_ni_rompe(client):
-    payload = {"username": "jperez' OR '1'='1", "password": "' OR '1'='1"}
+    payload = {"email": "jperez' OR '1'='1", "password": "' OR '1'='1"}
     resp = client.post(LOGIN_URL, json=payload)
     # SQLAlchemy parametriza la query -> no debe autenticar, y no debe tirar 500
     assert resp.status_code == 401
 
 
-def test_login_username_es_case_sensitive(client):
-    resp = client.post(LOGIN_URL, json={"username": "JPEREZ", "password": TEST_PASSWORD})
+def test_login_email_es_case_sensitive(client):
+    resp = client.post(LOGIN_URL, json={"email": "JUAN.PEREZ@TEST.COM", "password": TEST_PASSWORD})
     assert resp.status_code == 401
 
 
@@ -126,7 +126,7 @@ def test_dos_hashes_del_mismo_password_son_distintos_por_el_salt():
 
 
 def test_jwt_access_token_incluye_claims_de_rol(client, app):
-    client.post(LOGIN_URL, json={"username": "jperez", "password": TEST_PASSWORD})
+    client.post(LOGIN_URL, json={"email": "juan.perez@test.com", "password": TEST_PASSWORD})
     token = client.get_cookie("access_token_cookie").value
 
     with app.app_context():
@@ -138,7 +138,7 @@ def test_jwt_access_token_incluye_claims_de_rol(client, app):
 
 
 def test_access_token_y_refresh_token_tienen_expiraciones_distintas(client, app):
-    client.post(LOGIN_URL, json={"username": "jperez", "password": TEST_PASSWORD})
+    client.post(LOGIN_URL, json={"email": "juan.perez@test.com", "password": TEST_PASSWORD})
     access_token = client.get_cookie("access_token_cookie").value
     refresh_token = client.get_cookie("refresh_token_cookie").value
 

@@ -19,11 +19,18 @@ def usuario_actual():
     return db.session.get(Usuario, id_usuario)
 
 
-def login_user(username, password, ip=None):
-    user = Usuario.query.filter_by(username=username).first()
+def login_user(email, password, ip=None):
+    from app.models.docente import Docente
+    from app.models.estudiante import Estudiante
+
+    user = Usuario.query.outerjoin(Docente).outerjoin(Estudiante).filter(
+        (Usuario.correo == email) |
+        (Docente.correo == email) |
+        (Estudiante.correo == email)
+    ).first()
     if not user or not verify_password(password, user.password_hash):
         registrar_auditoria(
-            "login_fallido", "usuario", registro=username, id_usuario=user.id_usuario if user else None, ip=ip
+            "login_fallido", "usuario", registro=email, id_usuario=user.id_usuario if user else None, ip=ip
         )
         return None
     if user.estado != "activo":

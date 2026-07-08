@@ -58,8 +58,8 @@ export default function DashboardLayout({ user, onLogout, children }) {
     <div className="flex h-screen overflow-hidden bg-white relative w-full font-sans">
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[98] animate-fade-in" 
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[98] animate-fade-in"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -105,8 +105,8 @@ export default function DashboardLayout({ user, onLogout, children }) {
         {/* Header Bar */}
         <header className="h-[76px] bg-white border-b border-border px-8 flex items-center justify-between sticky top-0 z-[90] shrink-0">
           <div className="flex items-center gap-4">
-            <button 
-              type="button" 
+            <button
+              type="button"
               className="block text-2xl text-text-heading cursor-pointer bg-none border-none focus:outline-none"
               aria-label="Toggle Menu"
               onClick={handleToggle}
@@ -129,8 +129,8 @@ export default function DashboardLayout({ user, onLogout, children }) {
 
             {/* Profile Dropdown */}
             <div className="relative ml-2">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 className="flex items-center gap-3 bg-bg-alt border border-border p-1.5 pr-3.5 rounded-full cursor-pointer transition-all duration-300 hover:bg-slate-100 hover:border-slate-300 focus:outline-none"
                 onClick={() => setDropdownOpen(!dropdownOpen)}
               >
@@ -153,9 +153,9 @@ export default function DashboardLayout({ user, onLogout, children }) {
                       <span className="text-[0.78rem] text-text-muted">{user?.correo || `${user?.username}@uncp.edu.pe`}</span>
                     </div>
                     <div className="h-[1px] bg-border my-1.5"></div>
-                    <button 
-                      type="button" 
-                      className="w-full flex items-center gap-2.5 p-2.5 px-4 bg-none border-none text-[0.88rem] text-text-main font-medium text-left cursor-pointer transition-all duration-150 hover:bg-slate-50 hover:text-primary hover:pl-5 focus:outline-none" 
+                    <button
+                      type="button"
+                      className="w-full flex items-center gap-2.5 p-2.5 px-4 bg-none border-none text-[0.88rem] text-text-main font-medium text-left cursor-pointer transition-all duration-150 hover:bg-slate-50 hover:text-primary hover:pl-5 focus:outline-none"
                       onClick={() => {
                         setDropdownOpen(false);
                         setProfileModalOpen(true);
@@ -165,8 +165,8 @@ export default function DashboardLayout({ user, onLogout, children }) {
                     </button>
                     <button type="button" className="w-full flex items-center gap-2.5 p-2.5 px-4 bg-none border-none text-[0.88rem] text-text-main font-medium text-left cursor-pointer transition-all duration-150 hover:bg-slate-50 hover:text-primary hover:pl-5 focus:outline-none" onClick={() => setDropdownOpen(false)}>🔑 Cambiar Contraseña</button>
                     <div className="h-[1px] bg-border my-1.5"></div>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       className="w-full flex items-center gap-2.5 p-2.5 px-4 bg-none border-none text-[0.88rem] font-medium text-left cursor-pointer transition-all duration-150 hover:pl-5 focus:outline-none text-red-500 hover:bg-red-500/5 hover:text-red-600"
                       onClick={() => {
                         setDropdownOpen(false);
@@ -201,7 +201,7 @@ export default function DashboardLayout({ user, onLogout, children }) {
                   <p className="text-[0.7rem] text-primary/70 font-semibold uppercase tracking-wider leading-none mt-1">{role}</p>
                 </div>
               </div>
-              <button 
+              <button
                 type="button"
                 className="text-text-muted hover:text-primary transition-all duration-150 text-2xl font-bold cursor-pointer focus:outline-none"
                 onClick={() => setProfileModalOpen(false)}
@@ -249,7 +249,7 @@ export default function DashboardLayout({ user, onLogout, children }) {
 
             {/* Modal Footer */}
             <div className="p-4 bg-bg-alt border-t border-border flex justify-end">
-              <button 
+              <button
                 type="button"
                 className="bg-primary text-white py-2 px-5 font-semibold text-[0.88rem] rounded-md transition-all duration-150 hover:bg-primary-hover shadow-sm"
                 onClick={() => setProfileModalOpen(false)}
