@@ -11,6 +11,7 @@ import AdministradorDashboard from './Views/Administrador/AdministradorDashboard
 import { AdministradorHomeView } from './Views/Administrador/AdministradorHomeView';
 import DireccionDashboard from './Views/Direccion/DireccionDashboard';
 import { DireccionHomeView } from './Views/Direccion/DireccionHomeView';
+import ProfileView from './Views/ProfileView';
 import PublicOnlyRoute from './components/publicOnlyRoute';
 import ProtectedRoute from './components/protectedRoute';
 import NotFound from './components/notFound';
@@ -30,6 +31,7 @@ export function AppRoutes() {
           <Route index element={<ScheduleView />} /> {/* Carga por defecto en /estudiante */}
           <Route path="matricula" element={<EnrollmentView />} /> {/* Carga en /estudiante/matricula */}
           <Route path="notas" element={<GradesView />} /> {/* Carga en /estudiante/notas */}
+          <Route path="perfil" element={<ProfileView />} />
         </Route>
       </Route>
 
@@ -37,6 +39,7 @@ export function AppRoutes() {
       <Route element={<ProtectedRoute allowedRoles={[ROLES.DOCENTE]} />}>
         <Route path="/docente" element={<DocenteDashboard />}>
           <Route index element={<DocenteHomeView />} />
+          <Route path="perfil" element={<ProfileView />} />
         </Route>
       </Route>
 
@@ -44,6 +47,7 @@ export function AppRoutes() {
       <Route element={<ProtectedRoute allowedRoles={[ROLES.ADMINISTRADOR]} />}>
         <Route path="/admin" element={<AdministradorDashboard />}>
           <Route index element={<AdministradorHomeView />} />
+          <Route path="perfil" element={<ProfileView />} />
         </Route>
       </Route>
 
@@ -51,6 +55,7 @@ export function AppRoutes() {
       <Route element={<ProtectedRoute allowedRoles={[ROLES.DIRECCION]} />}>
         <Route path="/direccion" element={<DireccionDashboard />}>
           <Route index element={<DireccionHomeView />} />
+          <Route path="perfil" element={<ProfileView />} />
         </Route>
       </Route>
 

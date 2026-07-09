@@ -1,21 +1,22 @@
 import React, { useState } from 'react';
-import { useNavigate, Outlet } from 'react-router-dom';
+import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { SidebarClose, SidebarOpen, SquareArrowRightExitIcon } from 'lucide-react';
-import { SidebarClose, SidebarOpen, ChevronDown, LogOut, User as UserIcon } from 'lucide-react';
+import { ROLE_ROUTES } from '../constants/roles';
+import { SidebarClose, SidebarOpen, ChevronDown, LogOut, User as UserIcon, SquareArrowRightExitIcon } from 'lucide-react';
 import uncpImagen from '../assets/Escudo_UNCP.png';
 
 export default function SidebarShell({ menuOptions = [], children }) {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
-    const [activeMenuIndex, setActiveMenuIndex] = useState(0);
     const [dropdownOpen, setDropdownOpen] = useState(false);
-    const [profileModalOpen, setProfileModalOpen] = useState(false);
 
     const role = user?.rol || 'Estudiante';
+    const currentPath = location.pathname;
+    const activeMenuIndex = menuOptions.findIndex(opt => opt.path === currentPath);
 
     const handleToggle = () => {
         if (window.innerWidth < 1024) {
@@ -25,16 +26,19 @@ export default function SidebarShell({ menuOptions = [], children }) {
         }
     };
 
-    const handleMenuClick = (opt, idx) => {
-        setActiveMenuIndex(idx);
+    const handleMenuClick = (opt) => {
         setSidebarOpen(false); // Cierra el sidebar móvil al hacer clic
         navigate(opt.path);
     };
 
+    const handleProfileClick = () => {
+        setDropdownOpen(false);
+        const baseRoute = ROLE_ROUTES[role] || '/estudiante';
+        navigate(`${baseRoute}/perfil`);
+    };
+
     const handleLogout = async () => {
         setDropdownOpen(false);
-        await logout();
-        navigate('/');
     };
 
     return (
@@ -48,7 +52,7 @@ export default function SidebarShell({ menuOptions = [], children }) {
             )}
 
             {/* Sidebar */}
-            <aside className={`fixed lg:static inset-y-0 left-0 h-screen bg-primary-light text-text-main flex flex-col overflow-y-auto border-r border-primary/10 transition-all duration-300 z-[99] ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} ${isCollapsed ? 'lg:w-[90px]' : 'w-[250px]'}`}>
+            <aside className={`fixed lg:static inset-y-0 left-0 h-screen bg-primary-light text-text-main flex flex-col overflow-y-auto border-r border-primary/10 transition-all duration-300 z-[99] shrink-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} ${isCollapsed ? 'lg:w-[90px]' : 'w-[250px]'}`}>
                 <div className={`flex items-center gap-3 p-6 border-b border-primary/10 ${isCollapsed ? 'lg:justify-center lg:p-5' : ''}`}>
                     <img src={uncpImagen} alt="UNCP logo" className="h-10 w-auto drop-shadow-sm" />
                     <div className={`flex flex-col ${isCollapsed ? 'lg:hidden' : ''}`}>
@@ -65,7 +69,7 @@ export default function SidebarShell({ menuOptions = [], children }) {
                                 <button
                                     type="button"
                                     className={`w-full flex items-center gap-3 py-2 px-3 rounded-none text-text-main/80 font-semibold text-[0.92rem] transition-all duration-300 text-left hover:text-primary hover:bg-white/60 ${activeMenuIndex === idx ? 'text-primary bg-white shadow-sm' : ''} ${isCollapsed ? 'lg:justify-center lg:py-2 lg:px-1' : ''}`}
-                                    onClick={() => handleMenuClick(opt, idx)}
+                                    onClick={() => handleMenuClick(opt)}
                                 >
                                     <span className="text-[1.15rem]">{opt.icon}</span>
                                     <span className={`${isCollapsed ? 'lg:hidden' : ''}`}>{opt.label}</span>
@@ -80,7 +84,7 @@ export default function SidebarShell({ menuOptions = [], children }) {
                     <button className={`w-full flex items-center gap-3 py-2 px-3 border-2 text-primary font-semibold text-[0.92rem] transition-all duration-300 text-left hover:text-primary hover:bg-white/60 ${isCollapsed ? 'lg:justify-center lg:py-2 lg:px-1' : ''}`}
                         onClick={() => logout()}
                     >
-                        <span className="text-[1.15rem]">{<SquareArrowRightExitIcon />}</span>
+                        <span className="text-[1.15rem] text-red-600">{<LogOut />}</span>
                         <span className={`${isCollapsed ? 'lg:hidden' : ''}`}>Logout</span>
                     </button>
                 </div>
@@ -106,7 +110,7 @@ export default function SidebarShell({ menuOptions = [], children }) {
                             }
                         </button>
                         <h2 className="hidden sm:block font-heading text-[1.45rem] font-extrabold text-text-heading tracking-tight truncate">
-                            {menuOptions[activeMenuIndex]?.label || 'Panel de Control'}
+                            {currentPath.endsWith('/perfil') ? 'Vista Perfil' : (menuOptions[activeMenuIndex]?.label || 'Panel de Control')}
                         </h2>
                     </div>
 
@@ -133,18 +137,10 @@ export default function SidebarShell({ menuOptions = [], children }) {
                                     <button
                                         type="button"
                                         className="w-full flex items-center gap-2.5 py-2.5 px-4 text-[0.88rem] font-medium text-text-heading hover:bg-bg-alt transition-all duration-150"
-                                        onClick={() => { setDropdownOpen(false); setProfileModalOpen(true); }}
+                                        onClick={handleProfileClick}
                                     >
                                         <UserIcon size={16} />
                                         Ver perfil
-                                    </button>
-                                    <button
-                                        type="button"
-                                        className="w-full flex items-center gap-2.5 py-2.5 px-4 text-[0.88rem] font-medium text-red-600 hover:bg-red-50 transition-all duration-150 border-t border-border"
-                                        onClick={handleLogout}
-                                    >
-                                        <LogOut size={16} />
-                                        Cerrar sesión
                                     </button>
                                 </div>
                             </>
@@ -153,83 +149,10 @@ export default function SidebarShell({ menuOptions = [], children }) {
                 </header>
 
                 {/* Page Content */}
-                <main className="p-8 grow overflow-y-auto bg-white">
+                <main className="p-8 grow overflow-y-auto bg-white min-w-0">
                     {children || <Outlet />}
                 </main>
             </div>
-
-            {/* Profile Info Modal */}
-            {profileModalOpen && (
-                <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/55 backdrop-blur-sm ">
-                    <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-[450px] w-full overflow-hidden ">
-                        {/* Modal Header */}
-                        <div className="p-6 bg-primary-light border-b border-primary/10 flex justify-between items-center">
-                            <div className="flex items-center gap-3">
-                                <span className="text-2xl">👤</span>
-                                <div className="text-left">
-                                    <h3 className="font-heading font-extrabold text-primary text-[1.15rem]">Información del Perfil</h3>
-                                    <p className="text-[0.7rem] text-primary/70 font-semibold uppercase tracking-wider leading-none mt-1">{role}</p>
-                                </div>
-                            </div>
-                            <button
-                                type="button"
-                                className="text-text-muted hover:text-primary transition-all duration-150 text-2xl font-bold cursor-pointer focus:outline-none"
-                                onClick={() => setProfileModalOpen(false)}
-                            >
-                                ×
-                            </button>
-                        </div>
-
-                        {/* Modal Body */}
-                        <div className="p-6 flex flex-col gap-5">
-                            <div className="flex items-center gap-4 border-b border-border pb-4">
-                                <div className="w-16 h-16 rounded-full bg-primary text-white text-[1.7rem] font-bold flex items-center justify-center shadow-md border-[2px] border-white shrink-0">
-                                    {user?.nombres ? user.nombres.charAt(0) : 'U'}
-                                </div>
-                                <div className="text-left">
-                                    <h4 className="font-heading font-bold text-text-heading text-[1.1rem] leading-snug">
-                                        {user?.nombres || ''} {user?.apellidos || ''}
-                                    </h4>
-                                    <p className="text-[0.8rem] text-text-muted mt-1">Usuario: <span className="font-mono font-semibold">{user?.username || ''}</span></p>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col gap-3 text-[0.88rem]">
-                                <div className="grid grid-cols-[100px_1fr] gap-2">
-                                    <span className="text-text-muted font-bold text-left">Código:</span>
-                                    <span className="font-mono font-semibold text-text-heading text-left">2026{1000 + (user?.id_usuario || 1)}</span>
-                                </div>
-                                <div className="grid grid-cols-[100px_1fr] gap-2">
-                                    <span className="text-text-muted font-bold text-left">Rol:</span>
-                                    <span className="font-semibold text-text-heading text-left">{role}</span>
-                                </div>
-                                <div className="grid grid-cols-[100px_1fr] gap-2">
-                                    <span className="text-text-muted font-bold text-left">Correo:</span>
-                                    <span className="font-medium text-text-heading text-left truncate">{user?.correo || `${user?.username || 'usuario'}@uncp.edu.pe`}</span>
-                                </div>
-                                <div className="grid grid-cols-[100px_1fr] gap-2">
-                                    <span className="text-text-muted font-bold text-left">Estado:</span>
-                                    <span className="inline-flex items-center gap-1.5 self-start px-2 py-0.5 rounded-full text-[0.72rem] font-bold bg-emerald-100 text-emerald-700">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                        Activo
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Modal Footer */}
-                        <div className="p-4 bg-bg-alt border-t border-border flex justify-end">
-                            <button
-                                type="button"
-                                className="bg-primary text-white py-2 px-5 font-semibold text-[0.88rem] rounded-md transition-all duration-150 hover:bg-primary-hover shadow-sm"
-                                onClick={() => setProfileModalOpen(false)}
-                            >
-                                Cerrar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

@@ -11,7 +11,7 @@ profile_bp = APIBlueprint("profile", __name__, abp_tags=[profile_tag])
 
 
 @profile_bp.get(
-    "/",
+    "",
     summary="Obtener perfil del usuario actual",
     responses={200: PerfilResponse, 401: MessageResponse, 404: MessageResponse},
     security=[{"cookie": []}],
@@ -23,7 +23,7 @@ def obtener_perfil():
 
 
 @profile_bp.put(
-    "/",
+    "",
     summary="Actualizar perfil (contraseña y/o teléfono)",
     responses={200: PerfilResponse, 401: MessageResponse, 404: MessageResponse},
     security=[{"cookie": []}],
