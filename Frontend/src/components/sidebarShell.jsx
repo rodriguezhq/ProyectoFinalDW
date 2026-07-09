@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { SidebarClose, SidebarOpen } from 'lucide-react';
+import { SidebarClose, SidebarOpen, SquareArrowRightExitIcon } from 'lucide-react';
 import uncpImagen from '../assets/Escudo_UNCP.png';
 
 export default function SidebarShell({ menuOptions = [], children }) {
@@ -41,7 +41,7 @@ export default function SidebarShell({ menuOptions = [], children }) {
             )}
 
             {/* Sidebar */}
-            <aside className={`fixed lg:static inset-y-0 left-0 h-screen bg-primary-light text-text-main flex flex-col overflow-y-auto border-r border-primary/10 transition-all duration-300 z-[99] ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} ${isCollapsed ? 'lg:w-[90px]' : 'w-[300px]'}`}>
+            <aside className={`fixed lg:static inset-y-0 left-0 h-screen bg-primary-light text-text-main flex flex-col overflow-y-auto border-r border-primary/10 transition-all duration-300 z-[99] ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} ${isCollapsed ? 'lg:w-[90px]' : 'w-[250px]'}`}>
                 <div className={`flex items-center gap-3 p-6 border-b border-primary/10 ${isCollapsed ? 'lg:justify-center lg:p-5' : ''}`}>
                     <img src={uncpImagen} alt="UNCP logo" className="h-10 w-auto drop-shadow-sm" />
                     <div className={`flex flex-col ${isCollapsed ? 'lg:hidden' : ''}`}>
@@ -70,8 +70,12 @@ export default function SidebarShell({ menuOptions = [], children }) {
 
                 {/* Brand signature footer */}
                 <div className="p-5 border-t border-primary/10 text-primary/60 text-[0.78rem] font-bold text-center tracking-wider">
-                    <span className={`${isCollapsed ? 'lg:hidden' : ''}`}>UNCP © 2026</span>
-                    <span className={`hidden ${isCollapsed ? 'lg:block' : ''}`}>©</span>
+                    <button className={`w-full flex items-center gap-3 py-2 px-3 border-2 text-primary font-semibold text-[0.92rem] transition-all duration-300 text-left hover:text-primary hover:bg-white/60 ${isCollapsed ? 'lg:justify-center lg:py-2 lg:px-1' : ''}`}
+                        onClick={() => logout()}
+                    >
+                        <span className="text-[1.15rem]">{<SquareArrowRightExitIcon />}</span>
+                        <span className={`${isCollapsed ? 'lg:hidden' : ''}`}>Logout</span>
+                    </button>
                 </div>
             </aside>
 
