@@ -3,13 +3,7 @@ import { Eye, EyeOff, Lock, User, CheckCircle2, AlertCircle } from 'lucide-react
 import imageUncp from '../src/assets/Escudo_UNCP.png';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
-// Mapa de redirección según el id_rol del backend
-const ROLE_ROUTES = {
-  1: '/admin',        // Administrador
-  2: '/docente',      // Docente
-  3: '/estudiante',   // Estudiante
-  4: '/direccion',    // Direccion
-};
+import { ROLE_ROUTES } from './constants/roles';
 
 export default function App() {
   const [email, setEmail] = useState("");
@@ -26,7 +20,7 @@ export default function App() {
     try {
       const user = await login(email, password);
       if (user) {
-        const route = ROLE_ROUTES[user.id_rol];
+        const route = ROLE_ROUTES[user.rol];
         if (route) {
           navigate(route);
         } else {

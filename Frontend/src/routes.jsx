@@ -5,7 +5,16 @@ import EstudianteDashboard from './Views/Estudiante/EstudianteDashboard';
 import { EnrollmentView } from './Views/Estudiante/EnrollmentView';
 import { GradesView } from './Views/Estudiante/GradesView';
 import { ScheduleView } from './Views/Estudiante/ScheduleView';
+import DocenteDashboard from './Views/Docente/DocenteDashboard';
+import { DocenteHomeView } from './Views/Docente/DocenteHomeView';
+import AdministradorDashboard from './Views/Administrador/AdministradorDashboard';
+import { AdministradorHomeView } from './Views/Administrador/AdministradorHomeView';
+import DireccionDashboard from './Views/Direccion/DireccionDashboard';
+import { DireccionHomeView } from './Views/Direccion/DireccionHomeView';
 import PublicOnlyRoute from './components/publicOnlyRoute';
+import ProtectedRoute from './components/protectedRoute';
+import NotFound from './components/notFound';
+import { ROLES } from './constants/roles';
 
 export function AppRoutes() {
   return (
@@ -15,12 +24,38 @@ export function AppRoutes() {
         <Route path="/" element={<App />} />
       </Route>
 
-      {/* rutas del estudiante */}
-      <Route path="/estudiante" element={<EstudianteDashboard />}>
-        <Route index element={<ScheduleView />} /> {/* Carga por defecto en /estudiante */}
-        <Route path="matricula" element={<EnrollmentView />} /> {/* Carga en /estudiante/matricula */}
-        <Route path="notas" element={<GradesView />} /> {/* Carga en /estudiante/notas */}
+      {/* rutas del estudiante: exige sesión + rol Estudiante */}
+      <Route element={<ProtectedRoute allowedRoles={[ROLES.ESTUDIANTE]} />}>
+        <Route path="/estudiante" element={<EstudianteDashboard />}>
+          <Route index element={<ScheduleView />} /> {/* Carga por defecto en /estudiante */}
+          <Route path="matricula" element={<EnrollmentView />} /> {/* Carga en /estudiante/matricula */}
+          <Route path="notas" element={<GradesView />} /> {/* Carga en /estudiante/notas */}
+        </Route>
       </Route>
+
+      {/* rutas del docente */}
+      <Route element={<ProtectedRoute allowedRoles={[ROLES.DOCENTE]} />}>
+        <Route path="/docente" element={<DocenteDashboard />}>
+          <Route index element={<DocenteHomeView />} />
+        </Route>
+      </Route>
+
+      {/* rutas del administrador */}
+      <Route element={<ProtectedRoute allowedRoles={[ROLES.ADMINISTRADOR]} />}>
+        <Route path="/admin" element={<AdministradorDashboard />}>
+          <Route index element={<AdministradorHomeView />} />
+        </Route>
+      </Route>
+
+      {/* rutas de dirección */}
+      <Route element={<ProtectedRoute allowedRoles={[ROLES.DIRECCION]} />}>
+        <Route path="/direccion" element={<DireccionDashboard />}>
+          <Route index element={<DireccionHomeView />} />
+        </Route>
+      </Route>
+
+      {/* cualquier ruta no definida (o de un rol sin dashboard todavía) */}
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }

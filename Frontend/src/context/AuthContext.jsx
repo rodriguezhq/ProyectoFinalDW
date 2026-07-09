@@ -21,7 +21,6 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = async (email, password) => {
-    setIsLoading(true);
     try {
       const data = await AuthService.Login(email, password);
       setUser(data.user);
@@ -29,20 +28,16 @@ export function AuthProvider({ children }) {
     } catch (err) {
       setUser(null);
       throw err;
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const logout = async () => {
-    setIsLoading(true);
     try {
       await AuthService.Logout();
     } catch (err) {
       console.error("Error al invalidar token en backend", err);
     } finally {
       setUser(null);
-      setIsLoading(false);
     }
   };
 
