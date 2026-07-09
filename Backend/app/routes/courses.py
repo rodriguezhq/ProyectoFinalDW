@@ -60,21 +60,21 @@ class CumplimientoQuery(BaseModel):
 
 # ---------------- Facultad ----------------
 
-@courses_bp.post("/facultades", responses={201: FacultadResponse, 409: MessageResponse}, security=[{"jwt": []}])
+@courses_bp.post("/facultades", responses={201: FacultadResponse, 409: MessageResponse}, security=[{"cookie": []}])
 @role_required("Administrador")
 def crear_facultad(body: FacultadBody):
     response, status = courseController.crear_facultad_ctrl(body)
     return response, status
 
 
-@courses_bp.get("/facultades", responses={200: FacultadListResponse}, security=[{"jwt": []}])
+@courses_bp.get("/facultades", responses={200: FacultadListResponse}, security=[{"cookie": []}])
 @jwt_required()
 def listar_facultades():
     response, status = courseController.listar_facultades_ctrl()
     return response, status
 
 
-@courses_bp.put("/facultades/<int:id>", responses={200: FacultadResponse, 404: MessageResponse}, security=[{"jwt": []}])
+@courses_bp.put("/facultades/<int:id>", responses={200: FacultadResponse, 404: MessageResponse}, security=[{"cookie": []}])
 @role_required("Administrador")
 def actualizar_facultad(path: IdPath, body: FacultadBody):
     response, status = courseController.actualizar_facultad_ctrl(path.id, body)
@@ -84,7 +84,7 @@ def actualizar_facultad(path: IdPath, body: FacultadBody):
 # ---------------- Especialidad ----------------
 
 @courses_bp.post(
-    "/especialidades", responses={201: EspecialidadResponse, 404: MessageResponse, 409: MessageResponse}, security=[{"jwt": []}]
+    "/especialidades", responses={201: EspecialidadResponse, 404: MessageResponse, 409: MessageResponse}, security=[{"cookie": []}]
 )
 @role_required("Administrador")
 def crear_especialidad(body: EspecialidadBody):
@@ -92,7 +92,7 @@ def crear_especialidad(body: EspecialidadBody):
     return response, status
 
 
-@courses_bp.get("/especialidades", responses={200: EspecialidadListResponse}, security=[{"jwt": []}])
+@courses_bp.get("/especialidades", responses={200: EspecialidadListResponse}, security=[{"cookie": []}])
 @jwt_required()
 def listar_especialidades():
     response, status = courseController.listar_especialidades_ctrl()
@@ -100,7 +100,7 @@ def listar_especialidades():
 
 
 @courses_bp.put(
-    "/especialidades/<int:id>", responses={200: EspecialidadResponse, 404: MessageResponse}, security=[{"jwt": []}]
+    "/especialidades/<int:id>", responses={200: EspecialidadResponse, 404: MessageResponse}, security=[{"cookie": []}]
 )
 @role_required("Administrador")
 def actualizar_especialidad(path: IdPath, body: EspecialidadBody):
@@ -111,7 +111,7 @@ def actualizar_especialidad(path: IdPath, body: EspecialidadBody):
 # ---------------- PlanEstudios ----------------
 
 @courses_bp.post(
-    "/planes-estudio", responses={201: PlanEstudiosResponse, 404: MessageResponse}, security=[{"jwt": []}]
+    "/planes-estudio", responses={201: PlanEstudiosResponse, 404: MessageResponse}, security=[{"cookie": []}]
 )
 @role_required("Administrador")
 def crear_plan_estudios(body: PlanEstudiosBody):
@@ -119,7 +119,7 @@ def crear_plan_estudios(body: PlanEstudiosBody):
     return response, status
 
 
-@courses_bp.get("/planes-estudio", responses={200: PlanEstudiosListResponse}, security=[{"jwt": []}])
+@courses_bp.get("/planes-estudio", responses={200: PlanEstudiosListResponse}, security=[{"cookie": []}])
 @jwt_required()
 def listar_planes_estudio():
     response, status = courseController.listar_planes_estudio_ctrl()
@@ -127,7 +127,7 @@ def listar_planes_estudio():
 
 
 @courses_bp.put(
-    "/planes-estudio/<int:id>", responses={200: PlanEstudiosResponse, 404: MessageResponse}, security=[{"jwt": []}]
+    "/planes-estudio/<int:id>", responses={200: PlanEstudiosResponse, 404: MessageResponse}, security=[{"cookie": []}]
 )
 @role_required("Administrador")
 def actualizar_plan_estudios(path: IdPath, body: PlanEstudiosBody):
@@ -137,21 +137,21 @@ def actualizar_plan_estudios(path: IdPath, body: PlanEstudiosBody):
 
 # ---------------- Curso ----------------
 
-@courses_bp.post("/cursos", responses={201: CursoResponse, 409: MessageResponse}, security=[{"jwt": []}])
+@courses_bp.post("/cursos", responses={201: CursoResponse, 409: MessageResponse}, security=[{"cookie": []}])
 @role_required("Administrador")
 def crear_curso(body: CursoBody):
     response, status = courseController.crear_curso_ctrl(body)
     return response, status
 
 
-@courses_bp.get("/cursos", responses={200: CursoListResponse}, security=[{"jwt": []}])
+@courses_bp.get("/cursos", responses={200: CursoListResponse}, security=[{"cookie": []}])
 @jwt_required()
 def listar_cursos():
     response, status = courseController.listar_cursos_ctrl()
     return response, status
 
 
-@courses_bp.put("/cursos/<int:id>", responses={200: CursoResponse, 404: MessageResponse}, security=[{"jwt": []}])
+@courses_bp.put("/cursos/<int:id>", responses={200: CursoResponse, 404: MessageResponse}, security=[{"cookie": []}])
 @role_required("Administrador")
 def actualizar_curso(path: IdPath, body: CursoBody):
     response, status = courseController.actualizar_curso_ctrl(path.id, body)
@@ -161,7 +161,7 @@ def actualizar_curso(path: IdPath, body: CursoBody):
 # ---------------- PlanCurso ----------------
 
 @courses_bp.post(
-    "/planes-curso", responses={201: PlanCursoResponse, 404: MessageResponse, 409: MessageResponse}, security=[{"jwt": []}]
+    "/planes-curso", responses={201: PlanCursoResponse, 404: MessageResponse, 409: MessageResponse}, security=[{"cookie": []}]
 )
 @role_required("Administrador")
 def crear_plan_curso(body: PlanCursoBody):
@@ -169,7 +169,7 @@ def crear_plan_curso(body: PlanCursoBody):
     return response, status
 
 
-@courses_bp.get("/planes-curso", responses={200: PlanCursoListResponse}, security=[{"jwt": []}])
+@courses_bp.get("/planes-curso", responses={200: PlanCursoListResponse}, security=[{"cookie": []}])
 @jwt_required()
 def listar_planes_curso(query: PlanQuery):
     response, status = courseController.listar_planes_curso_ctrl(query.id_plan)
@@ -179,7 +179,7 @@ def listar_planes_curso(query: PlanQuery):
 # ---------------- Seccion ----------------
 
 @courses_bp.post(
-    "/secciones", responses={201: SeccionResponse, 404: MessageResponse}, security=[{"jwt": []}]
+    "/secciones", responses={201: SeccionResponse, 404: MessageResponse}, security=[{"cookie": []}]
 )
 @role_required("Administrador")
 def crear_seccion(body: SeccionBody):
@@ -187,7 +187,7 @@ def crear_seccion(body: SeccionBody):
     return response, status
 
 
-@courses_bp.get("/secciones", responses={200: SeccionListResponse}, security=[{"jwt": []}])
+@courses_bp.get("/secciones", responses={200: SeccionListResponse}, security=[{"cookie": []}])
 @jwt_required()
 def listar_secciones(query: PeriodoQuery):
     response, status = courseController.listar_secciones_ctrl(query.id_periodo)
@@ -197,7 +197,7 @@ def listar_secciones(query: PeriodoQuery):
 @courses_bp.put(
     "/secciones/<int:id_seccion>",
     responses={200: SeccionResponse, 404: MessageResponse},
-    security=[{"jwt": []}],
+    security=[{"cookie": []}],
 )
 @role_required("Administrador")
 def actualizar_seccion(path: SeccionPath, body: SeccionUpdateBody):
@@ -207,7 +207,7 @@ def actualizar_seccion(path: SeccionPath, body: SeccionUpdateBody):
 
 # ---------------- Docente ----------------
 
-@courses_bp.get("/mis-secciones", responses={200: SeccionListResponse, 403: MessageResponse}, security=[{"jwt": []}])
+@courses_bp.get("/mis-secciones", responses={200: SeccionListResponse, 403: MessageResponse}, security=[{"cookie": []}])
 @role_required("Docente")
 def mis_secciones():
     response, status = teacherController.mis_secciones()
@@ -217,7 +217,7 @@ def mis_secciones():
 @courses_bp.post(
     "/secciones/<int:id_seccion>/silabo",
     responses={201: SilaboResponse, 403: MessageResponse, 404: MessageResponse},
-    security=[{"jwt": []}],
+    security=[{"cookie": []}],
 )
 @role_required("Docente")
 def subir_silabo(path: SeccionPath, form: SilaboForm):
@@ -227,7 +227,7 @@ def subir_silabo(path: SeccionPath, form: SilaboForm):
 
 # ---------------- Direccion ----------------
 
-@courses_bp.get("/carga-docente", responses={200: CargaDocenteResponse}, security=[{"jwt": []}])
+@courses_bp.get("/carga-docente", responses={200: CargaDocenteResponse}, security=[{"cookie": []}])
 @role_required("Direccion")
 def carga_docente(query: PeriodoQuery):
     response, status = courseController.carga_docente_ctrl(query.id_periodo)
@@ -235,7 +235,7 @@ def carga_docente(query: PeriodoQuery):
 
 
 @courses_bp.get(
-    "/cumplimiento-plan", responses={200: CumplimientoPlanResponse, 404: MessageResponse}, security=[{"jwt": []}]
+    "/cumplimiento-plan", responses={200: CumplimientoPlanResponse, 404: MessageResponse}, security=[{"cookie": []}]
 )
 @role_required("Direccion")
 def cumplimiento_plan(query: CumplimientoQuery):

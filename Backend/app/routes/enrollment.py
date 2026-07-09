@@ -36,7 +36,7 @@ class ListarMatriculasQuery(BaseModel):
     "/",
     summary="Solicitar matrícula",
     responses={201: MatriculaResponse, 403: MessageResponse, 404: MessageResponse, 409: MessageResponse},
-    security=[{"jwt": []}],
+    security=[{"cookie": []}],
 )
 @role_required("Estudiante")
 def solicitar(body: SolicitarMatriculaBody):
@@ -48,7 +48,7 @@ def solicitar(body: SolicitarMatriculaBody):
     "/",
     summary="Listar todas las matrículas (Administrador)",
     responses={200: MatriculaListResponse},
-    security=[{"jwt": []}],
+    security=[{"cookie": []}],
 )
 @role_required("Administrador")
 def listar_todas(query: ListarMatriculasQuery):
@@ -60,7 +60,7 @@ def listar_todas(query: ListarMatriculasQuery):
     "/mias",
     summary="Mis matrículas",
     responses={200: MatriculaListResponse, 403: MessageResponse},
-    security=[{"jwt": []}],
+    security=[{"cookie": []}],
 )
 @role_required("Estudiante")
 def mias():
@@ -72,7 +72,7 @@ def mias():
     "/<int:id_matricula>/validar",
     summary="Validar requisitos de matrícula",
     responses={200: MatriculaResponse, 404: MessageResponse, 409: MessageResponse},
-    security=[{"jwt": []}],
+    security=[{"cookie": []}],
 )
 @role_required("Administrador")
 def validar(path: MatriculaPath):
@@ -84,7 +84,7 @@ def validar(path: MatriculaPath):
     "/<int:id_matricula>/pago",
     summary="Registrar pago de matrícula",
     responses={201: PagoResponse, 404: MessageResponse, 409: MessageResponse},
-    security=[{"jwt": []}],
+    security=[{"cookie": []}],
 )
 @role_required("Administrador")
 def pago(path: MatriculaPath, body: PagoBody):
@@ -96,7 +96,7 @@ def pago(path: MatriculaPath, body: PagoBody):
     "/<int:id_matricula>/ficha",
     summary="Descargar ficha oficial (PDF)",
     responses={404: MessageResponse, 403: MessageResponse},
-    security=[{"jwt": []}],
+    security=[{"cookie": []}],
 )
 @role_required("Estudiante", "Administrador")
 def ficha(path: MatriculaPath):
@@ -107,7 +107,7 @@ def ficha(path: MatriculaPath):
     "/estadisticas/<int:id_periodo>",
     summary="Estadísticas de matrícula del periodo",
     responses={200: EstadisticasResponse},
-    security=[{"jwt": []}],
+    security=[{"cookie": []}],
 )
 @role_required("Direccion")
 def estadisticas(path: PeriodoPath):

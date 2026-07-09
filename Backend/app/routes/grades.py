@@ -34,7 +34,7 @@ class SeccionPath(BaseModel):
     description="El docente registra las notas (parcial1, parcial2, final, sustitutorio) "
     "para un detalle de matrícula específico. El promedio se calcula automáticamente.",
     responses={200: GradeResponse, 404: MessageResponse},
-    security=[{"jwt": []}],
+    security=[{"cookie": []}],
 )
 @role_required("Docente", "Administrador")
 def registrar_notas(path: MatriculaDetallePath, body: GradeBody):
@@ -49,7 +49,7 @@ def registrar_notas(path: MatriculaDetallePath, body: GradeBody):
     description="Devuelve todas las notas del estudiante con info del curso, "
     "sección y periodo. Requiere autenticación JWT.",
     responses={200: GradeListResponse, 404: MessageResponse},
-    security=[{"jwt": []}],
+    security=[{"cookie": []}],
 )
 @role_required("Estudiante", "Docente", "Administrador", "Direccion")
 def consultar_notas_estudiante(path: EstudiantePath):
@@ -64,7 +64,7 @@ def consultar_notas_estudiante(path: EstudiantePath):
     description="Devuelve las notas de todos los estudiantes matriculados en "
     "una sección. Útil para que el docente vea su clase completa.",
     responses={200: GradeListResponse},
-    security=[{"jwt": []}],
+    security=[{"cookie": []}],
 )
 @role_required("Docente", "Administrador", "Direccion")
 def consultar_notas_seccion(path: SeccionPath):

@@ -35,7 +35,7 @@ class AuditoriaQuery(BaseModel):
 @admin_bp.post(
     "/usuarios",
     responses={201: UsuarioCreateResponse, 400: MessageResponse, 404: MessageResponse, 409: MessageResponse},
-    security=[{"jwt": []}],
+    security=[{"cookie": []}],
 )
 @role_required("Administrador")
 def crear_usuario(body: UsuarioCreateBody):
@@ -43,7 +43,7 @@ def crear_usuario(body: UsuarioCreateBody):
     return response, status
 
 
-@admin_bp.get("/usuarios", responses={200: UsuarioListResponse}, security=[{"jwt": []}])
+@admin_bp.get("/usuarios", responses={200: UsuarioListResponse}, security=[{"cookie": []}])
 @role_required("Administrador")
 def listar_usuarios():
     response, status = userController.listar_usuarios_ctrl()
@@ -51,7 +51,7 @@ def listar_usuarios():
 
 
 @admin_bp.put(
-    "/usuarios/<int:id_usuario>", responses={200: UsuarioResponse, 404: MessageResponse}, security=[{"jwt": []}]
+    "/usuarios/<int:id_usuario>", responses={200: UsuarioResponse, 404: MessageResponse}, security=[{"cookie": []}]
 )
 @role_required("Administrador")
 def actualizar_usuario(path: UsuarioPath, body: UsuarioUpdateBody):
@@ -59,21 +59,21 @@ def actualizar_usuario(path: UsuarioPath, body: UsuarioUpdateBody):
     return response, status
 
 
-@admin_bp.post("/roles", responses={201: RolResponse, 409: MessageResponse}, security=[{"jwt": []}])
+@admin_bp.post("/roles", responses={201: RolResponse, 409: MessageResponse}, security=[{"cookie": []}])
 @role_required("Administrador")
 def crear_rol(body: RolBody):
     response, status = userController.crear_rol_ctrl(body)
     return response, status
 
 
-@admin_bp.get("/roles", responses={200: RolListResponse}, security=[{"jwt": []}])
+@admin_bp.get("/roles", responses={200: RolListResponse}, security=[{"cookie": []}])
 @jwt_required()
 def listar_roles():
     response, status = userController.listar_roles_ctrl()
     return response, status
 
 
-@admin_bp.get("/auditoria", responses={200: AuditoriaListResponse}, security=[{"jwt": []}])
+@admin_bp.get("/auditoria", responses={200: AuditoriaListResponse}, security=[{"cookie": []}])
 @role_required("Direccion")
 def listar_auditoria(query: AuditoriaQuery):
     response, status = auditController.listar_auditoria_ctrl(query.id_usuario, query.accion)

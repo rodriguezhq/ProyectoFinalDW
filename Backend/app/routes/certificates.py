@@ -22,7 +22,7 @@ certificates_bp = APIBlueprint("certificates", __name__, abp_tags=[certificates_
     "/",
     summary="Solicitar certificado/constancia",
     responses={201: DocumentoResponse, 403: MessageResponse, 404: MessageResponse},
-    security=[{"jwt": []}],
+    security=[{"cookie": []}],
 )
 @role_required("Estudiante")
 def solicitar(body: SolicitarDocumentoBody):
@@ -34,7 +34,7 @@ def solicitar(body: SolicitarDocumentoBody):
     "/<int:id_documento>/autorizar",
     summary="Autorizar emisión de documento",
     responses={200: DocumentoResponse, 404: MessageResponse, 409: MessageResponse},
-    security=[{"jwt": []}],
+    security=[{"cookie": []}],
 )
 @role_required("Direccion")
 def autorizar(path: DocumentoPath):
@@ -46,7 +46,7 @@ def autorizar(path: DocumentoPath):
     "/<int:id_documento>/emitir",
     summary="Emitir documento con código QR",
     responses={200: DocumentoResponse, 404: MessageResponse, 409: MessageResponse},
-    security=[{"jwt": []}],
+    security=[{"cookie": []}],
 )
 @role_required("Administrador")
 def emitir(path: DocumentoPath):
@@ -58,7 +58,7 @@ def emitir(path: DocumentoPath):
     "/mis-documentos",
     summary="Mis documentos solicitados",
     responses={200: DocumentoListResponse, 403: MessageResponse},
-    security=[{"jwt": []}],
+    security=[{"cookie": []}],
 )
 @role_required("Estudiante")
 def mis_documentos():
@@ -70,7 +70,7 @@ def mis_documentos():
     "/<int:id_documento>",
     summary="Ver detalle de un documento",
     responses={200: DocumentoResponse, 403: MessageResponse, 404: MessageResponse},
-    security=[{"jwt": []}],
+    security=[{"cookie": []}],
 )
 @role_required("Estudiante", "Administrador", "Direccion")
 def detalle(path: DocumentoPath):
@@ -82,7 +82,7 @@ def detalle(path: DocumentoPath):
     "/",
     summary="Listar todos los documentos",
     responses={200: DocumentoListResponse},
-    security=[{"jwt": []}],
+    security=[{"cookie": []}],
 )
 @role_required("Administrador", "Direccion")
 def listar_todos():
