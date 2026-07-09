@@ -55,3 +55,29 @@ class GradeListResponse(BaseModel):
 
 class MessageResponse(BaseModel):
     msg: str
+
+
+class BulkGradeItem(BaseModel):
+    id_matricula_detalle: int
+    parcial1: Optional[float] = None
+    parcial2: Optional[float] = None
+    final: Optional[float] = None
+    sustitutorio: Optional[float] = None
+
+    @field_validator("parcial1", "parcial2", "final", "sustitutorio", mode="before")
+    @classmethod
+    def validar_rango_nota(cls, v):
+        if v is not None and v != "":
+            try:
+                val = float(v)
+                if not (0 <= val <= 20):
+                    raise ValueError("La nota debe estar entre 0 y 20")
+                return val
+            except (ValueError, TypeError):
+                raise ValueError("La nota debe ser un número válido")
+        return None
+
+
+class BulkGradeBody(BaseModel):
+    notas: list[BulkGradeItem]
+

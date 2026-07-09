@@ -76,15 +76,9 @@ export default function ProfileView() {
     const userCode = `2026${1000 + (profile?.id_usuario || authUser?.id_usuario || 1)}`;
 
     return (
-        <div className=" mx-auto py-6 px-4 sm:px-6 lg:px-8 animate-fade-in">
+        <div className="mx-auto py-2 px-4 sm:px-6 lg:px-8 animate-fade-in">
             {/* Header Badge/Title */}
-            <div className="mb-6">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-primary-light text-primary uppercase tracking-wider mb-2">
-                    Panel del Usuario
-                </span>
-                <h1 className="font-heading text-3xl font-extrabold text-text-heading tracking-tight">
-                    Vista Perfil
-                </h1>
+            <div className="mb-3">
                 <p className="text-text-muted mt-1">
                     Gestiona tu información personal y configuración de seguridad.
                 </p>

@@ -16,6 +16,7 @@ import PublicOnlyRoute from './components/publicOnlyRoute';
 import ProtectedRoute from './components/protectedRoute';
 import NotFound from './components/notFound';
 import { ROLES } from './constants/roles';
+import DocenteNotas from './Views/Docente/DocenteNotas';
 
 export function AppRoutes() {
   return (
@@ -40,6 +41,7 @@ export function AppRoutes() {
         <Route path="/docente" element={<DocenteDashboard />}>
           <Route index element={<DocenteHomeView />} />
           <Route path="perfil" element={<ProfileView />} />
+          <Route path="notas" element={<DocenteNotas />} />
         </Route>
       </Route>
 

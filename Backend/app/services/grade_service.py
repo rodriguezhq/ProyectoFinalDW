@@ -172,3 +172,40 @@ def obtener_notas_seccion(id_seccion):
         resultado.append(nota_dict)
 
     return resultado
+
+
+def registrar_notas_bulk(notas_data):
+    try:
+        for item in notas_data:
+            id_matricula_detalle = item["id_matricula_detalle"]
+
+            # Buscar nota existente o crear una nueva
+            nota = Nota.query.filter_by(id_matricula_detalle=id_matricula_detalle).first()
+            if nota:
+                nota.parcial1 = item.get("parcial1")
+                nota.parcial2 = item.get("parcial2")
+                nota.final = item.get("final")
+                nota.sustitutorio = item.get("sustitutorio")
+            else:
+                nota = Nota(
+                    parcial1=item.get("parcial1"),
+                    parcial2=item.get("parcial2"),
+                    final=item.get("final"),
+                    sustitutorio=item.get("sustitutorio"),
+                    id_matricula_detalle=id_matricula_detalle,
+                )
+                db.session.add(nota)
+
+            # Calcular promedio y estado
+            promedio = _calcular_promedio(
+                nota.parcial1, nota.parcial2, nota.final, nota.sustitutorio
+            )
+            nota.promedio = promedio
+            nota.estado = _determinar_estado(promedio)
+
+        db.session.commit()
+        return "Notas registradas exitosamente en lote", None
+    except Exception as e:
+        db.session.rollback()
+        return None, f"Error al registrar notas: {str(e)}"
+

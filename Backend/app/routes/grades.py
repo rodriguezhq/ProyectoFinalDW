@@ -8,6 +8,7 @@ from app.schemas.grade_schema import (
     GradeResponse,
     GradeListResponse,
     MessageResponse,
+    BulkGradeBody,
 )
 from app.Controllers import gradeController
 from app.utils.decorators import role_required
@@ -71,3 +72,19 @@ def consultar_notas_seccion(path: SeccionPath):
     """Consulta las notas de todos los estudiantes de una sección."""
     response, status = gradeController.consultar_notas_seccion(path.id_seccion)
     return response, status
+
+
+@grades_bp.post(
+    "/bulk",
+    summary="Registrar o actualizar notas en lote",
+    description="El docente registra las notas (parcial1, parcial2, final, sustitutorio) "
+    "para varios detalles de matrícula a la vez.",
+    responses={200: MessageResponse, 400: MessageResponse},
+    security=[{"cookie": []}],
+)
+@role_required("Docente", "Administrador")
+def registrar_notas_bulk(body: BulkGradeBody):
+    """Registra o actualiza notas de varios estudiantes en lote."""
+    response, status = gradeController.registrar_notas_bulk(body)
+    return response, status
+

@@ -32,3 +32,16 @@ def consultar_notas_seccion(id_seccion):
     """
     notas = grade_service.obtener_notas_seccion(id_seccion)
     return {"msg": "Notas de la sección", "notas": notas}, 200
+
+
+def registrar_notas_bulk(body):
+    """
+    Registra o actualiza notas de varios estudiantes en lote.
+    Retorna: (dict_respuesta, status_code)
+    """
+    notas_data = [item.model_dump(exclude_none=False) for item in body.notas]
+    msg, error = grade_service.registrar_notas_bulk(notas_data)
+    if error:
+        return {"msg": error}, 400
+    return {"msg": msg}, 200
+
