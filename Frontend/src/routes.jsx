@@ -5,11 +5,16 @@ import EstudianteDashboard from './Views/Estudiante/EstudianteDashboard';
 import { EnrollmentView } from './Views/Estudiante/EnrollmentView';
 import { GradesView } from './Views/Estudiante/GradesView';
 import { ScheduleView } from './Views/Estudiante/ScheduleView';
+import PublicOnlyRoute from './components/publicOnlyRoute';
 
 export function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<App />} />
+      {/* ruta del login */}
+      <Route element={<PublicOnlyRoute />}>
+        <Route path="/" element={<App />} />
+      </Route>
+
       {/* rutas del estudiante */}
       <Route path="/estudiante" element={<EstudianteDashboard />}>
         <Route index element={<ScheduleView />} /> {/* Carga por defecto en /estudiante */}

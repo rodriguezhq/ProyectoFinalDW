@@ -1,18 +1,60 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Eye, EyeOff, Lock, User, CheckCircle2, AlertCircle } from 'lucide-react';
 import imageUncp from '../src/assets/Escudo_UNCP.png';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from './hooks/useAuth';
+// Mapa de redirección según el id_rol del backend
+const ROLE_ROUTES = {
+  1: '/admin',        // Administrador
+  2: '/docente',      // Docente
+  3: '/estudiante',   // Estudiante
+  4: '/direccion',    // Direccion
+};
+
 export default function App() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [notification, setNotification] = useState(null);
+  const navigate = useNavigate()
+  const { login } = useAuth();
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setNotification(null);
+    try {
+      const user = await login(email, password);
+      if (user) {
+        const route = ROLE_ROUTES[user.id_rol];
+        if (route) {
+          navigate(route);
+        } else {
+          setNotification({
+            type: "error",
+            message: "Rol de usuario no reconocido en el sistema."
+          });
+        }
+      } else {
+        setNotification({
+          type: "error",
+          message: "Credenciales incorrectas"
+        });
+      }
+    } catch (error) {
+      setNotification({
+        type: "error",
+        message: "Credenciales incorrectas"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+
+  }
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-bg-alt relative overflow-hidden font-sans antialiased ">
 
-      <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle,var(--color-primary-light)_0%,transparent_70%)] opacity-70 z-0"></div>
-      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full bg-[radial-gradient(circle,rgba(239,193,26,0.08)_0%,transparent_70%)] opacity-70 z-0"></div>
+    <div className="min-h-screen w-full flex items-center justify-center bg-bg-alt relative overflow-hidden font-sans antialiased ">
 
       <div className="w-full max-w-[440px] px-6 z-10">
 
@@ -20,7 +62,7 @@ export default function App() {
 
           {/* Encabezado con Logo o Escudo */}
           <div className="flex flex-col items-center mb-5">
-            <div className="w-20 h-20 rounded-full bg-primary-light flex items-center justify-center mb-4 border border-primary/10 animate-float">
+            <div className="w-20 h-20 rounded-full bg-primary-light flex items-center justify-center mb-4 border border-primary/10">
               <img
                 src={imageUncp}
                 alt="Escudo de la UNCP"
@@ -38,7 +80,7 @@ export default function App() {
             </p>
           </div>
           {/* Formulario */}
-          <form onSubmit={() => { }} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4">
 
             {/* Input de Correo */}
             <div className="relative">

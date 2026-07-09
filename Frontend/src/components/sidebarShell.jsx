@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Outlet } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { SidebarClose, SidebarOpen } from 'lucide-react';
 import uncpImagen from '../assets/Escudo_UNCP.png';
 
