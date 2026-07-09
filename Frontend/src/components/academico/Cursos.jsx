@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { apiFetch } from '../../utils/api';
 
 export default function Cursos() {
   const [cursos, setCursos] = useState([]);
@@ -12,14 +13,11 @@ export default function Cursos() {
   const [codigo, setCodigo] = useState('');
   const [creditos, setCreditos] = useState('');
 
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
-
   const fetchCursos = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${apiBaseUrl}/api/courses/cursos`, {
-        method: 'GET',
-        credentials: 'include'
+      const response = await apiFetch(`/api/courses/cursos`, {
+        method: 'GET'
       });
       if (!response.ok) throw new Error('Error al cargar los cursos');
       const data = await response.json();
@@ -45,7 +43,7 @@ export default function Cursos() {
   };
 
   const openEditModal = (cur) => {
-    setEditingId(cur.id);
+    setEditingId(cur.id_curso);
     setNombre(cur.nombre);
     setCodigo(cur.codigo);
     setCreditos(cur.creditos);
@@ -68,18 +66,17 @@ export default function Cursos() {
     };
 
     try {
-      const url = editingId 
-        ? `${apiBaseUrl}/api/courses/cursos/${editingId}`
-        : `${apiBaseUrl}/api/courses/cursos`;
+      const endpoint = editingId 
+        ? `/api/courses/cursos/${editingId}`
+        : `/api/courses/cursos`;
       const method = editingId ? 'PUT' : 'POST';
 
-      const response = await fetch(url, {
+      const response = await apiFetch(endpoint, {
         method,
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(payload),
-        credentials: 'include'
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
@@ -96,7 +93,8 @@ export default function Cursos() {
   };
 
   return (
-    <div className="flex flex-col gap-6 animate-slide-up">
+    <>
+      <div className="flex flex-col gap-6 animate-slide-up">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start md:items-center gap-4">
         <div>
           <h3 className="font-heading text-[1.25rem] font-extrabold text-text-heading mb-1">📚 Catálogo de Cursos</h3>
@@ -123,7 +121,7 @@ export default function Cursos() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
+            <table className="w-full min-w-[600px] border-collapse">
               <thead>
                 <tr className="bg-bg-alt border-b border-border">
                   <th className="p-4 text-left text-[0.85rem] font-heading font-extrabold text-text-heading">ID</th>
@@ -135,8 +133,8 @@ export default function Cursos() {
               </thead>
               <tbody className="divide-y divide-border">
                 {cursos.map((cur) => (
-                  <tr key={cur.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="p-4 text-[0.88rem] font-mono text-text-muted">{cur.id}</td>
+                  <tr key={cur.id_curso} className="hover:bg-slate-50 transition-colors">
+                    <td className="p-4 text-[0.88rem] font-mono text-text-muted">{cur.id_curso}</td>
                     <td className="p-4 text-[0.88rem] font-bold text-primary">{cur.codigo}</td>
                     <td className="p-4 text-[0.88rem] font-semibold text-text-heading">{cur.nombre}</td>
                     <td className="p-4 text-center text-[0.88rem] font-bold text-text-heading">
@@ -160,9 +158,10 @@ export default function Cursos() {
           </div>
         )}
       </div>
+    </div>
 
-      {/* Add/Edit Modal */}
-      {modalOpen && (
+    {/* Add/Edit Modal */}
+    {modalOpen && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
           <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-[450px] w-full overflow-hidden animate-scale-in text-left">
             <div className="p-6 bg-primary-light border-b border-primary/10 flex justify-between items-center">
@@ -233,6 +232,6 @@ export default function Cursos() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

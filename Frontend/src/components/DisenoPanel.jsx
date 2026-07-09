@@ -183,7 +183,7 @@ export default function DisenoPanel({ user, onLogout, activeMenuIndex = 0, setAc
         </header>
 
         {/* Page Content */}
-        <main className="p-8 grow overflow-y-auto bg-white animate-slide-up">
+        <main className="p-8 grow overflow-y-auto bg-white">
           {children}
         </main>
       </div>

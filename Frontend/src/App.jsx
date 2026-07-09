@@ -394,6 +394,42 @@ function LoginForm({ navigate, onLoginSuccess }) {
   );
 }
 
+const pathsPorRol = {
+  Estudiante: [
+    "/estudiante/horario",
+    "/estudiante/matricula",
+    "/estudiante/ficha",
+    "/estudiante/notas",
+    "/estudiante/record",
+    "/estudiante/certificados"
+  ],
+  Docente: [
+    "/docente/horario",
+    "/docente/cursos",
+    "/docente/notas-registrar",
+    "/docente/notas-estudiante",
+    "/docente/notas-seccion"
+  ],
+  Administrador: [
+    "/administrador/dashboard",
+    "/administrador/mantenimiento",
+    "/administrador/matriculas",
+    "/administrador/pagos",
+    "/administrador/docentes",
+    "/administrador/actas",
+    "/administrador/certificados",
+    "/administrador/usuarios"
+  ],
+  Direccion: [
+    "/direccion/dashboard",
+    "/direccion/matriculas",
+    "/direccion/docentes",
+    "/direccion/cohortes",
+    "/direccion/certificados",
+    "/direccion/auditoria"
+  ]
+};
+
 function App() {
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
   const [activeTab, setActiveTab] = useState("matricula");
@@ -406,9 +442,13 @@ function App() {
 
   const [activeMenuIndex, setActiveMenuIndex] = useState(0);
 
-  useEffect(() => {
-    setActiveMenuIndex(0);
-  }, [user]);
+  const handleTabNavigation = (index) => {
+    if (!user) return;
+    const paths = pathsPorRol[user.rol];
+    if (paths && paths[index]) {
+      navigate(paths[index]);
+    }
+  };
 
   // Synchronize state with browser back/forward buttons
   useEffect(() => {
@@ -426,16 +466,45 @@ function App() {
   };
 
   const redirectToDashboard = (role) => {
-    if (role === "Estudiante") navigate("/estudiante");
-    else if (role === "Docente") navigate("/docente");
-    else if (role === "Administrador") navigate("/administrador");
-    else if (role === "Direccion") navigate("/direccion");
+    if (role === "Estudiante") navigate("/estudiante/horario");
+    else if (role === "Docente") navigate("/docente/horario");
+    else if (role === "Administrador") navigate("/administrador/dashboard");
+    else if (role === "Direccion") navigate("/direccion/dashboard");
     else navigate("/");
   };
 
+  const isDashboardRoute =
+    currentPath.startsWith("/estudiante") ||
+    currentPath.startsWith("/docente") ||
+    currentPath.startsWith("/administrador") ||
+    currentPath.startsWith("/direccion");
+
+  // Sync index from URL path on load or popstate
+  useEffect(() => {
+    if (!user) return;
+    const role = user.rol;
+    const paths = pathsPorRol[role];
+    if (!paths) return;
+
+    const baseRoute = `/${role.toLowerCase()}`;
+    if (currentPath === baseRoute) {
+      navigate(paths[0]);
+      return;
+    }
+
+    const index = paths.indexOf(currentPath);
+    if (index !== -1) {
+      setActiveMenuIndex(index);
+    }
+  }, [currentPath, user]);
+
   // Centralized Route Protection Guard
   useEffect(() => {
-    const isDashboardRoute = ["/estudiante", "/docente", "/administrador", "/direccion"].includes(currentPath);
+    const isDashboard =
+      currentPath.startsWith("/estudiante") ||
+      currentPath.startsWith("/docente") ||
+      currentPath.startsWith("/administrador") ||
+      currentPath.startsWith("/direccion");
 
     if (user) {
       // 1. If authenticated user attempts to access login, redirect to their dashboard
@@ -443,19 +512,19 @@ function App() {
         redirectToDashboard(user.rol);
       }
       
-      // 2. Prevent role-mismatch access (e.g. Student accessing /admin, etc.)
-      if (currentPath === "/estudiante" && user.rol !== "Estudiante") {
+      // 2. Prevent role-mismatch access
+      if (currentPath.startsWith("/estudiante") && user.rol !== "Estudiante") {
         redirectToDashboard(user.rol);
-      } else if (currentPath === "/docente" && user.rol !== "Docente") {
+      } else if (currentPath.startsWith("/docente") && user.rol !== "Docente") {
         redirectToDashboard(user.rol);
-      } else if (currentPath === "/administrador" && user.rol !== "Administrador") {
+      } else if (currentPath.startsWith("/administrador") && user.rol !== "Administrador") {
         redirectToDashboard(user.rol);
-      } else if (currentPath === "/direccion" && user.rol !== "Direccion") {
+      } else if (currentPath.startsWith("/direccion") && user.rol !== "Direccion") {
         redirectToDashboard(user.rol);
       }
     } else {
       // 3. If unauthenticated user attempts to access any dashboard path, redirect to login
-      if (isDashboardRoute) {
+      if (isDashboard) {
         navigate("/login");
       }
     }
@@ -476,8 +545,6 @@ function App() {
     navigate("/");
   };
 
-  const isDashboardRoute = ["/estudiante", "/docente", "/administrador", "/direccion"].includes(currentPath);
-
   return (
     <div className="min-h-screen flex flex-col bg-bg-base animate-fade-in">
       {/* Navigation Bar - Shared by Landing and Login, hidden in Dashboard */}
@@ -494,34 +561,34 @@ function App() {
                 <span className="hidden sm:block text-[0.72rem] text-text-muted font-medium tracking-wider uppercase">Universidad Nacional del Centro del Perú</span>
               </div>
             </div>
-
-            <div className="shrink-0 ml-2">
-              {currentPath !== "/login" && (
-                user ? (
-                  <button 
-                    id="btn-nav-dashboard"
-                    type="button" 
-                    className="bg-primary text-white py-2 px-3.5 sm:py-2.5 sm:px-6 text-[0.82rem] sm:text-base font-semibold rounded-md transition-all duration-300 inline-flex items-center gap-2 shadow-[0_4px_14px_rgba(13,82,44,0.18)] hover:bg-primary-hover hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(13,82,44,0.25)]" 
-                    onClick={() => {
-                      const role = user.rol;
-                      if (role === "Estudiante") navigate("/estudiante");
-                      else if (role === "Docente") navigate("/docente");
-                      else if (role === "Administrador") navigate("/administrador");
-                      else if (role === "Direccion") navigate("/direccion");
-                    }}
-                  >
-                    <span className="sm:hidden">Mi Panel</span><span className="hidden sm:inline">Ir a mi Panel</span>
-                  </button>
-                ) : (
-                  <button 
-                    id="btn-nav-login"
-                    type="button" 
-                    className="text-primary border-2 border-primary py-1.5 px-3.5 sm:py-2 sm:px-5 text-[0.82rem] sm:text-base font-semibold rounded-md transition-all duration-300 hover:bg-primary hover:text-white hover:shadow-[0_4px_12px_rgba(13,82,44,0.15)]" 
-                    onClick={() => navigate('/login')}
-                  >
-                    <span className="sm:hidden">Acceder</span><span className="hidden sm:inline">Acceder al Portal</span>
-                  </button>
-                )
+            <div className="flex items-center gap-3.5">
+              <button 
+                id="btn-nav-landing"
+                type="button"
+                onClick={() => navigate('/')}
+                className={`py-2.5 px-4 font-bold rounded-md transition-all text-[0.9rem] border cursor-pointer hover:bg-slate-100 hover:text-primary ${currentPath === "/" ? "bg-primary-light text-primary border-primary/20" : "bg-transparent text-text-muted border-transparent"}`}
+              >
+                Inicio
+              </button>
+              
+              {user ? (
+                <button
+                  id="btn-nav-dashboard"
+                  type="button"
+                  onClick={() => redirectToDashboard(user.rol)}
+                  className="bg-primary text-white py-2.5 px-4.5 font-bold rounded-md hover:bg-primary-hover transition-colors shadow-sm text-[0.9rem] flex items-center gap-2 cursor-pointer"
+                >
+                  Ir al Portal <span>→</span>
+                </button>
+              ) : (
+                <button
+                  id="btn-nav-login"
+                  type="button"
+                  onClick={() => navigate('/login')}
+                  className={`py-2.5 px-4.5 font-bold rounded-md transition-colors text-[0.9rem] cursor-pointer ${currentPath === "/login" ? "bg-primary text-white hover:bg-primary-hover shadow-sm" : "bg-primary-light text-primary border border-primary/20 hover:bg-primary/10"}`}
+                >
+                  Acceder
+                </button>
               )}
             </div>
           </nav>
@@ -531,9 +598,9 @@ function App() {
       {/* Main View Router Switch */}
       {currentPath === "/login" ? (
         user ? null : <LoginForm navigate={navigate} onLoginSuccess={setUser} />
-      ) : currentPath === "/estudiante" ? (
+      ) : currentPath.startsWith("/estudiante") ? (
         user && user.rol === "Estudiante" ? (
-          <DisenoPanel user={user} onLogout={handleLogout} activeMenuIndex={activeMenuIndex} setActiveMenuIndex={setActiveMenuIndex}>
+          <DisenoPanel user={user} onLogout={handleLogout} activeMenuIndex={activeMenuIndex} setActiveMenuIndex={handleTabNavigation}>
             {activeMenuIndex === 0 ? (
               <VistaHorario isTeacher={false} onSessionExpired={handleLogout} />
             ) : (
@@ -543,9 +610,9 @@ function App() {
             )}
           </DisenoPanel>
         ) : null
-      ) : currentPath === "/docente" ? (
+      ) : currentPath.startsWith("/docente") ? (
         user && user.rol === "Docente" ? (
-          <DisenoPanel user={user} onLogout={handleLogout} activeMenuIndex={activeMenuIndex} setActiveMenuIndex={setActiveMenuIndex}>
+          <DisenoPanel user={user} onLogout={handleLogout} activeMenuIndex={activeMenuIndex} setActiveMenuIndex={handleTabNavigation}>
             {activeMenuIndex === 0 ? (
               <VistaHorario isTeacher={true} onSessionExpired={handleLogout} />
             ) : (
@@ -555,9 +622,9 @@ function App() {
             )}
           </DisenoPanel>
         ) : null
-      ) : currentPath === "/administrador" ? (
+      ) : currentPath.startsWith("/administrador") ? (
         user && user.rol === "Administrador" ? (
-          <DisenoPanel user={user} onLogout={handleLogout} activeMenuIndex={activeMenuIndex} setActiveMenuIndex={setActiveMenuIndex}>
+          <DisenoPanel user={user} onLogout={handleLogout} activeMenuIndex={activeMenuIndex} setActiveMenuIndex={handleTabNavigation}>
             {activeMenuIndex === 0 ? (
               <VistaPanel isDirection={false} />
             ) : activeMenuIndex === 1 ? (
@@ -569,9 +636,9 @@ function App() {
             )}
           </DisenoPanel>
         ) : null
-      ) : currentPath === "/direccion" ? (
+      ) : currentPath.startsWith("/direccion") ? (
         user && user.rol === "Direccion" ? (
-          <DisenoPanel user={user} onLogout={handleLogout} activeMenuIndex={activeMenuIndex} setActiveMenuIndex={setActiveMenuIndex}>
+          <DisenoPanel user={user} onLogout={handleLogout} activeMenuIndex={activeMenuIndex} setActiveMenuIndex={handleTabNavigation}>
             {activeMenuIndex === 0 ? (
               <VistaPanel isDirection={true} />
             ) : (
@@ -602,7 +669,7 @@ function App() {
           </div>
         </footer>
       )}
-      <Toaster position="top-right" richColors />
+      <Toaster position="top-right" richColors closeButton />
     </div>
   );
 }

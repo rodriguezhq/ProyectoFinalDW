@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { apiFetch } from '../../utils/api';
 
 export default function Especialidades() {
   const [especialidades, setEspecialidades] = useState([]);
@@ -13,24 +14,20 @@ export default function Especialidades() {
   const [codigo, setCodigo] = useState('');
   const [idFacultad, setIdFacultad] = useState('');
 
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
-
   const fetchData = async () => {
     setIsLoading(true);
     try {
       // Fetch Especialidades
-      const espRes = await fetch(`${apiBaseUrl}/api/courses/especialidades`, {
-        method: 'GET',
-        credentials: 'include'
+      const espRes = await apiFetch(`/api/courses/especialidades`, {
+        method: 'GET'
       });
       if (!espRes.ok) throw new Error('Error al cargar las especialidades');
       const espData = await espRes.json();
       setEspecialidades(espData.especialidades || []);
 
       // Fetch Facultades for dropdown
-      const facRes = await fetch(`${apiBaseUrl}/api/courses/facultades`, {
-        method: 'GET',
-        credentials: 'include'
+      const facRes = await apiFetch(`/api/courses/facultades`, {
+        method: 'GET'
       });
       if (facRes.ok) {
         const facData = await facRes.json();
@@ -52,12 +49,12 @@ export default function Especialidades() {
     setEditingId(null);
     setNombre('');
     setCodigo('');
-    setIdFacultad(facultades[0]?.id || '');
+    setIdFacultad(facultades[0]?.id_facultad || '');
     setModalOpen(true);
   };
 
   const openEditModal = (esp) => {
-    setEditingId(esp.id);
+    setEditingId(esp.id_especialidad);
     setNombre(esp.nombre);
     setCodigo(esp.codigo);
     setIdFacultad(esp.id_facultad || '');
@@ -79,18 +76,17 @@ export default function Especialidades() {
     };
 
     try {
-      const url = editingId 
-        ? `${apiBaseUrl}/api/courses/especialidades/${editingId}`
-        : `${apiBaseUrl}/api/courses/especialidades`;
+      const endpoint = editingId 
+        ? `/api/courses/especialidades/${editingId}`
+        : `/api/courses/especialidades`;
       const method = editingId ? 'PUT' : 'POST';
 
-      const response = await fetch(url, {
+      const response = await apiFetch(endpoint, {
         method,
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(payload),
-        credentials: 'include'
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
@@ -107,7 +103,8 @@ export default function Especialidades() {
   };
 
   return (
-    <div className="flex flex-col gap-6 animate-slide-up">
+    <>
+      <div className="flex flex-col gap-6 animate-slide-up">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start md:items-center gap-4">
         <div>
           <h3 className="font-heading text-[1.25rem] font-extrabold text-text-heading mb-1">🎓 Especialidades y Carreras</h3>
@@ -134,7 +131,7 @@ export default function Especialidades() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
+            <table className="w-full min-w-[700px] border-collapse">
               <thead>
                 <tr className="bg-bg-alt border-b border-border">
                   <th className="p-4 text-left text-[0.85rem] font-heading font-extrabold text-text-heading">ID</th>
@@ -145,35 +142,40 @@ export default function Especialidades() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {especialidades.map((esp) => (
-                  <tr key={esp.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="p-4 text-[0.88rem] font-mono text-text-muted">{esp.id}</td>
-                    <td className="p-4 text-[0.88rem] font-bold text-primary">{esp.codigo}</td>
-                    <td className="p-4 text-[0.88rem] font-semibold text-text-heading">{esp.nombre}</td>
-                    <td className="p-4 text-[0.88rem] font-medium text-text-muted">
-                      <span className="bg-primary-light text-primary py-0.5 px-2 rounded-full text-[0.78rem] font-bold">
-                        {esp.facultad_nombre || `Facultad ID: ${esp.id_facultad}`}
-                      </span>
-                    </td>
-                    <td className="p-4 text-center">
-                      <button
-                        type="button"
-                        onClick={() => openEditModal(esp)}
-                        className="text-primary hover:text-primary-hover font-bold text-[0.88rem] px-3 py-1 rounded hover:bg-primary-light transition-all"
-                      >
-                        Editar
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {especialidades.map((esp) => {
+                  const fac = facultades.find(f => f.id_facultad === esp.id_facultad);
+                  const nombreFacultad = fac ? fac.nombre : `Facultad ID: ${esp.id_facultad}`;
+                  return (
+                    <tr key={esp.id_especialidad} className="hover:bg-slate-50 transition-colors">
+                      <td className="p-4 text-[0.88rem] font-mono text-text-muted">{esp.id_especialidad}</td>
+                      <td className="p-4 text-[0.88rem] font-bold text-primary">{esp.codigo}</td>
+                      <td className="p-4 text-[0.88rem] font-semibold text-text-heading">{esp.nombre}</td>
+                      <td className="p-4 text-[0.88rem] font-medium text-text-muted">
+                        <span className="bg-primary-light text-primary py-0.5 px-2 rounded-full text-[0.78rem] font-bold">
+                          {nombreFacultad}
+                        </span>
+                      </td>
+                      <td className="p-4 text-center">
+                        <button
+                          type="button"
+                          onClick={() => openEditModal(esp)}
+                          className="text-primary hover:text-primary-hover font-bold text-[0.88rem] px-3 py-1 rounded hover:bg-primary-light transition-all"
+                        >
+                          Editar
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
       </div>
+    </div>
 
-      {/* Add/Edit Modal */}
-      {modalOpen && (
+    {/* Add/Edit Modal */}
+    {modalOpen && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
           <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-[450px] w-full overflow-hidden animate-scale-in text-left">
             <div className="p-6 bg-primary-light border-b border-primary/10 flex justify-between items-center">
@@ -222,7 +224,7 @@ export default function Especialidades() {
                   >
                     <option value="" disabled>Seleccione una Facultad</option>
                     {facultades.map(fac => (
-                      <option key={fac.id} value={fac.id}>{fac.nombre}</option>
+                      <option key={fac.id_facultad} value={fac.id_facultad}>{fac.nombre}</option>
                     ))}
                   </select>
                 </div>
@@ -246,6 +248,6 @@ export default function Especialidades() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

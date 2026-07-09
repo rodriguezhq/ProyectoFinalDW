@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../../utils/api';
 
 const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 const hourSlots = [
@@ -87,51 +88,14 @@ export default function VistaHorario({ isTeacher = false, onSessionExpired }) {
       setIsLoading(true);
       setErrorMsg(null);
       
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
-      const url = isTeacher 
-        ? `${apiBaseUrl}/api/courses/mis-secciones`
-        : `${apiBaseUrl}/api/enrollment/mias`;
-
       try {
-        let response = await fetch(url, {
-          method: "GET",
-          credentials: "include"
+        const endpoint = isTeacher 
+          ? "/api/courses/mis-secciones"
+          : "/api/enrollment/mias";
+
+        const response = await apiFetch(endpoint, {
+          method: "GET"
         });
-
-        if (response.status === 401) {
-          const getCookie = (name) => {
-            const value = `; ${document.cookie}`;
-            const parts = value.split(`; ${name}=`);
-            if (parts.length === 2) return parts.pop().split(';').shift();
-            return null;
-          };
-
-          const csrfRefreshToken = getCookie("csrf_refresh_token");
-
-          try {
-            const refreshResponse = await fetch(`${apiBaseUrl}/api/auth/refresh`, {
-              method: "POST",
-              headers: {
-                "X-CSRF-TOKEN": csrfRefreshToken || ""
-              },
-              credentials: "include"
-            });
-
-            if (refreshResponse.ok) {
-              response = await fetch(url, {
-                method: "GET",
-                credentials: "include"
-              });
-            } else {
-              if (onSessionExpired) onSessionExpired();
-              return;
-            }
-          } catch (refreshErr) {
-            console.error("Error al intentar refrescar el token:", refreshErr);
-            if (onSessionExpired) onSessionExpired();
-            return;
-          }
-        }
 
         if (!response.ok) {
           throw new Error("No se pudo obtener la información de horarios desde el servidor.");

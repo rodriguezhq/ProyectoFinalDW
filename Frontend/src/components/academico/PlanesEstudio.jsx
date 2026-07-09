@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { apiFetch } from '../../utils/api';
 
 export default function PlanesEstudio() {
   const [planes, setPlanes] = useState([]);
@@ -14,24 +15,20 @@ export default function PlanesEstudio() {
   const [idEspecialidad, setIdEspecialidad] = useState('');
   const [estado, setEstado] = useState('Vigente');
 
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
-
   const fetchData = async () => {
     setIsLoading(true);
     try {
       // Fetch Planes de Estudio
-      const planRes = await fetch(`${apiBaseUrl}/api/courses/planes-estudio`, {
-        method: 'GET',
-        credentials: 'include'
+      const planRes = await apiFetch(`/api/courses/planes-estudio`, {
+        method: 'GET'
       });
       if (!planRes.ok) throw new Error('Error al cargar los planes de estudio');
       const planData = await planRes.json();
       setPlanes(planData.planes_estudio || []);
 
       // Fetch Especialidades for dropdown
-      const espRes = await fetch(`${apiBaseUrl}/api/courses/especialidades`, {
-        method: 'GET',
-        credentials: 'include'
+      const espRes = await apiFetch(`/api/courses/especialidades`, {
+        method: 'GET'
       });
       if (espRes.ok) {
         const espData = await espRes.json();
@@ -53,13 +50,13 @@ export default function PlanesEstudio() {
     setEditingId(null);
     setNombre('');
     setCodigo('');
-    setIdEspecialidad(especialidades[0]?.id || '');
+    setIdEspecialidad(especialidades[0]?.id_especialidad || '');
     setEstado('Vigente');
     setModalOpen(true);
   };
 
   const openEditModal = (plan) => {
-    setEditingId(plan.id);
+    setEditingId(plan.id_plan);
     setNombre(plan.nombre);
     setCodigo(plan.codigo);
     setIdEspecialidad(plan.id_especialidad || '');
@@ -83,18 +80,17 @@ export default function PlanesEstudio() {
     };
 
     try {
-      const url = editingId 
-        ? `${apiBaseUrl}/api/courses/planes-estudio/${editingId}`
-        : `${apiBaseUrl}/api/courses/planes-estudio`;
+      const endpoint = editingId 
+        ? `/api/courses/planes-estudio/${editingId}`
+        : `/api/courses/planes-estudio`;
       const method = editingId ? 'PUT' : 'POST';
 
-      const response = await fetch(url, {
+      const response = await apiFetch(endpoint, {
         method,
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(payload),
-        credentials: 'include'
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
@@ -111,7 +107,8 @@ export default function PlanesEstudio() {
   };
 
   return (
-    <div className="flex flex-col gap-6 animate-slide-up">
+    <>
+      <div className="flex flex-col gap-6 animate-slide-up">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start md:items-center gap-4">
         <div>
           <h3 className="font-heading text-[1.25rem] font-extrabold text-text-heading mb-1">📋 Planes de Estudio</h3>
@@ -138,7 +135,7 @@ export default function PlanesEstudio() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
+            <table className="w-full min-w-[750px] border-collapse">
               <thead>
                 <tr className="bg-bg-alt border-b border-border">
                   <th className="p-4 text-left text-[0.85rem] font-heading font-extrabold text-text-heading">ID</th>
@@ -150,36 +147,41 @@ export default function PlanesEstudio() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {planes.map((plan) => (
-                  <tr key={plan.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="p-4 text-[0.88rem] font-mono text-text-muted">{plan.id}</td>
-                    <td className="p-4 text-[0.88rem] font-bold text-primary">{plan.codigo}</td>
-                    <td className="p-4 text-[0.88rem] font-semibold text-text-heading">{plan.nombre}</td>
-                    <td className="p-4 text-[0.88rem] font-medium text-text-muted">{plan.especialidad_nombre || `Esp ID: ${plan.id_especialidad}`}</td>
-                    <td className="p-4 text-center">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[0.75rem] font-bold ${plan.estado === 'Vigente' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'}`}>
-                        {plan.estado}
-                      </span>
-                    </td>
-                    <td className="p-4 text-center">
-                      <button
-                        type="button"
-                        onClick={() => openEditModal(plan)}
-                        className="text-primary hover:text-primary-hover font-bold text-[0.88rem] px-3 py-1 rounded hover:bg-primary-light transition-all"
-                      >
-                        Editar
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {planes.map((plan) => {
+                  const esp = especialidades.find(e => e.id_especialidad === plan.id_especialidad);
+                  const nombreEspecialidad = esp ? esp.nombre : `Esp ID: ${plan.id_especialidad}`;
+                  return (
+                    <tr key={plan.id_plan} className="hover:bg-slate-50 transition-colors">
+                      <td className="p-4 text-[0.88rem] font-mono text-text-muted">{plan.id_plan}</td>
+                      <td className="p-4 text-[0.88rem] font-bold text-primary">{plan.codigo}</td>
+                      <td className="p-4 text-[0.88rem] font-semibold text-text-heading">{plan.nombre}</td>
+                      <td className="p-4 text-[0.88rem] font-medium text-text-muted">{nombreEspecialidad}</td>
+                      <td className="p-4 text-center">
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[0.75rem] font-bold ${plan.estado === 'Vigente' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'}`}>
+                          {plan.estado}
+                        </span>
+                      </td>
+                      <td className="p-4 text-center">
+                        <button
+                          type="button"
+                          onClick={() => openEditModal(plan)}
+                          className="text-primary hover:text-primary-hover font-bold text-[0.88rem] px-3 py-1 rounded hover:bg-primary-light transition-all"
+                        >
+                          Editar
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
       </div>
+    </div>
 
-      {/* Add/Edit Modal */}
-      {modalOpen && (
+    {/* Add/Edit Modal */}
+    {modalOpen && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
           <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-[450px] w-full overflow-hidden animate-scale-in text-left">
             <div className="p-6 bg-primary-light border-b border-primary/10 flex justify-between items-center">
@@ -228,7 +230,7 @@ export default function PlanesEstudio() {
                   >
                     <option value="" disabled>Seleccione una Especialidad</option>
                     {especialidades.map(esp => (
-                      <option key={esp.id} value={esp.id}>{esp.nombre}</option>
+                      <option key={esp.id_especialidad} value={esp.id_especialidad}>{esp.nombre}</option>
                     ))}
                   </select>
                 </div>
@@ -264,6 +266,6 @@ export default function PlanesEstudio() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
