@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { SidebarClose, SidebarOpen, SquareArrowRightExitIcon } from 'lucide-react';
+import { SidebarClose, SidebarOpen, ChevronDown, LogOut, User as UserIcon } from 'lucide-react';
 import uncpImagen from '../assets/Escudo_UNCP.png';
 
 export default function SidebarShell({ menuOptions = [], children }) {
@@ -28,6 +29,12 @@ export default function SidebarShell({ menuOptions = [], children }) {
         setActiveMenuIndex(idx);
         setSidebarOpen(false); // Cierra el sidebar móvil al hacer clic
         navigate(opt.path);
+    };
+
+    const handleLogout = async () => {
+        setDropdownOpen(false);
+        await logout();
+        navigate('/');
     };
 
     return (
@@ -101,6 +108,47 @@ export default function SidebarShell({ menuOptions = [], children }) {
                         <h2 className="hidden sm:block font-heading text-[1.45rem] font-extrabold text-text-heading tracking-tight truncate">
                             {menuOptions[activeMenuIndex]?.label || 'Panel de Control'}
                         </h2>
+                    </div>
+
+                    {/* Menú de usuario */}
+                    <div className="relative">
+                        <button
+                            type="button"
+                            className="flex items-center gap-2 py-1.5 pl-1.5 pr-3 rounded-full border border-border hover:bg-bg-alt transition-all duration-150 focus:outline-none"
+                            onClick={() => setDropdownOpen(!dropdownOpen)}
+                        >
+                            <div className="w-8 h-8 rounded-full bg-primary text-white text-[0.9rem] font-bold flex items-center justify-center shrink-0">
+                                {user?.nombres ? user.nombres.charAt(0) : 'U'}
+                            </div>
+                            <span className="hidden sm:block text-[0.85rem] font-semibold text-text-heading">
+                                {user?.nombres || user?.username || 'Usuario'}
+                            </span>
+                            <ChevronDown size={16} className="text-text-muted" />
+                        </button>
+
+                        {dropdownOpen && (
+                            <>
+                                <div className="fixed inset-0 z-[95]" onClick={() => setDropdownOpen(false)} />
+                                <div className="absolute right-0 top-[calc(100%+8px)] w-56 bg-white border border-border rounded-lg shadow-lg z-[96] overflow-hidden">
+                                    <button
+                                        type="button"
+                                        className="w-full flex items-center gap-2.5 py-2.5 px-4 text-[0.88rem] font-medium text-text-heading hover:bg-bg-alt transition-all duration-150"
+                                        onClick={() => { setDropdownOpen(false); setProfileModalOpen(true); }}
+                                    >
+                                        <UserIcon size={16} />
+                                        Ver perfil
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="w-full flex items-center gap-2.5 py-2.5 px-4 text-[0.88rem] font-medium text-red-600 hover:bg-red-50 transition-all duration-150 border-t border-border"
+                                        onClick={handleLogout}
+                                    >
+                                        <LogOut size={16} />
+                                        Cerrar sesión
+                                    </button>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </header>
 
