@@ -17,6 +17,7 @@ import ProtectedRoute from './components/protectedRoute';
 import NotFound from './components/notFound';
 import { ROLES } from './constants/roles';
 import DocenteNotas from './Views/Docente/DocenteNotas';
+import { AdminActasNotas } from './Views/Administrador/AdminActasNotas';
 
 export function AppRoutes() {
   return (
@@ -50,6 +51,7 @@ export function AppRoutes() {
         <Route path="/admin" element={<AdministradorDashboard />}>
           <Route index element={<AdministradorHomeView />} />
           <Route path="perfil" element={<ProfileView />} />
+          <Route path="actas-notas" element={<AdminActasNotas />} /> 
         </Route>
       </Route>
 
