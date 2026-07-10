@@ -1,10 +1,10 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 from app.schemas.user_schema import UserData
 
 
 class LoginBody(BaseModel):
-    email: str
+    email: EmailStr
     password: str
 
 

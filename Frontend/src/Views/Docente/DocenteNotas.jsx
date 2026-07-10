@@ -4,6 +4,8 @@ import { Save, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export default function DocenteNotas() {
     const [secciones, setSecciones] = useState([]);
+    const [periodos, setPeriodos] = useState([]);
+    const [selectedPeriodo, setSelectedPeriodo] = useState('');
     const [selectedSeccionId, setSelectedSeccionId] = useState('');
     const [alumnosNotas, setAlumnosNotas] = useState([]);
     const [loadingSecciones, setLoadingSecciones] = useState(true);
@@ -21,8 +23,10 @@ export default function DocenteNotas() {
                 const data = await GradeService.getMisSecciones();
                 const list = data.secciones || [];
                 setSecciones(list);
-                if (list.length > 0) {
-                    setSelectedSeccionId(list[0].id_seccion.toString());
+                const uniquePeriodos = [...new Set(list.map(s => s.periodo_nombre))].filter(Boolean);
+                setPeriodos(uniquePeriodos);
+                if (uniquePeriodos.length > 0) {
+                    setSelectedPeriodo(uniquePeriodos[uniquePeriodos.length - 1]);
                 }
             } catch (err) {
                 showFeedback(err.message || 'Error al cargar las secciones.', 'error');
@@ -32,6 +36,18 @@ export default function DocenteNotas() {
         };
         fetchSecciones();
     }, []);
+
+    // Secciones del periodo seleccionado
+    const seccionesDelPeriodo = secciones.filter(s => s.periodo_nombre === selectedPeriodo);
+
+    // Al cambiar de periodo, seleccionar la primera sección de ese periodo
+    useEffect(() => {
+        if (seccionesDelPeriodo.length > 0) {
+            setSelectedSeccionId(seccionesDelPeriodo[0].id_seccion.toString());
+        } else {
+            setSelectedSeccionId('');
+        }
+    }, [selectedPeriodo]);
 
     // Load grades when selection changes
     useEffect(() => {
@@ -243,6 +259,23 @@ export default function DocenteNotas() {
                 
                 {/* Control bar */}
                 <div className="flex flex-wrap items-center gap-2">
+                    <label htmlFor="periodo-select" className="text-xs font-bold uppercase tracking-wider text-text-muted">Periodo:</label>
+                    <select
+                        id="periodo-select"
+                        value={selectedPeriodo}
+                        onChange={(e) => setSelectedPeriodo(e.target.value)}
+                        className="bg-white border border-border text-sm p-1.5 outline-none focus:border-primary shrink-0 min-w-[110px]"
+                        disabled={loadingNotas || savingAll}
+                    >
+                        {periodos.length === 0 ? (
+                            <option value="">Sin periodos</option>
+                        ) : (
+                            periodos.map(per => (
+                                <option key={per} value={per}>{per}</option>
+                            ))
+                        )}
+                    </select>
+
                     <label htmlFor="seccion-select" className="text-xs font-bold uppercase tracking-wider text-text-muted">Sección:</label>
                     <select
                         id="seccion-select"
@@ -251,12 +284,12 @@ export default function DocenteNotas() {
                         className="bg-white border border-border text-sm p-1.5 outline-none focus:border-primary shrink-0 min-w-[200px]"
                         disabled={loadingNotas || savingAll}
                     >
-                        {secciones.length === 0 ? (
-                            <option value="">No hay secciones asignadas</option>
+                        {seccionesDelPeriodo.length === 0 ? (
+                            <option value="">No hay secciones en este periodo</option>
                         ) : (
-                            secciones.map(sec => (
+                            seccionesDelPeriodo.map(sec => (
                                 <option key={sec.id_seccion} value={sec.id_seccion}>
-                                    {sec.seccion_codigo} - {sec.curso_nombre}
+                                    {sec.curso_nombre} (Sección {sec.codigo})
                                 </option>
                             ))
                         )}

@@ -81,6 +81,7 @@ def _serializar_seccion(seccion):
         estado=seccion.estado,
         curso_nombre=seccion.plan_curso.curso.nombre,
         id_periodo=seccion.id_periodo,
+        periodo_nombre=seccion.periodo.nombre if seccion.periodo else None,
         id_docente=seccion.id_docente,
         docente_nombre=f"{seccion.docente.nombres} {seccion.docente.apellidos}" if seccion.docente else None,
     ).model_dump()

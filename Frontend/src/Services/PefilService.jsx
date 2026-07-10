@@ -26,10 +26,11 @@ const PerfilService = {
             throw e;
         }
     },
-    async updateProfile(telefono, password) {
+    async updateProfile(telefono, password, passwordActual) {
         const body = {}
         if (telefono) body.telefono = telefono
         if (password) body.password = password
+        if (passwordActual) body.password_actual = passwordActual
         const csrfToken = getCookie('csrf_access_token');
         try {
             const response = await fetch(`${API_URL}`, {
@@ -43,7 +44,8 @@ const PerfilService = {
                 credentials: 'include'
             });
             if (!response.ok) {
-                throw new Error("Perfil no actualizado");
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.msg || "Perfil no actualizado");
             }
             const data = await response.json();
             return data;

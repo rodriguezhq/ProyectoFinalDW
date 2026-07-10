@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 
 class UserData(BaseModel):
@@ -22,7 +22,7 @@ class UsuarioCreateBody(BaseModel):
     id_docente: int | None = None
     nombres: str | None = None
     apellidos: str | None = None
-    correo: str | None = None
+    correo: EmailStr | None = None
 
 
 class UsuarioCreateResponse(BaseModel):

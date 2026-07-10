@@ -131,6 +131,7 @@ class SeccionResponse(BaseModel):
     estado: str
     curso_nombre: str
     id_periodo: int
+    periodo_nombre: str | None = None
     id_docente: int | None
     docente_nombre: str | None
 
