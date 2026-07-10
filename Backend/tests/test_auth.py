@@ -102,8 +102,10 @@ def test_respuesta_de_login_nunca_expone_el_hash_de_password(client):
 def test_login_con_intento_de_sql_injection_no_autentica_ni_rompe(client):
     payload = {"email": "jperez' OR '1'='1", "password": "' OR '1'='1"}
     resp = client.post(LOGIN_URL, json=payload)
-    # SQLAlchemy parametriza la query -> no debe autenticar, y no debe tirar 500
-    assert resp.status_code == 401
+    # No es un email válido -> Pydantic lo rechaza (422) antes de tocar la BD.
+    # Si en algún momento sí pareciera un email, SQLAlchemy parametriza la
+    # query igual, así que 401 también sería un resultado seguro.
+    assert resp.status_code in (401, 422)
 
 
 def test_login_email_es_case_sensitive(client):

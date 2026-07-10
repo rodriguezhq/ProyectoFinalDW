@@ -13,6 +13,7 @@ export default function ProfileView() {
 
     // Form states
     const [telefono, setTelefono] = useState('');
+    const [currentPassword, setCurrentPassword] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -47,11 +48,17 @@ export default function ProfileView() {
             return;
         }
 
+        if (password && !currentPassword) {
+            setError('Ingresa tu contraseña actual para poder cambiarla.');
+            return;
+        }
+
         try {
             setIsSaving(true);
-            const updated = await PerfilService.updateProfile(telefono, password || null);
+            const updated = await PerfilService.updateProfile(telefono, password || null, currentPassword || null);
             setProfile(updated);
             setSuccessMessage('Perfil actualizado correctamente.');
+            setCurrentPassword('');
             setPassword('');
             setConfirmPassword('');
             setActiveTab('view');
@@ -193,10 +200,11 @@ export default function ProfileView() {
                                     <input
                                         type="tel"
                                         id="telefono"
+                                        maxLength={9}
                                         className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-lg bg-bg-input text-text-heading placeholder-text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-[0.92rem] transition-colors"
                                         placeholder="Ej: 964111222"
                                         value={telefono}
-                                        onChange={(e) => setTelefono(e.target.value)}
+                                        onChange={(e) => setTelefono(e.target.value.replace(/\D/g, '').slice(0, 9))}
                                     />
                                 </div>
                                 <p className="text-xs text-text-muted mt-1.5">Solo disponible para roles de Estudiante o Docente.</p>
@@ -209,6 +217,23 @@ export default function ProfileView() {
                                 </h3>
 
                                 <div className="space-y-4">
+                                    {/* Contraseña Actual */}
+                                    <div>
+                                        <label htmlFor="current-pass" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
+                                            Contraseña Actual
+                                        </label>
+                                        <div className="relative rounded-lg shadow-sm">
+                                            <input
+                                                type={showPassword ? 'text' : 'password'}
+                                                id="current-pass"
+                                                className="block w-full px-3 py-2.5 border border-border rounded-lg bg-bg-input text-text-heading placeholder-text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-[0.92rem] transition-colors"
+                                                placeholder="Necesaria solo si vas a cambiar la contraseña"
+                                                value={currentPassword}
+                                                onChange={(e) => setCurrentPassword(e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+
                                     {/* Nueva Contraseña */}
                                     <div>
                                         <label htmlFor="new-pass" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">

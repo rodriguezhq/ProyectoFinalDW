@@ -1,6 +1,6 @@
 from flask import request
 from app.extensions import db
-from app.services.auth_service import usuario_actual, hash_password
+from app.services.auth_service import usuario_actual, hash_password, verify_password
 from app.services.audit_service import registrar_auditoria
 from app.schemas.perfil_schema import PerfilResponse
 
@@ -32,6 +32,8 @@ def actualizar_perfil_ctrl(body):
         return {"msg": "Usuario no encontrado"}, 404
 
     if body.password:
+        if not body.password_actual or not verify_password(body.password_actual, usuario.password_hash):
+            return {"msg": "La contraseña actual es incorrecta"}, 401
         usuario.password_hash = hash_password(body.password)
 
     if body.telefono is not None:
