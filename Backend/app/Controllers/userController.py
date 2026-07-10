@@ -16,12 +16,32 @@ from app.services.admin_service import (
     crear_usuario,
     listar_roles,
     listar_usuarios,
+    CarreraObligatoriaError,
+    FacultadObligatoriaError,
+    EspecialidadNoEncontradaError,
+    FacultadNoEncontradaError,
+    CodigoDuplicadoError,
+    DniDuplicadoError,
 )
 from app.services.audit_service import registrar_auditoria
 from app.services.auth_service import usuario_actual
 
 
 def _serializar_usuario(u):
+    id_facultad = None
+    facultad_nombre = None
+    id_especialidad = None
+    especialidad_nombre = None
+    
+    if u.estudiante:
+        id_especialidad = u.estudiante.id_especialidad
+        especialidad_nombre = u.estudiante.especialidad.nombre if u.estudiante.especialidad else None
+        id_facultad = u.estudiante.especialidad.id_facultad if u.estudiante.especialidad else None
+        facultad_nombre = u.estudiante.especialidad.facultad.nombre if (u.estudiante.especialidad and u.estudiante.especialidad.facultad) else None
+    elif u.docente:
+        id_facultad = u.docente.id_facultad
+        facultad_nombre = u.docente.facultad.nombre if u.docente.facultad else None
+
     return UsuarioResponse(
         id_usuario=u.id_usuario,
         username=u.username,
@@ -31,6 +51,10 @@ def _serializar_usuario(u):
         nombres=u.nombres_efectivos,
         apellidos=u.apellidos_efectivos,
         correo=u.correo_efectivo,
+        id_facultad=id_facultad,
+        facultad_nombre=facultad_nombre,
+        id_especialidad=id_especialidad,
+        especialidad_nombre=especialidad_nombre,
     ).model_dump()
 
 
@@ -48,6 +72,10 @@ def crear_usuario_ctrl(body):
             body.nombres,
             body.apellidos,
             body.correo,
+            body.codigo,
+            body.dni,
+            body.id_facultad,
+            body.id_especialidad,
         )
     except UsernameDuplicadoError:
         return {"msg": "Ese username ya está en uso"}, 409
@@ -63,6 +91,20 @@ def crear_usuario_ctrl(body):
         return {"msg": "Ese estudiante ya tiene una cuenta de usuario"}, 409
     except DocenteYaTieneUsuarioError:
         return {"msg": "Ese docente ya tiene una cuenta de usuario"}, 409
+    except CarreraObligatoriaError:
+        return {"msg": "La especialidad/carrera es obligatoria para estudiantes"}, 400
+    except FacultadObligatoriaError:
+        return {"msg": "La facultad es obligatoria para docentes"}, 400
+    except EspecialidadNoEncontradaError:
+        return {"msg": "La especialidad indicada no existe"}, 404
+    except FacultadNoEncontradaError:
+        return {"msg": "La facultad indicada no existe"}, 404
+    except CodigoDuplicadoError:
+        return {"msg": "El código ingresado ya está asignado a otro registro"}, 409
+    except DniDuplicadoError:
+        return {"msg": "El DNI ingresado ya está asignado a otro registro"}, 409
+    except ValueError as e:
+        return {"msg": str(e)}, 400
 
     actor = usuario_actual()
     registrar_auditoria(
@@ -84,7 +126,14 @@ def listar_usuarios_ctrl():
 
 def actualizar_usuario_ctrl(id_usuario, body):
     try:
-        usuario = actualizar_usuario(id_usuario, body.estado, body.id_rol)
+        usuario = actualizar_usuario(
+            id_usuario,
+            estado=body.estado,
+            id_rol=body.id_rol,
+            nombres=body.nombres,
+            apellidos=body.apellidos,
+            correo=body.correo
+        )
     except UsuarioNoEncontradoError:
         return {"msg": "Usuario no encontrado"}, 404
     except RolNoEncontradoError:

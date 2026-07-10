@@ -3,6 +3,8 @@ import secrets
 from app.extensions import db
 from app.models.docente import Docente
 from app.models.estudiante import Estudiante
+from app.models.especialidad import Especialidad
+from app.models.facultad import Facultad
 from app.models.rol import Rol
 from app.models.usuario import Usuario
 from app.services.auth_service import hash_password
@@ -44,10 +46,35 @@ class VinculoInvalidoError(Exception):
     pass
 
 
-def crear_usuario(username, id_rol, id_estudiante=None, id_docente=None, nombres=None, apellidos=None, correo=None):
+class CarreraObligatoriaError(Exception):
+    pass
+
+
+class FacultadObligatoriaError(Exception):
+    pass
+
+
+class EspecialidadNoEncontradaError(Exception):
+    pass
+
+
+class FacultadNoEncontradaError(Exception):
+    pass
+
+
+class CodigoDuplicadoError(Exception):
+    pass
+
+
+class DniDuplicadoError(Exception):
+    pass
+
+
+def crear_usuario(username, id_rol, id_estudiante=None, id_docente=None, nombres=None, apellidos=None, correo=None, codigo=None, dni=None, id_facultad=None, id_especialidad=None):
     if Usuario.query.filter_by(username=username).first():
         raise UsernameDuplicadoError()
-    if not db.session.get(Rol, id_rol):
+    rol = db.session.get(Rol, id_rol)
+    if not rol:
         raise RolNoEncontradoError()
     if id_estudiante is not None and id_docente is not None:
         raise VinculoInvalidoError()
@@ -63,6 +90,62 @@ def crear_usuario(username, id_rol, id_estudiante=None, id_docente=None, nombres
             raise DocenteNoEncontradoError()
         if Usuario.query.filter_by(id_docente=id_docente).first():
             raise DocenteYaTieneUsuarioError()
+
+    # Auto-crear Estudiante si rol es Estudiante y no se especificó vinculación manual
+    if rol.nombre == "Estudiante" and id_estudiante is None:
+        if not id_especialidad:
+            raise CarreraObligatoriaError()
+        if not codigo or not dni:
+            raise ValueError("El código y el DNI son obligatorios")
+        if Estudiante.query.filter_by(codigo=codigo).first():
+            raise CodigoDuplicadoError()
+        if Estudiante.query.filter_by(dni=dni).first():
+            raise DniDuplicadoError()
+        
+        esp = db.session.get(Especialidad, id_especialidad)
+        if not esp:
+            raise EspecialidadNoEncontradaError()
+            
+        nuevo_est = Estudiante(
+            codigo=codigo,
+            dni=dni,
+            nombres=nombres or "",
+            apellidos=apellidos or "",
+            correo=correo,
+            estado="activo",
+            id_especialidad=id_especialidad
+        )
+        db.session.add(nuevo_est)
+        db.session.flush()
+        id_estudiante = nuevo_est.id_estudiante
+
+    # Auto-crear Docente si rol es Docente y no se especificó vinculación manual
+    if rol.nombre == "Docente" and id_docente is None:
+        if not id_facultad:
+            raise FacultadObligatoriaError()
+        if not codigo or not dni:
+            raise ValueError("El código y el DNI son obligatorios")
+        if Docente.query.filter_by(codigo=codigo).first():
+            raise CodigoDuplicadoError()
+        if Docente.query.filter_by(dni=dni).first():
+            raise DniDuplicadoError()
+            
+        fac = db.session.get(Facultad, id_facultad)
+        if not fac:
+            raise FacultadNoEncontradaError()
+            
+        nuevo_doc = Docente(
+            codigo=codigo,
+            dni=dni,
+            nombres=nombres or "",
+            apellidos=apellidos or "",
+            correo=correo,
+            estado="activo",
+            id_facultad=id_facultad
+        )
+        db.session.add(nuevo_doc)
+        db.session.flush()
+        id_docente = nuevo_doc.id_docente
 
     password_temporal = secrets.token_urlsafe(9)
     usuario = Usuario(
@@ -85,7 +168,7 @@ def listar_usuarios():
     return Usuario.query.all()
 
 
-def actualizar_usuario(id_usuario, estado=None, id_rol=None):
+def actualizar_usuario(id_usuario, estado=None, id_rol=None, nombres=None, apellidos=None, correo=None):
     usuario = db.session.get(Usuario, id_usuario)
     if not usuario:
         raise UsuarioNoEncontradoError()
@@ -95,6 +178,12 @@ def actualizar_usuario(id_usuario, estado=None, id_rol=None):
         usuario.id_rol = id_rol
     if estado is not None:
         usuario.estado = estado
+    if nombres is not None:
+        usuario.nombres = nombres
+    if apellidos is not None:
+        usuario.apellidos = apellidos
+    if correo is not None:
+        usuario.correo = correo
     db.session.commit()
     return usuario
 

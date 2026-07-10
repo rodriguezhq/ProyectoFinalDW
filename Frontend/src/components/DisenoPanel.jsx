@@ -22,7 +22,7 @@ const opcionesMenuRol = {
     { icon: '🏫', label: 'Mantenimiento Académico' },
     { icon: '📝', label: 'Validar Matrículas' },
     { icon: '💵', label: 'Registrar Pagos' },
-    { icon: '🏫', label: 'Asignar Docentes' },
+    { icon: '🗓️', label: 'Diseñar Horario' },
     { icon: '📊', label: 'Validar Actas' },
     { icon: '📄', label: 'Emitir Certificados (QR)' },
     { icon: '🛡️', label: 'Usuarios y Roles' }

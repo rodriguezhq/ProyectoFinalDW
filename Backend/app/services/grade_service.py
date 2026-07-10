@@ -5,7 +5,6 @@ from app.models.nota import Nota
 from app.models.matricula_detalle import MatriculaDetalle
 from app.models.matricula import Matricula
 from app.models.seccion import Seccion
-from app.models.plan_curso import PlanCurso
 from app.models.curso import Curso
 from app.models.periodo_academico import PeriodoAcademico
 from app.models.docente import Docente
@@ -39,8 +38,7 @@ def _determinar_estado(promedio):
 def _nota_a_dict(nota):
     detalle = nota.matricula_detalle
     seccion = detalle.seccion if detalle else None
-    plan_curso = seccion.plan_curso if seccion else None
-    curso = plan_curso.curso if plan_curso else None
+    curso = seccion.curso if seccion else None
     periodo = seccion.periodo if seccion else None
     docente = seccion.docente if seccion else None
 
@@ -141,8 +139,7 @@ def obtener_notas_seccion(id_seccion):
             nota_dict = _nota_a_dict(nota)
         else:
             seccion = detalle.seccion
-            plan_curso = seccion.plan_curso if seccion else None
-            curso = plan_curso.curso if plan_curso else None
+            curso = seccion.curso if seccion else None
             periodo = seccion.periodo if seccion else None
             docente = seccion.docente if seccion else None
 

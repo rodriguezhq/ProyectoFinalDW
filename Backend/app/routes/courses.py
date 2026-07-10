@@ -8,7 +8,6 @@ from app.Controllers import courseController, teacherController
 from app.schemas.common_schema import MessageResponse
 from app.schemas.course_schema import (
     CargaDocenteResponse,
-    CumplimientoPlanResponse,
     CursoBody,
     CursoListResponse,
     CursoResponse,
@@ -18,16 +17,11 @@ from app.schemas.course_schema import (
     FacultadBody,
     FacultadListResponse,
     FacultadResponse,
-    PlanCursoBody,
-    PlanCursoListResponse,
-    PlanCursoResponse,
-    PlanEstudiosBody,
-    PlanEstudiosListResponse,
-    PlanEstudiosResponse,
     SeccionBody,
     SeccionListResponse,
     SeccionResponse,
     SeccionUpdateBody,
+    SeccionBatchBody,
     SilaboForm,
     SilaboResponse,
 )
@@ -49,13 +43,6 @@ class PeriodoQuery(BaseModel):
     id_periodo: int | None = None
 
 
-class PlanQuery(BaseModel):
-    id_plan: int | None = None
-
-
-class CumplimientoQuery(BaseModel):
-    id_plan: int
-    id_periodo: int
 
 
 # ---------------- Facultad ----------------
@@ -78,6 +65,13 @@ def listar_facultades():
 @role_required("Administrador")
 def actualizar_facultad(path: IdPath, body: FacultadBody):
     response, status = courseController.actualizar_facultad_ctrl(path.id, body)
+    return response, status
+
+
+@courses_bp.delete("/facultades/<int:id>", responses={200: MessageResponse, 400: MessageResponse, 404: MessageResponse}, security=[{"jwt": []}])
+@role_required("Administrador")
+def eliminar_facultad(path: IdPath):
+    response, status = courseController.eliminar_facultad_ctrl(path.id)
     return response, status
 
 
@@ -108,30 +102,12 @@ def actualizar_especialidad(path: IdPath, body: EspecialidadBody):
     return response, status
 
 
-# ---------------- PlanEstudios ----------------
-
-@courses_bp.post(
-    "/planes-estudio", responses={201: PlanEstudiosResponse, 404: MessageResponse}, security=[{"jwt": []}]
+@courses_bp.delete(
+    "/especialidades/<int:id>", responses={200: MessageResponse, 400: MessageResponse, 404: MessageResponse}, security=[{"jwt": []}]
 )
 @role_required("Administrador")
-def crear_plan_estudios(body: PlanEstudiosBody):
-    response, status = courseController.crear_plan_estudios_ctrl(body)
-    return response, status
-
-
-@courses_bp.get("/planes-estudio", responses={200: PlanEstudiosListResponse}, security=[{"jwt": []}])
-@jwt_required()
-def listar_planes_estudio():
-    response, status = courseController.listar_planes_estudio_ctrl()
-    return response, status
-
-
-@courses_bp.put(
-    "/planes-estudio/<int:id>", responses={200: PlanEstudiosResponse, 404: MessageResponse}, security=[{"jwt": []}]
-)
-@role_required("Administrador")
-def actualizar_plan_estudios(path: IdPath, body: PlanEstudiosBody):
-    response, status = courseController.actualizar_plan_estudios_ctrl(path.id, body)
+def eliminar_especialidad(path: IdPath):
+    response, status = courseController.eliminar_especialidad_ctrl(path.id)
     return response, status
 
 
@@ -158,21 +134,10 @@ def actualizar_curso(path: IdPath, body: CursoBody):
     return response, status
 
 
-# ---------------- PlanCurso ----------------
-
-@courses_bp.post(
-    "/planes-curso", responses={201: PlanCursoResponse, 404: MessageResponse, 409: MessageResponse}, security=[{"jwt": []}]
-)
+@courses_bp.delete("/cursos/<int:id>", responses={200: MessageResponse, 400: MessageResponse, 404: MessageResponse}, security=[{"jwt": []}])
 @role_required("Administrador")
-def crear_plan_curso(body: PlanCursoBody):
-    response, status = courseController.crear_plan_curso_ctrl(body)
-    return response, status
-
-
-@courses_bp.get("/planes-curso", responses={200: PlanCursoListResponse}, security=[{"jwt": []}])
-@jwt_required()
-def listar_planes_curso(query: PlanQuery):
-    response, status = courseController.listar_planes_curso_ctrl(query.id_plan)
+def eliminar_curso(path: IdPath):
+    response, status = courseController.eliminar_curso_ctrl(path.id)
     return response, status
 
 
@@ -194,14 +159,39 @@ def listar_secciones(query: PeriodoQuery):
     return response, status
 
 
+@courses_bp.post(
+    "/secciones/lote",
+    summary="Guardar secciones en lote / Diseñar Horario",
+    responses={200: MessageResponse, 404: MessageResponse, 400: MessageResponse},
+    security=[{"jwt": []}],
+)
+@role_required("Administrador")
+def guardar_secciones_lote(body: SeccionBatchBody):
+    response, status = courseController.guardar_secciones_lote_ctrl(body)
+    return response, status
+
+
 @courses_bp.put(
     "/secciones/<int:id_seccion>",
+    summary="Actualizar sección / Cerrar Acta",
     responses={200: SeccionResponse, 404: MessageResponse},
     security=[{"jwt": []}],
 )
 @role_required("Administrador")
 def actualizar_seccion(path: SeccionPath, body: SeccionUpdateBody):
     response, status = courseController.actualizar_seccion_ctrl(path.id_seccion, body)
+    return response, status
+
+
+@courses_bp.delete(
+    "/secciones/<int:id_seccion>",
+    summary="Eliminar sección",
+    responses={200: MessageResponse, 404: MessageResponse, 400: MessageResponse},
+    security=[{"jwt": []}],
+)
+@role_required("Administrador")
+def eliminar_seccion(path: SeccionPath):
+    response, status = courseController.eliminar_seccion_ctrl(path.id_seccion)
     return response, status
 
 
@@ -234,10 +224,3 @@ def carga_docente(query: PeriodoQuery):
     return response, status
 
 
-@courses_bp.get(
-    "/cumplimiento-plan", responses={200: CumplimientoPlanResponse, 404: MessageResponse}, security=[{"jwt": []}]
-)
-@role_required("Direccion")
-def cumplimiento_plan(query: CumplimientoQuery):
-    response, status = courseController.cumplimiento_plan_ctrl(query.id_plan, query.id_periodo)
-    return response, status

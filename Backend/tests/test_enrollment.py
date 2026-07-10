@@ -307,3 +307,5 @@ def test_estadisticas_requiere_rol_direccion(client, app):
     assert resp_direccion.status_code == 200
     assert body["total_matriculados"] == 1
     assert body["por_estado"]["pendiente"] == 1
+
+

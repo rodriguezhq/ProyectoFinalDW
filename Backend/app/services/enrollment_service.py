@@ -49,6 +49,14 @@ class EstadoInvalidoError(Exception):
     pass
 
 
+class CursoFueraDePlanError(Exception):
+    pass
+
+
+class PagoNoEncontradoError(Exception):
+    pass
+
+
 def solicitar_matricula(id_estudiante, id_periodo, secciones_ids):
     estudiante = db.session.get(Estudiante, id_estudiante)
     if not estudiante or estudiante.estado != "activo":
@@ -67,6 +75,8 @@ def solicitar_matricula(id_estudiante, id_periodo, secciones_ids):
     secciones = Seccion.query.filter(Seccion.id_seccion.in_(secciones_ids)).all()
     if len(secciones) != len(set(secciones_ids)):
         raise SeccionNoEncontradaError()
+
+
 
     llenas = [s.codigo for s in secciones if _cupos_ocupados(s.id_seccion) >= s.capacidad]
     if llenas:
@@ -136,12 +146,36 @@ def registrar_pago(id_matricula, monto, metodo_pago, codigo_operacion):
         monto=monto,
         metodo_pago=metodo_pago,
         codigo_operacion=codigo_operacion,
-        estado="confirmado",
+        estado="pendiente",
     )
     db.session.add(pago)
-    matricula.estado = "pagada"
     db.session.commit()
     return pago
+
+
+def validar_pago(id_pago):
+    pago = db.session.get(Pago, id_pago)
+    if not pago:
+        raise PagoNoEncontradoError()
+    if pago.estado != "pendiente":
+        raise EstadoInvalidoError()
+
+    pago.estado = "confirmado"
+    pago.matricula.estado = "pagada"
+    db.session.commit()
+    return pago
+
+
+def rechazar_matricula(id_matricula):
+    matricula = db.session.get(Matricula, id_matricula)
+    if not matricula:
+        raise MatriculaNoEncontradaError()
+    if matricula.estado != "pendiente":
+        raise EstadoInvalidoError()
+
+    matricula.estado = "rechazada"
+    db.session.commit()
+    return matricula
 
 
 def generar_ficha_pdf(matricula):
@@ -162,7 +196,7 @@ def generar_ficha_pdf(matricula):
 
     data = [["Curso", "Sección", "Estado"]]
     for detalle in matricula.detalles:
-        curso = detalle.seccion.plan_curso.curso.nombre
+        curso = detalle.seccion.curso.nombre
         data.append([curso, detalle.seccion.codigo, detalle.estado])
 
     tabla = Table(data, hAlign="LEFT")

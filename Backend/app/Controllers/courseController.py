@@ -1,10 +1,11 @@
+from flask import request
+from app.services.auth_service import usuario_actual
+from app.services.audit_service import registrar_auditoria
 from app.schemas.course_schema import (
     CargaDocenteItem,
     CursoResponse,
     EspecialidadResponse,
     FacultadResponse,
-    PlanCursoResponse,
-    PlanEstudiosResponse,
     SeccionResponse,
 )
 from app.services.course_service import (
@@ -14,28 +15,28 @@ from app.services.course_service import (
     EspecialidadNoEncontradaError,
     FacultadNoEncontradaError,
     PeriodoNoEncontradoError,
-    PlanCursoNoEncontradoError,
-    PlanNoEncontradoError,
     SeccionNoEncontradaError,
+    EntidadConDependenciasError,
     actualizar_curso,
     actualizar_especialidad,
     actualizar_facultad,
-    actualizar_plan_estudios,
     actualizar_seccion,
     carga_docente,
     crear_curso,
     crear_especialidad,
     crear_facultad,
-    crear_plan_curso,
-    crear_plan_estudios,
     crear_seccion,
-    cumplimiento_plan,
     listar_cursos,
     listar_especialidades,
     listar_facultades,
-    listar_planes_curso,
-    listar_planes_estudio,
     listar_secciones,
+    eliminar_facultad,
+    eliminar_especialidad,
+    eliminar_curso,
+    eliminar_seccion,
+    guardar_secciones_lote,
+    PrerrequisitoDiferenteFacultadError,
+    CarreraDiferenteFacultadError,
 )
 
 
@@ -49,17 +50,6 @@ def _serializar_especialidad(e):
     ).model_dump()
 
 
-def _serializar_plan_estudios(p):
-    return PlanEstudiosResponse(
-        id_plan=p.id_plan,
-        nombre=p.nombre,
-        version=p.version,
-        fecha_aprobacion=p.fecha_aprobacion,
-        estado=p.estado,
-        id_especialidad=p.id_especialidad,
-    ).model_dump(mode="json")
-
-
 def _serializar_curso(c):
     return CursoResponse(
         id_curso=c.id_curso,
@@ -68,6 +58,12 @@ def _serializar_curso(c):
         creditos=c.creditos,
         horas_teoria=c.horas_teoria,
         horas_practica=c.horas_practica,
+        ciclo=c.ciclo,
+        id_facultad=c.id_facultad,
+        facultad_nombre=c.facultad.nombre if c.facultad else None,
+        id_prerrequisitos=[p.id_curso for p in c.prerrequisitos],
+        id_especialidades=[e.id_especialidad for e in c.especialidades],
+        especialidades_nombres=[e.nombre for e in c.especialidades],
     ).model_dump()
 
 
@@ -79,20 +75,11 @@ def _serializar_seccion(seccion):
         aula=seccion.aula,
         capacidad=seccion.capacidad,
         estado=seccion.estado,
-        curso_nombre=seccion.plan_curso.curso.nombre,
+        id_curso=seccion.id_curso,
+        curso_nombre=seccion.curso.nombre,
         id_periodo=seccion.id_periodo,
         id_docente=seccion.id_docente,
         docente_nombre=f"{seccion.docente.nombres} {seccion.docente.apellidos}" if seccion.docente else None,
-    ).model_dump()
-
-
-def _serializar_plan_curso(pc):
-    return PlanCursoResponse(
-        id_plan_curso=pc.id_plan_curso,
-        id_plan=pc.id_plan,
-        id_curso=pc.id_curso,
-        curso_nombre=pc.curso.nombre,
-        ciclo=pc.ciclo,
     ).model_dump()
 
 
@@ -146,36 +133,29 @@ def actualizar_especialidad_ctrl(id_especialidad, body):
     return _serializar_especialidad(especialidad), 200
 
 
-# ---------------- PlanEstudios ----------------
-
-def crear_plan_estudios_ctrl(body):
-    try:
-        plan = crear_plan_estudios(body.nombre, body.version, body.fecha_aprobacion, body.estado, body.id_especialidad)
-    except EspecialidadNoEncontradaError:
-        return {"msg": "La especialidad indicada no existe"}, 404
-    return _serializar_plan_estudios(plan), 201
-
-
-def listar_planes_estudio_ctrl():
-    planes = listar_planes_estudio()
-    return {"planes": [_serializar_plan_estudios(p) for p in planes]}, 200
-
-
-def actualizar_plan_estudios_ctrl(id_plan, body):
-    try:
-        plan = actualizar_plan_estudios(id_plan, body.nombre, body.version, body.estado)
-    except PlanNoEncontradoError:
-        return {"msg": "Plan de estudios no encontrado"}, 404
-    return _serializar_plan_estudios(plan), 200
-
-
 # ---------------- Curso ----------------
 
 def crear_curso_ctrl(body):
     try:
-        curso = crear_curso(body.codigo, body.nombre, body.creditos, body.horas_teoria, body.horas_practica)
+        curso = crear_curso(
+            body.codigo,
+            body.nombre,
+            body.creditos,
+            body.horas_teoria,
+            body.horas_practica,
+            body.id_facultad,
+            body.ciclo,
+            body.id_prerrequisitos,
+            body.id_especialidades,
+        )
+    except FacultadNoEncontradaError:
+        return {"msg": "La facultad indicada no existe"}, 404
     except CodigoDuplicadoError:
         return {"msg": "Ya existe un curso con ese código"}, 409
+    except PrerrequisitoDiferenteFacultadError:
+        return {"msg": "Todos los prerrequisitos deben pertenecer a la misma facultad del curso"}, 400
+    except CarreraDiferenteFacultadError:
+        return {"msg": "Todas las carreras/especialidades asignadas deben pertenecer a la misma facultad del curso"}, 400
     return _serializar_curso(curso), 201
 
 
@@ -186,29 +166,26 @@ def listar_cursos_ctrl():
 
 def actualizar_curso_ctrl(id_curso, body):
     try:
-        curso = actualizar_curso(id_curso, body.nombre, body.creditos, body.horas_teoria, body.horas_practica)
+        curso = actualizar_curso(
+            id_curso,
+            body.nombre,
+            body.creditos,
+            body.horas_teoria,
+            body.horas_practica,
+            body.id_facultad,
+            body.ciclo,
+            body.id_prerrequisitos,
+            body.id_especialidades,
+        )
     except CursoNoEncontradoError:
         return {"msg": "Curso no encontrado"}, 404
+    except FacultadNoEncontradaError:
+        return {"msg": "La facultad indicada no existe"}, 404
+    except PrerrequisitoDiferenteFacultadError:
+        return {"msg": "Todos los prerrequisitos deben pertenecer a la misma facultad del curso"}, 400
+    except CarreraDiferenteFacultadError:
+        return {"msg": "Todas las carreras/especialidades asignadas deben pertenecer a la misma facultad del curso"}, 400
     return _serializar_curso(curso), 200
-
-
-# ---------------- PlanCurso ----------------
-
-def crear_plan_curso_ctrl(body):
-    try:
-        pc = crear_plan_curso(body.id_plan, body.id_curso, body.ciclo)
-    except PlanNoEncontradoError:
-        return {"msg": "El plan de estudios indicado no existe"}, 404
-    except CursoNoEncontradoError:
-        return {"msg": "El curso indicado no existe"}, 404
-    except CodigoDuplicadoError:
-        return {"msg": "Ese curso ya está en ese plan de estudios"}, 409
-    return _serializar_plan_curso(pc), 201
-
-
-def listar_planes_curso_ctrl(id_plan=None):
-    planes_curso = listar_planes_curso(id_plan)
-    return {"planes_curso": [_serializar_plan_curso(pc) for pc in planes_curso]}, 200
 
 
 # ---------------- Seccion ----------------
@@ -216,10 +193,10 @@ def listar_planes_curso_ctrl(id_plan=None):
 def crear_seccion_ctrl(body):
     try:
         seccion = crear_seccion(
-            body.codigo, body.horario, body.aula, body.capacidad, body.id_plan_curso, body.id_docente, body.id_periodo
+            body.codigo, body.horario, body.aula, body.capacidad, body.id_curso, body.id_docente, body.id_periodo
         )
-    except PlanCursoNoEncontradoError:
-        return {"msg": "El curso del plan indicado no existe"}, 404
+    except CursoNoEncontradoError:
+        return {"msg": "El curso indicado no existe"}, 404
     except PeriodoNoEncontradoError:
         return {"msg": "El periodo académico indicado no existe"}, 404
     except DocenteNoEncontradoError:
@@ -241,6 +218,25 @@ def actualizar_seccion_ctrl(id_seccion, body):
         return {"msg": "Sección no encontrada"}, 404
     except DocenteNoEncontradoError:
         return {"msg": "El docente indicado no existe"}, 404
+
+    actor = usuario_actual()
+    if body.estado == "cerrada":
+        registrar_auditoria(
+            "validar_acta",
+            "seccion",
+            registro=seccion.id_seccion,
+            id_usuario=actor.id_usuario if actor else None,
+            ip=request.remote_addr,
+        )
+    else:
+        registrar_auditoria(
+            "actualizar_seccion",
+            "seccion",
+            registro=seccion.id_seccion,
+            id_usuario=actor.id_usuario if actor else None,
+            ip=request.remote_addr,
+        )
+
     return _serializar_seccion(seccion), 200
 
 
@@ -251,9 +247,80 @@ def carga_docente_ctrl(id_periodo):
     return {"carga": [CargaDocenteItem(**c).model_dump() for c in carga]}, 200
 
 
-def cumplimiento_plan_ctrl(id_plan, id_periodo):
+
+
+
+def eliminar_facultad_ctrl(id_facultad):
     try:
-        resultado = cumplimiento_plan(id_plan, id_periodo)
-    except PlanNoEncontradoError:
-        return {"msg": "Plan de estudios no encontrado"}, 404
-    return resultado, 200
+        eliminar_facultad(id_facultad)
+    except FacultadNoEncontradaError:
+        return {"msg": "Facultad no encontrada"}, 404
+    except EntidadConDependenciasError:
+        return {"msg": "No se puede eliminar la facultad porque tiene especialidades o docentes asociados"}, 400
+    return {"msg": "Facultad eliminada con éxito"}, 200
+
+
+def eliminar_especialidad_ctrl(id_especialidad):
+    try:
+        eliminar_especialidad(id_especialidad)
+    except EspecialidadNoEncontradaError:
+        return {"msg": "Especialidad no encontrada"}, 404
+    except EntidadConDependenciasError:
+        return {"msg": "No se puede eliminar la especialidad porque tiene estudiantes asociados"}, 400
+    return {"msg": "Especialidad eliminada con éxito"}, 200
+
+
+def eliminar_curso_ctrl(id_curso):
+    try:
+        eliminar_curso(id_curso)
+    except CursoNoEncontradoError:
+        return {"msg": "Curso no encontrado"}, 404
+    except EntidadConDependenciasError:
+        return {"msg": "No se puede eliminar el curso porque tiene secciones asociadas"}, 400
+    return {"msg": "Curso eliminado con éxito"}, 200
+
+
+def eliminar_seccion_ctrl(id_seccion):
+    try:
+        eliminar_seccion(id_seccion)
+    except SeccionNoEncontradaError:
+        return {"msg": "Sección no encontrada"}, 404
+    except EntidadConDependenciasError:
+        return {"msg": "No se puede eliminar la sección porque tiene estudiantes matriculados"}, 400
+
+    actor = usuario_actual()
+    registrar_auditoria(
+        "eliminar_seccion",
+        "seccion",
+        registro=str(id_seccion),
+        id_usuario=actor.id_usuario if actor else None,
+        ip=request.remote_addr,
+    )
+    return {"msg": "Sección eliminada con éxito"}, 200
+
+
+def guardar_secciones_lote_ctrl(body):
+    try:
+        guardar_secciones_lote([item.model_dump() for item in body.secciones])
+    except CursoNoEncontradoError:
+        return {"msg": "Curso no encontrado"}, 404
+    except PeriodoNoEncontradoError:
+        return {"msg": "Periodo académico no encontrado"}, 404
+    except DocenteNoEncontradoError:
+        return {"msg": "El docente indicado no existe"}, 404
+    except SeccionNoEncontradaError:
+        return {"msg": "Sección no encontrada"}, 404
+    except EntidadConDependenciasError:
+        return {"msg": "No se puede eliminar una sección que tiene alumnos matriculados"}, 400
+    except ValueError as e:
+        return {"msg": str(e)}, 400
+
+    actor = usuario_actual()
+    registrar_auditoria(
+        "guardar_horario_lote",
+        "seccion",
+        registro=None,
+        id_usuario=actor.id_usuario if actor else None,
+        ip=request.remote_addr,
+    )
+    return {"msg": "Horario guardado con éxito"}, 200

@@ -5,7 +5,6 @@ from app.models.matricula import Matricula
 from app.models.matricula_detalle import MatriculaDetalle
 from app.models.nota import Nota
 from app.models.seccion import Seccion
-from app.models.plan_curso import PlanCurso
 from app.models.curso import Curso
 from app.models.periodo_academico import PeriodoAcademico
 from app.models.especialidad import Especialidad
@@ -44,10 +43,7 @@ def obtener_record_estudiante(id_estudiante):
             seccion = detalle.seccion
             if not seccion:
                 continue
-            plan_curso = seccion.plan_curso
-            if not plan_curso:
-                continue
-            curso = plan_curso.curso
+            curso = seccion.curso
             if not curso:
                 continue
                 
@@ -77,7 +73,6 @@ def obtener_record_estudiante(id_estudiante):
                 "curso_codigo": curso.codigo,
                 "curso_nombre": curso.nombre,
                 "creditos": curso.creditos,
-                "ciclo": plan_curso.ciclo,
                 "parcial1": parcial1,
                 "parcial2": parcial2,
                 "final": final,
@@ -162,8 +157,8 @@ def obtener_reporte_consolidado(id_especialidad=None):
             periodos_matriculados.add(matricula.id_periodo)
             for detalle in matricula.detalles:
                 seccion = detalle.seccion
-                if seccion and seccion.plan_curso and seccion.plan_curso.curso:
-                    curso = seccion.plan_curso.curso
+                if seccion and seccion.curso:
+                    curso = seccion.curso
                     total_creditos_matriculados += curso.creditos
                     
                     nota = detalle.nota
@@ -225,8 +220,8 @@ def obtener_desempeno_cohortes(id_especialidad=None):
             for mat in est.matriculas:
                 for det in mat.detalles:
                     seccion = det.seccion
-                    if seccion and seccion.plan_curso and seccion.plan_curso.curso:
-                        curso = seccion.plan_curso.curso
+                    if seccion and seccion.curso:
+                        curso = seccion.curso
                         nota = det.nota
                         if nota and nota.promedio is not None:
                             promedio = float(nota.promedio)

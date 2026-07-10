@@ -1,7 +1,8 @@
-from flask import Response
+from flask import Response, request
 
 from app.schemas.enrollment_schema import MatriculaDetalleResponse, MatriculaResponse, PagoResponse
 from app.services.auth_service import usuario_actual
+from app.services.audit_service import registrar_auditoria
 from app.services.enrollment_service import (
     EstadoInvalidoError,
     EstudianteInactivoError,
@@ -11,6 +12,8 @@ from app.services.enrollment_service import (
     PeriodoNoEncontradoError,
     SeccionLlenaError,
     SeccionNoEncontradaError,
+    CursoFueraDePlanError,
+    PagoNoEncontradoError,
     estadisticas_periodo,
     generar_ficha_pdf,
     listar_todas_matriculas,
@@ -19,6 +22,8 @@ from app.services.enrollment_service import (
     registrar_pago,
     solicitar_matricula,
     validar_matricula,
+    validar_pago,
+    rechazar_matricula,
 )
 
 
@@ -35,7 +40,7 @@ def _serializar_matricula(matricula):
             MatriculaDetalleResponse(
                 id_matricula_detalle=d.id_matricula_detalle,
                 id_seccion=d.id_seccion,
-                curso=d.seccion.plan_curso.curso.nombre,
+                curso=d.seccion.curso.nombre,
                 codigo_seccion=d.seccion.codigo,
                 estado=d.estado,
                 horario=d.seccion.horario,
@@ -65,6 +70,8 @@ def solicitar(body):
         return {"msg": "Una o más secciones no existen"}, 404
     except SeccionLlenaError as e:
         return {"msg": f"Secciones sin cupo: {', '.join(e.secciones_llenas)}"}, 409
+    except CursoFueraDePlanError:
+        return {"msg": "El estudiante solo puede matricularse en cursos de su plan de estudios (malla curricular)"}, 400
 
     return _serializar_matricula(matricula), 201
 
@@ -91,6 +98,33 @@ def validar(id_matricula):
     except EstadoInvalidoError:
         return {"msg": "La matrícula no está en estado pendiente"}, 409
 
+    actor = usuario_actual()
+    registrar_auditoria(
+        "aprobar_matricula",
+        "matricula",
+        registro=matricula.id_matricula,
+        id_usuario=actor.id_usuario if actor else None,
+        ip=request.remote_addr,
+    )
+    return _serializar_matricula(matricula), 200
+
+
+def rechazar(id_matricula):
+    try:
+        matricula = rechazar_matricula(id_matricula)
+    except MatriculaNoEncontradaError:
+        return {"msg": "Matrícula no encontrada"}, 404
+    except EstadoInvalidoError:
+        return {"msg": "La matrícula no está en estado pendiente"}, 409
+
+    actor = usuario_actual()
+    registrar_auditoria(
+        "rechazar_matricula",
+        "matricula",
+        registro=matricula.id_matricula,
+        id_usuario=actor.id_usuario if actor else None,
+        ip=request.remote_addr,
+    )
     return _serializar_matricula(matricula), 200
 
 
@@ -102,10 +136,42 @@ def pago(id_matricula, body):
     except EstadoInvalidoError:
         return {"msg": "La matrícula debe estar validada antes de registrar el pago"}, 409
 
+    actor = usuario_actual()
+    registrar_auditoria(
+        "registrar_pago",
+        "pago",
+        registro=pago_creado.id_pago,
+        id_usuario=actor.id_usuario if actor else None,
+        ip=request.remote_addr,
+    )
+
     data = PagoResponse(
         id_pago=pago_creado.id_pago, monto=float(pago_creado.monto), estado=pago_creado.estado
     ).model_dump()
     return data, 201
+
+
+def validar_pago_ctrl(id_pago):
+    try:
+        pago_confirmado = validar_pago(id_pago)
+    except PagoNoEncontradoError:
+        return {"msg": "Pago no encontrado"}, 404
+    except EstadoInvalidoError:
+        return {"msg": "El pago no está en estado pendiente"}, 409
+
+    actor = usuario_actual()
+    registrar_auditoria(
+        "validar_pago",
+        "pago",
+        registro=pago_confirmado.id_pago,
+        id_usuario=actor.id_usuario if actor else None,
+        ip=request.remote_addr,
+    )
+
+    data = PagoResponse(
+        id_pago=pago_confirmado.id_pago, monto=float(pago_confirmado.monto), estado=pago_confirmado.estado
+    ).model_dump()
+    return data, 200
 
 
 def ficha(id_matricula):

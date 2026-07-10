@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 from dotenv import load_dotenv
 
@@ -20,6 +21,9 @@ class Config:
     JWT_COOKIE_SECURE = False
     JWT_COOKIE_CSRF_PROTECT = True
     JWT_COOKIE_SAMESITE = "Lax"
+    JWT_SESSION_COOKIE = False
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=8)
+    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
 
 
 class DevelopmentConfig(Config):

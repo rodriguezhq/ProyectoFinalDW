@@ -11,6 +11,7 @@ export default function Facultades() {
   const [editingId, setEditingId] = useState(null);
   const [nombre, setNombre] = useState('');
   const [codigo, setCodigo] = useState('');
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
 
   const fetchFacultades = async () => {
     setIsLoading(true);
@@ -87,6 +88,22 @@ export default function Facultades() {
     }
   };
 
+  const handleDelete = async (id) => {
+    try {
+      const response = await apiFetch(`/api/courses/facultades/${id}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.msg || 'Error al eliminar la facultad.');
+      }
+      toast.success('Facultad eliminada con éxito.');
+      fetchFacultades();
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
   return (
     <>
       <div className="flex flex-col gap-6 animate-slide-up">
@@ -119,7 +136,6 @@ export default function Facultades() {
             <table className="w-full min-w-[600px] border-collapse">
               <thead>
                 <tr className="bg-bg-alt border-b border-border">
-                  <th className="p-4 text-left text-[0.85rem] font-heading font-extrabold text-text-heading">ID</th>
                   <th className="p-4 text-left text-[0.85rem] font-heading font-extrabold text-text-heading">Código</th>
                   <th className="p-4 text-left text-[0.85rem] font-heading font-extrabold text-text-heading">Nombre de Facultad</th>
                   <th className="p-4 text-center text-[0.85rem] font-heading font-extrabold text-text-heading">Acciones</th>
@@ -128,16 +144,22 @@ export default function Facultades() {
               <tbody className="divide-y divide-border">
                 {facultades.map((fac) => (
                   <tr key={fac.id_facultad} className="hover:bg-slate-50 transition-colors">
-                    <td className="p-4 text-[0.88rem] font-mono text-text-muted">{fac.id_facultad}</td>
                     <td className="p-4 text-[0.88rem] font-bold text-primary">{fac.codigo}</td>
                     <td className="p-4 text-[0.88rem] font-semibold text-text-heading">{fac.nombre}</td>
-                    <td className="p-4 text-center">
+                    <td className="p-4 text-center flex justify-center gap-2">
                       <button
                         type="button"
                         onClick={() => openEditModal(fac)}
                         className="text-primary hover:text-primary-hover font-bold text-[0.88rem] px-3 py-1 rounded hover:bg-primary-light transition-all"
                       >
                         Editar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteConfirmId(fac.id_facultad)}
+                        className="text-red-600 hover:text-red-700 font-bold text-[0.88rem] px-3 py-1 rounded hover:bg-red-50 transition-all"
+                      >
+                        Eliminar
                       </button>
                     </td>
                   </tr>
@@ -151,8 +173,8 @@ export default function Facultades() {
 
     {/* Add/Edit Modal */}
     {modalOpen && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-[450px] w-full overflow-hidden animate-scale-in text-left">
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setModalOpen(false)}>
+          <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-[450px] w-full overflow-hidden animate-scale-in text-left" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 bg-primary-light border-b border-primary/10 flex justify-between items-center">
               <h3 className="font-heading font-extrabold text-primary text-[1.1rem]">
                 {editingId ? '📝 Editar Facultad' : '🏫 Nueva Facultad'}
@@ -206,6 +228,41 @@ export default function Facultades() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {deleteConfirmId && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setDeleteConfirmId(null)}>
+          <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-[400px] w-full p-6 animate-scale-in text-center" onClick={(e) => e.stopPropagation()}>
+            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+              ⚠️
+            </div>
+            <h3 className="font-heading font-extrabold text-[1.1rem] text-text-heading mb-2">
+              ¿Confirmar eliminación?
+            </h3>
+            <p className="text-[0.88rem] text-text-muted mb-6">
+              Esta acción es irreversible y podría fallar si el elemento tiene otros registros asociados.
+            </p>
+            <div className="flex justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmId(null)}
+                className="py-2 px-4 text-[0.88rem] font-semibold border border-border rounded-md hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  handleDelete(deleteConfirmId);
+                  setDeleteConfirmId(null);
+                }}
+                className="bg-red-600 hover:bg-red-700 text-white py-2 px-5 font-bold text-[0.88rem] rounded-md transition-colors shadow-sm cursor-pointer"
+              >
+                Confirmar y Eliminar
+              </button>
+            </div>
           </div>
         </div>
       )}

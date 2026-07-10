@@ -10,5 +10,9 @@ class Especialidad(db.Model):
     id_facultad = db.Column(db.Integer, db.ForeignKey("facultad.id_facultad"), nullable=False)
 
     facultad = db.relationship("Facultad", back_populates="especialidades")
-    planes_estudio = db.relationship("PlanEstudios", back_populates="especialidad")
     estudiantes = db.relationship("Estudiante", back_populates="especialidad")
+    cursos = db.relationship(
+        "Curso",
+        secondary="curso_especialidad",
+        back_populates="especialidades"
+    )

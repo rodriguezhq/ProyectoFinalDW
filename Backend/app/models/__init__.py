@@ -10,8 +10,6 @@ from app.models.matricula_detalle import MatriculaDetalle
 from app.models.nota import Nota
 from app.models.pago import Pago
 from app.models.periodo_academico import PeriodoAcademico
-from app.models.plan_curso import PlanCurso
-from app.models.plan_estudios import PlanEstudios
 from app.models.rol import Rol
 from app.models.seccion import Seccion
 from app.models.silabo import Silabo
@@ -20,9 +18,7 @@ from app.models.usuario import Usuario
 __all__ = [
     "Facultad",
     "Especialidad",
-    "PlanEstudios",
     "Curso",
-    "PlanCurso",
     "PeriodoAcademico",
     "Seccion",
     "Rol",

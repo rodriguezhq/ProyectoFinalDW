@@ -8,8 +8,6 @@ from app.models.docente import Docente
 from app.models.especialidad import Especialidad
 from app.models.facultad import Facultad
 from app.models.periodo_academico import PeriodoAcademico
-from app.models.plan_curso import PlanCurso
-from app.models.plan_estudios import PlanEstudios
 from app.models.seccion import Seccion
 from app.models.silabo import Silabo
 
@@ -25,6 +23,10 @@ class EspecialidadNoEncontradaError(Exception):
 
 
 class PlanNoEncontradoError(Exception):
+    pass
+
+
+class EntidadConDependenciasError(Exception):
     pass
 
 
@@ -49,6 +51,14 @@ class PeriodoNoEncontradoError(Exception):
 
 
 class CodigoDuplicadoError(Exception):
+    pass
+
+
+class PrerrequisitoDiferenteFacultadError(Exception):
+    pass
+
+
+class CarreraDiferenteFacultadError(Exception):
     pass
 
 
@@ -114,49 +124,42 @@ def actualizar_especialidad(id_especialidad, nombre=None, codigo=None, id_facult
     return especialidad
 
 
-# ---------------- PlanEstudios ----------------
-
-def crear_plan_estudios(nombre, version, fecha_aprobacion, estado, id_especialidad):
-    if not db.session.get(Especialidad, id_especialidad):
-        raise EspecialidadNoEncontradaError()
-    plan = PlanEstudios(
-        nombre=nombre,
-        version=version,
-        fecha_aprobacion=fecha_aprobacion,
-        estado=estado,
-        id_especialidad=id_especialidad,
-    )
-    db.session.add(plan)
-    db.session.commit()
-    return plan
-
-
-def listar_planes_estudio():
-    return PlanEstudios.query.all()
-
-
-def actualizar_plan_estudios(id_plan, nombre=None, version=None, estado=None):
-    plan = db.session.get(PlanEstudios, id_plan)
-    if not plan:
-        raise PlanNoEncontradoError()
-    if nombre is not None:
-        plan.nombre = nombre
-    if version is not None:
-        plan.version = version
-    if estado is not None:
-        plan.estado = estado
-    db.session.commit()
-    return plan
-
-
-# ---------------- Curso ----------------
-
-def crear_curso(codigo, nombre, creditos, horas_teoria, horas_practica):
+def crear_curso(codigo, nombre, creditos, horas_teoria, horas_practica, id_facultad, ciclo=1, id_prerrequisitos=None, id_especialidades=None):
     if Curso.query.filter_by(codigo=codigo).first():
         raise CodigoDuplicadoError()
+
+    if not db.session.get(Facultad, id_facultad):
+        raise FacultadNoEncontradaError()
+
     curso = Curso(
-        codigo=codigo, nombre=nombre, creditos=creditos, horas_teoria=horas_teoria, horas_practica=horas_practica
+        codigo=codigo,
+        nombre=nombre,
+        creditos=creditos,
+        horas_teoria=horas_teoria,
+        horas_practica=horas_practica,
+        ciclo=ciclo,
+        id_facultad=id_facultad,
     )
+    
+    # Asignar los prerrequisitos si se proporcionan (deben ser de la misma facultad)
+    if id_prerrequisitos:
+        for pre_id in id_prerrequisitos:
+            prerreq = db.session.get(Curso, pre_id)
+            if prerreq:
+                if prerreq.id_facultad != id_facultad:
+                    raise PrerrequisitoDiferenteFacultadError()
+                curso.prerrequisitos.append(prerreq)
+
+    # Asignar especialidades (carreras) si se proporcionan (deben ser de la misma facultad)
+    if id_especialidades:
+        for esp_id in id_especialidades:
+            esp = db.session.get(Especialidad, esp_id)
+            if not esp:
+                raise EspecialidadNoEncontradaError()
+            if esp.id_facultad != id_facultad:
+                raise CarreraDiferenteFacultadError()
+            curso.especialidades.append(esp)
+
     db.session.add(curso)
     db.session.commit()
     return curso
@@ -166,10 +169,18 @@ def listar_cursos():
     return Curso.query.all()
 
 
-def actualizar_curso(id_curso, nombre=None, creditos=None, horas_teoria=None, horas_practica=None):
+def actualizar_curso(id_curso, nombre=None, creditos=None, horas_teoria=None, horas_practica=None, id_facultad=None, ciclo=None, id_prerrequisitos=None, id_especialidades=None):
     curso = db.session.get(Curso, id_curso)
     if not curso:
         raise CursoNoEncontradoError()
+    
+    if id_facultad is not None:
+        if not db.session.get(Facultad, id_facultad):
+            raise FacultadNoEncontradaError()
+        curso.id_facultad = id_facultad
+        
+    fac_id_valida = id_facultad if id_facultad is not None else curso.id_facultad
+    
     if nombre is not None:
         curso.nombre = nombre
     if creditos is not None:
@@ -178,37 +189,48 @@ def actualizar_curso(id_curso, nombre=None, creditos=None, horas_teoria=None, ho
         curso.horas_teoria = horas_teoria
     if horas_practica is not None:
         curso.horas_practica = horas_practica
-    db.session.commit()
-    return curso
+    if ciclo is not None:
+        curso.ciclo = ciclo
+        
+    # Actualizar la lista de prerrequisitos si se especifica
+    if id_prerrequisitos is not None:
+        nuevos_prerreqs = []
+        for pre_id in id_prerrequisitos:
+            prerreq = db.session.get(Curso, pre_id)
+            if prerreq:
+                if prerreq.id_facultad != fac_id_valida:
+                    raise PrerrequisitoDiferenteFacultadError()
+                nuevos_prerreqs.append(prerreq)
+        curso.prerrequisitos = nuevos_prerreqs
+    else:
+        # Validar los prerrequisitos anteriores contra la nueva facultad
+        for prerreq in curso.prerrequisitos:
+            if prerreq.id_facultad != fac_id_valida:
+                raise PrerrequisitoDiferenteFacultadError()
 
-
-# ---------------- PlanCurso ----------------
-
-def crear_plan_curso(id_plan, id_curso, ciclo):
-    if not db.session.get(PlanEstudios, id_plan):
-        raise PlanNoEncontradoError()
-    if not db.session.get(Curso, id_curso):
-        raise CursoNoEncontradoError()
-    if PlanCurso.query.filter_by(id_plan=id_plan, id_curso=id_curso).first():
-        raise CodigoDuplicadoError()
-    plan_curso = PlanCurso(id_plan=id_plan, id_curso=id_curso, ciclo=ciclo)
-    db.session.add(plan_curso)
-    db.session.commit()
-    return plan_curso
-
-
-def listar_planes_curso(id_plan=None):
-    query = PlanCurso.query
-    if id_plan is not None:
-        query = query.filter_by(id_plan=id_plan)
-    return query.all()
+    # Actualizar especialidades si se especifica
+    if id_especialidades is not None:
+        nuevas_esps = []
+        for esp_id in id_especialidades:
+            esp = db.session.get(Especialidad, esp_id)
+            if not esp:
+                raise EspecialidadNoEncontradaError()
+            if esp.id_facultad != fac_id_valida:
+                raise CarreraDiferenteFacultadError()
+            nuevas_esps.append(esp)
+        curso.especialidades = nuevas_esps
+    else:
+        # Validar especialidades anteriores contra la nueva facultad
+        for esp in curso.especialidades:
+            if esp.id_facultad != fac_id_valida:
+                raise CarreraDiferenteFacultadError()
 
 
 # ---------------- Seccion ----------------
 
-def crear_seccion(codigo, horario, aula, capacidad, id_plan_curso, id_docente, id_periodo):
-    if not db.session.get(PlanCurso, id_plan_curso):
-        raise PlanCursoNoEncontradoError()
+def crear_seccion(codigo, horario, aula, capacidad, id_curso, id_docente, id_periodo):
+    if not db.session.get(Curso, id_curso):
+        raise CursoNoEncontradoError()
     if not db.session.get(PeriodoAcademico, id_periodo):
         raise PeriodoNoEncontradoError()
     if id_docente is not None and not db.session.get(Docente, id_docente):
@@ -220,7 +242,7 @@ def crear_seccion(codigo, horario, aula, capacidad, id_plan_curso, id_docente, i
         aula=aula,
         capacidad=capacidad,
         estado="abierta",
-        id_plan_curso=id_plan_curso,
+        id_curso=id_curso,
         id_docente=id_docente,
         id_periodo=id_periodo,
     )
@@ -294,7 +316,7 @@ def carga_docente(id_periodo):
     por_docente = {}
     for seccion in secciones:
         docente = seccion.docente
-        curso = seccion.plan_curso.curso
+        curso = seccion.curso
         horas = curso.horas_teoria + curso.horas_practica
         if docente.id_docente not in por_docente:
             por_docente[docente.id_docente] = {
@@ -309,36 +331,101 @@ def carga_docente(id_periodo):
     return list(por_docente.values())
 
 
-def cumplimiento_plan(id_plan, id_periodo):
-    if not db.session.get(PlanEstudios, id_plan):
-        raise PlanNoEncontradoError()
 
-    planes_curso = PlanCurso.query.filter_by(id_plan=id_plan).all()
-    detalle = []
-    con_seccion = 0
+def eliminar_facultad(id_facultad):
+    facultad = db.session.get(Facultad, id_facultad)
+    if not facultad:
+        raise FacultadNoEncontradaError()
+    if Especialidad.query.filter_by(id_facultad=id_facultad).first() or Docente.query.filter_by(id_facultad=id_facultad).first():
+        raise EntidadConDependenciasError()
+    db.session.delete(facultad)
+    db.session.commit()
 
-    for pc in planes_curso:
-        tiene_seccion = (
-            Seccion.query.filter_by(id_plan_curso=pc.id_plan_curso, id_periodo=id_periodo).first() is not None
-        )
-        if tiene_seccion:
-            con_seccion += 1
-        detalle.append(
-            {
-                "id_curso": pc.curso.id_curso,
-                "curso": pc.curso.nombre,
-                "ciclo": pc.ciclo,
-                "tiene_seccion_abierta": tiene_seccion,
-            }
-        )
 
-    total = len(planes_curso)
-    porcentaje = round((con_seccion / total) * 100, 1) if total else 0.0
+def eliminar_especialidad(id_especialidad):
+    especialidad = db.session.get(Especialidad, id_especialidad)
+    if not especialidad:
+        raise EspecialidadNoEncontradaError()
+    from app.models.estudiante import Estudiante
+    if Estudiante.query.filter_by(id_especialidad=id_especialidad).first():
+        raise EntidadConDependenciasError()
+    db.session.delete(especialidad)
+    db.session.commit()
 
-    return {
-        "id_plan": id_plan,
-        "total_cursos": total,
-        "cursos_con_seccion": con_seccion,
-        "porcentaje_cumplimiento": porcentaje,
-        "detalle": detalle,
-    }
+
+def eliminar_curso(id_curso):
+    curso = db.session.get(Curso, id_curso)
+    if not curso:
+        raise CursoNoEncontradoError()
+    from app.models.seccion import Seccion
+    if Seccion.query.filter_by(id_curso=id_curso).first():
+        raise EntidadConDependenciasError()
+    db.session.delete(curso)
+    db.session.commit()
+
+
+def eliminar_seccion(id_seccion):
+    seccion = db.session.get(Seccion, id_seccion)
+    if not seccion:
+        raise SeccionNoEncontradaError()
+    if len(seccion.matricula_detalles) > 0:
+        raise EntidadConDependenciasError()
+    db.session.delete(seccion)
+    db.session.commit()
+
+
+def guardar_secciones_lote(secciones_list):
+    for item in secciones_list:
+        eliminar = item.get("eliminar", False)
+        id_seccion = item.get("id_seccion")
+
+        if eliminar:
+            if id_seccion:
+                sec = db.session.get(Seccion, id_seccion)
+                if sec:
+                    if len(sec.matricula_detalles) > 0:
+                        raise EntidadConDependenciasError()
+                    db.session.delete(sec)
+        else:
+            id_curso = item.get("id_curso")
+            id_periodo = item.get("id_periodo")
+            id_docente = item.get("id_docente")
+
+            # Validación obligatoria del docente
+            if not id_docente:
+                raise ValueError("Cada sección debe tener asignado un docente obligatorio.")
+
+            if not db.session.get(Docente, id_docente):
+                raise DocenteNoEncontradoError()
+
+            if not id_seccion:
+                # Crear nueva sección
+                if not db.session.get(Curso, id_curso):
+                    raise CursoNoEncontradoError()
+                if not db.session.get(PeriodoAcademico, id_periodo):
+                    raise PeriodoNoEncontradoError()
+
+                sec = Seccion(
+                    codigo=item.get("codigo"),
+                    horario=item.get("horario"),
+                    aula=item.get("aula"),
+                    capacidad=item.get("capacidad", 30),
+                    estado="abierta",
+                    id_curso=id_curso,
+                    id_docente=id_docente,
+                    id_periodo=id_periodo
+                )
+                db.session.add(sec)
+            else:
+                # Modificar sección existente
+                sec = db.session.get(Seccion, id_seccion)
+                if not sec:
+                    raise SeccionNoEncontradaError()
+                
+                sec.codigo = item.get("codigo", sec.codigo)
+                sec.horario = item.get("horario", sec.horario)
+                sec.aula = item.get("aula", sec.aula)
+                sec.capacidad = item.get("capacidad", sec.capacidad)
+                sec.id_docente = id_docente
+
+    db.session.commit()

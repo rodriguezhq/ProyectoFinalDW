@@ -13,14 +13,13 @@ from app.models import (
     Estudiante,
     Facultad,
     PeriodoAcademico,
-    PlanCurso,
-    PlanEstudios,
     Rol,
     Seccion,
     Usuario,
 )
 
-TEST_PASSWORD = "Secret123!"
+CONTRASENA_PRUEBA = "Secret123!"
+TEST_PASSWORD = CONTRASENA_PRUEBA  # Alias para compatibilidad con tests existentes
 
 
 def token_para(client, username):
@@ -49,6 +48,7 @@ def client(app):
 
 
 def _seed_minimo():
+    # Roles
     rol_admin = Rol(nombre="Administrador")
     rol_estudiante = Rol(nombre="Estudiante")
     rol_docente = Rol(nombre="Docente")
@@ -56,6 +56,7 @@ def _seed_minimo():
     db.session.add_all([rol_admin, rol_estudiante, rol_docente, rol_direccion])
     db.session.commit()
 
+    # Facultad y especialidad
     facultad = Facultad(nombre="Facultad de Prueba", codigo="FP")
     db.session.add(facultad)
     db.session.commit()
@@ -64,6 +65,7 @@ def _seed_minimo():
     db.session.add(especialidad)
     db.session.commit()
 
+    # Estudiantes (sin id_plan)
     estudiante = Estudiante(
         codigo="E001",
         dni="12345678",
@@ -85,6 +87,7 @@ def _seed_minimo():
     db.session.add_all([estudiante, estudiante_2])
     db.session.commit()
 
+    # Docente
     docente = Docente(
         codigo="D001",
         dni="11223344",
@@ -97,29 +100,30 @@ def _seed_minimo():
     db.session.add(docente)
     db.session.commit()
 
+    # Usuarios
     usuario_estudiante = Usuario(
         username="jperez",
-        password_hash=generate_password_hash(TEST_PASSWORD),
+        password_hash=generate_password_hash(CONTRASENA_PRUEBA),
         estado="activo",
         id_rol=rol_estudiante.id_rol,
         id_estudiante=estudiante.id_estudiante,
     )
     usuario_estudiante_2 = Usuario(
         username="mlopez",
-        password_hash=generate_password_hash(TEST_PASSWORD),
+        password_hash=generate_password_hash(CONTRASENA_PRUEBA),
         estado="activo",
         id_rol=rol_estudiante.id_rol,
         id_estudiante=estudiante_2.id_estudiante,
     )
     usuario_inactivo = Usuario(
         username="inactivo",
-        password_hash=generate_password_hash(TEST_PASSWORD),
+        password_hash=generate_password_hash(CONTRASENA_PRUEBA),
         estado="inactivo",
         id_rol=rol_estudiante.id_rol,
     )
     usuario_admin = Usuario(
         username="admin_test",
-        password_hash=generate_password_hash(TEST_PASSWORD),
+        password_hash=generate_password_hash(CONTRASENA_PRUEBA),
         estado="activo",
         id_rol=rol_admin.id_rol,
         nombres="Rosa",
@@ -128,7 +132,7 @@ def _seed_minimo():
     )
     usuario_direccion = Usuario(
         username="direccion_test",
-        password_hash=generate_password_hash(TEST_PASSWORD),
+        password_hash=generate_password_hash(CONTRASENA_PRUEBA),
         estado="activo",
         id_rol=rol_direccion.id_rol,
         nombres="Victor",
@@ -137,7 +141,7 @@ def _seed_minimo():
     )
     usuario_docente = Usuario(
         username="ctorres",
-        password_hash=generate_password_hash(TEST_PASSWORD),
+        password_hash=generate_password_hash(CONTRASENA_PRUEBA),
         estado="activo",
         id_rol=rol_docente.id_rol,
         id_docente=docente.id_docente,
@@ -154,6 +158,7 @@ def _seed_minimo():
     )
     db.session.commit()
 
+    # Periodos
     periodo = PeriodoAcademico(
         nombre="2026-I", fecha_inicio=date(2026, 3, 1), fecha_fin=date(2026, 7, 18), estado="activo"
     )
@@ -163,30 +168,18 @@ def _seed_minimo():
     db.session.add_all([periodo, periodo_cerrado])
     db.session.commit()
 
-    curso = Curso(codigo="C001", nombre="Curso de Prueba", creditos=4, horas_teoria=3, horas_practica=2)
+    # Curso (vinculado a facultad)
+    curso = Curso(codigo="C001", nombre="Curso de Prueba", creditos=4, horas_teoria=3, horas_practica=2, id_facultad=facultad.id_facultad)
     db.session.add(curso)
     db.session.commit()
 
-    plan = PlanEstudios(
-        nombre="Plan de Prueba",
-        version="1",
-        fecha_aprobacion=date(2020, 1, 1),
-        estado="vigente",
-        id_especialidad=especialidad.id_especialidad,
-    )
-    db.session.add(plan)
-    db.session.commit()
-
-    plan_curso = PlanCurso(id_plan=plan.id_plan, id_curso=curso.id_curso, ciclo=1)
-    db.session.add(plan_curso)
-    db.session.commit()
-
-    # capacidad=1 a proposito: permite probar el caso "seccion llena" con solo 2 estudiantes
+    # Seccion vinculada directamente al curso
+    # capacidad=1 a propósito: permite probar el caso "seccion llena" con solo 2 estudiantes
     seccion = Seccion(
         codigo="A",
         capacidad=1,
         estado="abierta",
-        id_plan_curso=plan_curso.id_plan_curso,
+        id_curso=curso.id_curso,
         id_periodo=periodo.id_periodo,
     )
     db.session.add(seccion)

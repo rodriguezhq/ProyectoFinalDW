@@ -23,6 +23,10 @@ class UsuarioCreateBody(BaseModel):
     nombres: str | None = None
     apellidos: str | None = None
     correo: str | None = None
+    codigo: str | None = None
+    dni: str | None = None
+    id_facultad: int | None = None
+    id_especialidad: int | None = None
 
 
 class UsuarioCreateResponse(BaseModel):
@@ -35,6 +39,9 @@ class UsuarioCreateResponse(BaseModel):
 class UsuarioUpdateBody(BaseModel):
     estado: str | None = None
     id_rol: int | None = None
+    nombres: str | None = None
+    apellidos: str | None = None
+    correo: str | None = None
 
 
 class UsuarioResponse(BaseModel):
@@ -46,6 +53,10 @@ class UsuarioResponse(BaseModel):
     nombres: str | None
     apellidos: str | None
     correo: str | None
+    id_facultad: int | None = None
+    facultad_nombre: str | None = None
+    id_especialidad: int | None = None
+    especialidad_nombre: str | None = None
 
 
 class UsuarioListResponse(BaseModel):

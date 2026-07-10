@@ -18,7 +18,7 @@ def _id_rol_estudiante(app):
 
 
 def _id_estudiante_sin_cuenta(app):
-    """El estudiante Maria (mlopez) ya tiene Usuario en el seed - creamos uno nuevo sin cuenta."""
+    """Crea un estudiante sin cuenta de usuario para ser vinculado en los tests."""
     from app.extensions import db
     from app.models import Especialidad
 

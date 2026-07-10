@@ -14,3 +14,4 @@ class Facultad(db.Model):
     docentes = db.relationship(
         "Docente", back_populates="facultad", foreign_keys="Docente.id_facultad"
     )
+    cursos = db.relationship("Curso", back_populates="facultad")

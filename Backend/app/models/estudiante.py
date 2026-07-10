@@ -16,7 +16,6 @@ class Estudiante(db.Model):
     id_especialidad = db.Column(
         db.Integer, db.ForeignKey("especialidad.id_especialidad"), nullable=False
     )
-
     especialidad = db.relationship("Especialidad", back_populates="estudiantes")
     usuario = db.relationship("Usuario", back_populates="estudiante", uselist=False)
     matriculas = db.relationship("Matricula", back_populates="estudiante")

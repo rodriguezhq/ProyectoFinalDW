@@ -1,7 +1,7 @@
 import io
 
 from app.extensions import db
-from app.models import Curso, Docente, Especialidad, Facultad, PeriodoAcademico, PlanCurso, PlanEstudios, Seccion
+from app.models import Curso, Docente, Especialidad, Facultad, PeriodoAcademico, Seccion
 from tests.conftest import token_para
 
 COURSES_URL = "/api/courses"
@@ -17,8 +17,6 @@ def _ids(app):
             "facultad": Facultad.query.filter_by(codigo="FP").first().id_facultad,
             "especialidad": Especialidad.query.filter_by(codigo="EP").first().id_especialidad,
             "curso": Curso.query.filter_by(codigo="C001").first().id_curso,
-            "plan": PlanEstudios.query.filter_by(nombre="Plan de Prueba").first().id_plan,
-            "plan_curso": PlanCurso.query.first().id_plan_curso,
             "periodo": PeriodoAcademico.query.filter_by(nombre="2026-I").first().id_periodo,
             "seccion": Seccion.query.filter_by(codigo="A").first().id_seccion,
             "docente": Docente.query.filter_by(codigo="D001").first().id_docente,
@@ -83,45 +81,128 @@ def test_crear_especialidad_exitosa(client, app):
     assert resp.status_code == 201
 
 
-# ---------------- PlanEstudios ----------------
+# ---------------- Curso ----------------
 
-def test_crear_plan_estudios_exitoso(client, app):
+def test_crear_curso_codigo_duplicado_devuelve_409(client, app):
     ids = _ids(app)
     resp = client.post(
-        f"{COURSES_URL}/planes-estudio",
+        f"{COURSES_URL}/cursos",
+        json={"codigo": "C001", "nombre": "Dup", "creditos": 3, "id_facultad": ids["facultad"]},
+        headers=_auth_headers(client, "admin_test"),
+    )
+    assert resp.status_code == 409
+
+
+def test_crear_curso_exitoso(client, app):
+    ids = _ids(app)
+    resp = client.post(
+        f"{COURSES_URL}/cursos",
+        json={"codigo": "C002", "nombre": "Nuevo Curso", "creditos": 4, "ciclo": 2, "id_facultad": ids["facultad"]},
+        headers=_auth_headers(client, "admin_test"),
+    )
+    assert resp.status_code == 201
+    body = resp.get_json()
+    assert body["codigo"] == "C002"
+    assert body["ciclo"] == 2
+    assert body["id_facultad"] == ids["facultad"]
+
+
+def test_crear_curso_con_prerrequisitos_exitoso(client, app):
+    ids = _ids(app)
+    resp = client.post(
+        f"{COURSES_URL}/cursos",
         json={
-            "nombre": "Plan Nuevo",
-            "version": "2",
-            "fecha_aprobacion": "2021-01-01",
-            "id_especialidad": ids["especialidad"],
+            "codigo": "C003",
+            "nombre": "Curso Avanzado",
+            "creditos": 4,
+            "ciclo": 3,
+            "id_facultad": ids["facultad"],
+            "id_prerrequisitos": [ids["curso"]]
         },
         headers=_auth_headers(client, "admin_test"),
     )
     assert resp.status_code == 201
-    assert resp.get_json()["estado"] == "vigente"
+    body = resp.get_json()
+    assert body["codigo"] == "C003"
+    assert body["ciclo"] == 3
+    assert ids["curso"] in body["id_prerrequisitos"]
 
 
-# ---------------- Curso ----------------
+def test_crear_curso_con_prerrequisito_de_otra_facultad_devuelve_400(client, app):
+    from app.models import Facultad
+    ids = _ids(app)
+    with app.app_context():
+        # Crear otra facultad y un curso asociado a ella
+        fac_ot = Facultad(nombre="Facultad Alterna", codigo="FALT")
+        db.session.add(fac_ot)
+        db.session.commit()
+        curso_ot = Curso(codigo="C_ALT", nombre="Curso de Otra Facultad", creditos=4, id_facultad=fac_ot.id_facultad)
+        db.session.add(curso_ot)
+        db.session.commit()
+        id_curso_ot = curso_ot.id_curso
 
-def test_crear_curso_codigo_duplicado_devuelve_409(client, app):
     resp = client.post(
         f"{COURSES_URL}/cursos",
-        json={"codigo": "C001", "nombre": "Dup", "creditos": 3},
+        json={
+            "codigo": "C004",
+            "nombre": "Invalido por Prerrequisito",
+            "creditos": 4,
+            "ciclo": 2,
+            "id_facultad": ids["facultad"],
+            "id_prerrequisitos": [id_curso_ot]
+        },
         headers=_auth_headers(client, "admin_test"),
     )
-    assert resp.status_code == 409
+    assert resp.status_code == 400
+    assert "prerrequisitos deben pertenecer a la misma facultad" in resp.get_json()["msg"]
 
 
-# ---------------- PlanCurso ----------------
-
-def test_crear_plan_curso_duplicado_devuelve_409(client, app):
+def test_crear_curso_con_carreras_exitoso(client, app):
     ids = _ids(app)
     resp = client.post(
-        f"{COURSES_URL}/planes-curso",
-        json={"id_plan": ids["plan"], "id_curso": ids["curso"], "ciclo": 1},
+        f"{COURSES_URL}/cursos",
+        json={
+            "codigo": "C010",
+            "nombre": "Curso de Sistemas",
+            "creditos": 3,
+            "ciclo": 1,
+            "id_facultad": ids["facultad"],
+            "id_especialidades": [ids["especialidad"]]
+        },
         headers=_auth_headers(client, "admin_test"),
     )
-    assert resp.status_code == 409
+    assert resp.status_code == 201
+    body = resp.get_json()
+    assert ids["especialidad"] in body["id_especialidades"]
+
+
+def test_crear_curso_con_carrera_de_otra_facultad_devuelve_400(client, app):
+    from app.models import Especialidad, Facultad
+    ids = _ids(app)
+    with app.app_context():
+        # Crear otra facultad y una especialidad asociada a ella
+        fac_ot = Facultad(nombre="Facultad Alterna 2", codigo="FALT2")
+        db.session.add(fac_ot)
+        db.session.commit()
+        esp_ot = Especialidad(nombre="Carrera Alterna 2", codigo="CALT2", id_facultad=fac_ot.id_facultad)
+        db.session.add(esp_ot)
+        db.session.commit()
+        id_esp_ot = esp_ot.id_especialidad
+
+    resp = client.post(
+        f"{COURSES_URL}/cursos",
+        json={
+            "codigo": "C011",
+            "nombre": "Invalido por Carrera",
+            "creditos": 3,
+            "ciclo": 1,
+            "id_facultad": ids["facultad"],
+            "id_especialidades": [id_esp_ot]
+        },
+        headers=_auth_headers(client, "admin_test"),
+    )
+    assert resp.status_code == 400
+    assert "carreras/especialidades asignadas deben pertenecer a la misma facultad" in resp.get_json()["msg"]
 
 
 # ---------------- Seccion ----------------
@@ -130,7 +211,7 @@ def test_crear_seccion_exitosa(client, app):
     ids = _ids(app)
     resp = client.post(
         f"{COURSES_URL}/secciones",
-        json={"codigo": "B", "capacidad": 20, "id_plan_curso": ids["plan_curso"], "id_periodo": ids["periodo"]},
+        json={"codigo": "B", "capacidad": 20, "id_curso": ids["curso"], "id_periodo": ids["periodo"]},
         headers=_auth_headers(client, "admin_test"),
     )
     assert resp.status_code == 201
@@ -141,7 +222,7 @@ def test_crear_seccion_con_periodo_inexistente_devuelve_404(client, app):
     ids = _ids(app)
     resp = client.post(
         f"{COURSES_URL}/secciones",
-        json={"codigo": "C", "id_plan_curso": ids["plan_curso"], "id_periodo": 999999},
+        json={"codigo": "C", "id_curso": ids["curso"], "id_periodo": 999999},
         headers=_auth_headers(client, "admin_test"),
     )
     assert resp.status_code == 404
@@ -209,7 +290,7 @@ def test_subir_silabo_exitoso(client, app):
 
 def test_subir_silabo_de_seccion_de_otro_docente_devuelve_403(client, app):
     ids = _ids(app)
-    # la seccion del seed NO esta asignada a ctorres en este test
+    # La seccion del seed NO está asignada a ctorres en este test
     data = {"archivo": (io.BytesIO(b"x"), "silabo.pdf")}
     resp = client.post(
         f"{COURSES_URL}/secciones/{ids['seccion']}/silabo",
@@ -244,16 +325,3 @@ def test_carga_docente_con_rol_no_direccion_devuelve_403(client, app):
         f"{COURSES_URL}/carga-docente?id_periodo={ids['periodo']}", headers=_auth_headers(client, "admin_test")
     )
     assert resp.status_code == 403
-
-
-def test_cumplimiento_plan(client, app):
-    ids = _ids(app)
-    resp = client.get(
-        f"{COURSES_URL}/cumplimiento-plan?id_plan={ids['plan']}&id_periodo={ids['periodo']}",
-        headers=_auth_headers(client, "direccion_test"),
-    )
-    body = resp.get_json()
-    assert resp.status_code == 200
-    assert body["total_cursos"] == 1
-    assert body["cursos_con_seccion"] == 1
-    assert body["porcentaje_cumplimiento"] == 100.0

@@ -3,6 +3,9 @@ import DisenoPanel from './components/DisenoPanel';
 import VistaHorario from './components/horarios/VistaHorario';
 import VistaPanel from './components/estadisticas/VistaPanel';
 import MantenimientoAcademico from './components/academico/MantenimientoAcademico';
+import UsuariosRoles from './components/usuarios/UsuariosRoles';
+import Auditoria from './components/direccion/Auditoria';
+import DisenoHorario from './components/academico/DisenoHorario';
 import { Toaster, toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
 
@@ -629,6 +632,10 @@ function App() {
               <VistaPanel isDirection={false} />
             ) : activeMenuIndex === 1 ? (
               <MantenimientoAcademico />
+            ) : activeMenuIndex === 4 ? (
+              <DisenoHorario />
+            ) : activeMenuIndex === 7 ? (
+              <UsuariosRoles />
             ) : (
               <div className="p-8 text-center text-text-muted font-medium bg-white rounded-2xl border border-border shadow-md">
                 Esta sección de Administración estará disponible próximamente.
@@ -641,6 +648,8 @@ function App() {
           <DisenoPanel user={user} onLogout={handleLogout} activeMenuIndex={activeMenuIndex} setActiveMenuIndex={handleTabNavigation}>
             {activeMenuIndex === 0 ? (
               <VistaPanel isDirection={true} />
+            ) : activeMenuIndex === 5 ? (
+              <Auditoria />
             ) : (
               <div className="p-8 text-center text-text-muted font-medium bg-white rounded-2xl border border-border shadow-md">
                 Esta sección de Dirección estará disponible próximamente.

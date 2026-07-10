@@ -26,8 +26,7 @@ from app.models import (
     Nota,
     Pago,
     PeriodoAcademico,
-    PlanCurso,
-    PlanEstudios,
+
     Rol,
     Seccion,
     Silabo,
@@ -53,11 +52,9 @@ def clear_data():
     db.session.commit()
     Estudiante.query.delete()
     Docente.query.delete()
-    PlanCurso.query.delete()
-    PlanEstudios.query.delete()
+    Curso.query.delete()
     Especialidad.query.delete()
     Facultad.query.delete()
-    Curso.query.delete()
     PeriodoAcademico.query.delete()
     Rol.query.delete()
     db.session.commit()
@@ -71,17 +68,6 @@ def seed():
     rol_estudiante = Rol(nombre="Estudiante", descripcion="Consulta notas, record y certificados")
     rol_direccion = Rol(nombre="Direccion", descripcion="Supervisa y autoriza a nivel institucional")
     db.session.add_all([rol_admin, rol_docente, rol_estudiante, rol_direccion])
-    db.session.commit()
-
-    # ---------- Cursos (catalogo) ----------
-    print("Creando cursos...")
-    curso_ed = Curso(codigo="ED101", nombre="Estructura de Datos", creditos=4, horas_teoria=3, horas_practica=2)
-    curso_bd = Curso(codigo="BD201", nombre="Base de Datos II", creditos=4, horas_teoria=3, horas_practica=2)
-    curso_daw = Curso(codigo="DAW301", nombre="Desarrollo de Aplicaciones Web", creditos=5, horas_teoria=3, horas_practica=4)
-    curso_isw = Curso(codigo="ISW301", nombre="Ingenieria de Software", creditos=4, horas_teoria=3, horas_practica=2)
-    curso_ms = Curso(codigo="MSU101", nombre="Mecanica de Suelos", creditos=4, horas_teoria=3, horas_practica=2)
-    curso_ca = Curso(codigo="CAR201", nombre="Concreto Armado", creditos=4, horas_teoria=3, horas_practica=2)
-    db.session.add_all([curso_ed, curso_bd, curso_daw, curso_isw, curso_ms, curso_ca])
     db.session.commit()
 
     # ---------- Periodos academicos ----------
@@ -139,28 +125,30 @@ def seed():
     db.session.add_all([esp_is, esp_ic])
     db.session.commit()
 
-    # ---------- Planes de estudio ----------
-    print("Creando planes de estudio...")
-    plan_is = PlanEstudios(
-        nombre="Plan Curricular Ingenieria de Sistemas", version="2020",
-        fecha_aprobacion=date(2020, 1, 15), estado="vigente", id_especialidad=esp_is.id_especialidad,
-    )
-    plan_ic = PlanEstudios(
-        nombre="Plan Curricular Ingenieria Civil", version="2019",
-        fecha_aprobacion=date(2019, 12, 10), estado="vigente", id_especialidad=esp_ic.id_especialidad,
-    )
-    db.session.add_all([plan_is, plan_ic])
-    db.session.commit()
+    # ---------- Cursos (catalogo) ----------
+    print("Creando cursos...")
+    curso_ed = Curso(codigo="ED101", nombre="Estructura de Datos", creditos=4, horas_teoria=3, horas_practica=2, ciclo=3, id_facultad=facultad_fis.id_facultad)
+    curso_bd = Curso(codigo="BD201", nombre="Base de Datos II", creditos=4, horas_teoria=3, horas_practica=2, ciclo=5, id_facultad=facultad_fis.id_facultad)
+    curso_daw = Curso(codigo="DAW301", nombre="Desarrollo de Aplicaciones Web", creditos=5, horas_teoria=3, horas_practica=4, ciclo=9, id_facultad=facultad_fis.id_facultad)
+    curso_isw = Curso(codigo="ISW301", nombre="Ingenieria de Software", creditos=4, horas_teoria=3, horas_practica=2, ciclo=7, id_facultad=facultad_fis.id_facultad)
+    curso_ms = Curso(codigo="MSU101", nombre="Mecanica de Suelos", creditos=4, horas_teoria=3, horas_practica=2, ciclo=4, id_facultad=facultad_fic.id_facultad)
+    curso_ca = Curso(codigo="CAR201", nombre="Concreto Armado", creditos=4, horas_teoria=3, horas_practica=2, ciclo=6, id_facultad=facultad_fic.id_facultad)
+    
+    # Asignar prerrequisitos (un ciclo superior requiere de ciclos inferiores)
+    curso_bd.prerrequisitos.append(curso_ed)
+    curso_daw.prerrequisitos.extend([curso_ed, curso_bd])
+    curso_isw.prerrequisitos.append(curso_ed)
+    curso_ca.prerrequisitos.append(curso_ms)
 
-    # ---------- Plan_Curso (curso + ciclo dentro de cada plan) ----------
-    print("Creando plan_curso...")
-    pc_ed = PlanCurso(id_plan=plan_is.id_plan, id_curso=curso_ed.id_curso, ciclo=3)
-    pc_bd = PlanCurso(id_plan=plan_is.id_plan, id_curso=curso_bd.id_curso, ciclo=5)
-    pc_daw = PlanCurso(id_plan=plan_is.id_plan, id_curso=curso_daw.id_curso, ciclo=9)
-    pc_isw = PlanCurso(id_plan=plan_is.id_plan, id_curso=curso_isw.id_curso, ciclo=7)
-    pc_ms = PlanCurso(id_plan=plan_ic.id_plan, id_curso=curso_ms.id_curso, ciclo=4)
-    pc_ca = PlanCurso(id_plan=plan_ic.id_plan, id_curso=curso_ca.id_curso, ciclo=6)
-    db.session.add_all([pc_ed, pc_bd, pc_daw, pc_isw, pc_ms, pc_ca])
+    # Asignar especialidades (carreras) de la misma facultad
+    curso_ed.especialidades.append(esp_is)
+    curso_bd.especialidades.append(esp_is)
+    curso_daw.especialidades.append(esp_is)
+    curso_isw.especialidades.append(esp_is)
+    curso_ms.especialidades.append(esp_ic)
+    curso_ca.especialidades.append(esp_ic)
+
+    db.session.add_all([curso_ed, curso_bd, curso_daw, curso_isw, curso_ms, curso_ca])
     db.session.commit()
 
     # ---------- Estudiantes ----------
@@ -168,22 +156,22 @@ def seed():
     est_cristhian = Estudiante(
         codigo="2021100001", dni="70111222", nombres="Cristhian", apellidos="Martinez",
         correo="cristhian.martinez@uncp.edu.pe", telefono="987111222",
-        fecha_nacimiento=date(2003, 5, 12), estado="activo", id_especialidad=esp_is.id_especialidad,
+        fecha_nacimiento=date(2003, 5, 12), estado="activo", id_especialidad=esp_is.id_especialidad
     )
     est_scoot = Estudiante(
         codigo="2021100002", dni="70222333", nombres="Scoot", apellidos="Fernandez",
         correo="scoot.fernandez@uncp.edu.pe", telefono="987222333",
-        fecha_nacimiento=date(2003, 8, 20), estado="activo", id_especialidad=esp_is.id_especialidad,
+        fecha_nacimiento=date(2003, 8, 20), estado="activo", id_especialidad=esp_is.id_especialidad
     )
     est_maria = Estudiante(
         codigo="2021100003", dni="70333444", nombres="Maria", apellidos="Huaman Rojas",
         correo="maria.huaman@uncp.edu.pe", telefono="987333444",
-        fecha_nacimiento=date(2002, 3, 3), estado="activo", id_especialidad=esp_is.id_especialidad,
+        fecha_nacimiento=date(2002, 3, 3), estado="activo", id_especialidad=esp_is.id_especialidad
     )
     est_pedro = Estudiante(
         codigo="2020100015", dni="70444555", nombres="Pedro", apellidos="Salazar Lima",
         correo="pedro.salazar@uncp.edu.pe", telefono="987444555",
-        fecha_nacimiento=date(2001, 11, 27), estado="activo", id_especialidad=esp_ic.id_especialidad,
+        fecha_nacimiento=date(2001, 11, 27), estado="activo", id_especialidad=esp_is.id_especialidad
     )
     db.session.add_all([est_cristhian, est_scoot, est_maria, est_pedro])
     db.session.commit()
@@ -193,24 +181,24 @@ def seed():
     # Periodo pasado (2025-II): donde ya se cursaron y calificaron cursos
     sec_ed_pasado = Seccion(
         codigo="A", horario="Lun/Mie 08:00-10:00", aula="B-201", capacidad=30, estado="cerrada",
-        id_plan_curso=pc_ed.id_plan_curso, id_docente=docente_ana.id_docente, id_periodo=periodo_pasado.id_periodo,
+        id_curso=curso_ed.id_curso, id_docente=docente_ana.id_docente, id_periodo=periodo_pasado.id_periodo,
     )
     sec_bd_pasado = Seccion(
         codigo="A", horario="Mar/Jue 10:00-12:00", aula="B-105", capacidad=30, estado="cerrada",
-        id_plan_curso=pc_bd.id_plan_curso, id_docente=docente_luis.id_docente, id_periodo=periodo_pasado.id_periodo,
+        id_curso=curso_bd.id_curso, id_docente=docente_luis.id_docente, id_periodo=periodo_pasado.id_periodo,
     )
     # Periodo actual (2026-I): en curso
     sec_daw_actual = Seccion(
         codigo="A", horario="Lun/Mie 14:00-18:00", aula="Lab-03", capacidad=25, estado="abierta",
-        id_plan_curso=pc_daw.id_plan_curso, id_docente=docente_ana.id_docente, id_periodo=periodo_actual.id_periodo,
+        id_curso=curso_daw.id_curso, id_docente=docente_ana.id_docente, id_periodo=periodo_actual.id_periodo,
     )
     sec_isw_actual = Seccion(
         codigo="A", horario="Vie 08:00-12:00", aula="C-302", capacidad=30, estado="abierta",
-        id_plan_curso=pc_isw.id_plan_curso, id_docente=docente_luis.id_docente, id_periodo=periodo_actual.id_periodo,
+        id_curso=curso_isw.id_curso, id_docente=docente_luis.id_docente, id_periodo=periodo_actual.id_periodo,
     )
     sec_ms_actual = Seccion(
         codigo="A", horario="Mar/Jue 08:00-10:00", aula="A-101", capacidad=35, estado="abierta",
-        id_plan_curso=pc_ms.id_plan_curso, id_docente=docente_carlos.id_docente, id_periodo=periodo_actual.id_periodo,
+        id_curso=curso_ms.id_curso, id_docente=docente_carlos.id_docente, id_periodo=periodo_actual.id_periodo,
     )
     db.session.add_all([sec_ed_pasado, sec_bd_pasado, sec_daw_actual, sec_isw_actual, sec_ms_actual])
     db.session.commit()
@@ -374,5 +362,15 @@ def seed():
 if __name__ == "__main__":
     app = create_app()
     with app.app_context():
-        clear_data()
+        print("Recreando todas las tablas en la base de datos...")
+        # Desactivar chequeo de llaves foráneas para evitar problemas al eliminar
+        db.session.execute(db.text("SET FOREIGN_KEY_CHECKS = 0;"))
+        inspector = db.inspect(db.engine)
+        for nombre_tabla in inspector.get_table_names():
+            db.session.execute(db.text(f"DROP TABLE IF EXISTS `{nombre_tabla}`;"))
+        db.session.execute(db.text("SET FOREIGN_KEY_CHECKS = 1;"))
+        db.session.commit()
+        
+        # Crear todas las tablas con el esquema actualizado
+        db.create_all()
         seed()

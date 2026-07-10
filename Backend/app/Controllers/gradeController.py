@@ -1,6 +1,9 @@
 
 
+from flask import request
 from app.services import grade_service
+from app.services.auth_service import usuario_actual
+from app.services.audit_service import registrar_auditoria
 
 
 def registrar_notas(id_matricula_detalle, body):
@@ -10,6 +13,15 @@ def registrar_notas(id_matricula_detalle, body):
 
     if error:
         return {"msg": error}, 404
+
+    actor = usuario_actual()
+    registrar_auditoria(
+        "actualizar_nota",
+        "nota",
+        registro=str(id_matricula_detalle),
+        id_usuario=actor.id_usuario if actor else None,
+        ip=request.remote_addr,
+    )
 
     return {"msg": "Notas registradas exitosamente", "nota": nota_dict}, 200
 

@@ -68,6 +68,10 @@ def mias():
     return response, status
 
 
+class PagoPath(BaseModel):
+    id_pago: int = Field(..., description="ID del pago")
+
+
 @enrollment_bp.post(
     "/<int:id_matricula>/validar",
     summary="Validar requisitos de matrícula",
@@ -81,6 +85,18 @@ def validar(path: MatriculaPath):
 
 
 @enrollment_bp.post(
+    "/<int:id_matricula>/rechazar",
+    summary="Rechazar solicitud de matrícula",
+    responses={200: MatriculaResponse, 404: MessageResponse, 409: MessageResponse},
+    security=[{"jwt": []}],
+)
+@role_required("Administrador")
+def rechazar(path: MatriculaPath):
+    response, status = enrollmentController.rechazar(path.id_matricula)
+    return response, status
+
+
+@enrollment_bp.post(
     "/<int:id_matricula>/pago",
     summary="Registrar pago de matrícula",
     responses={201: PagoResponse, 404: MessageResponse, 409: MessageResponse},
@@ -89,6 +105,18 @@ def validar(path: MatriculaPath):
 @role_required("Administrador")
 def pago(path: MatriculaPath, body: PagoBody):
     response, status = enrollmentController.pago(path.id_matricula, body)
+    return response, status
+
+
+@enrollment_bp.post(
+    "/pago/<int:id_pago>/validar",
+    summary="Validar/confirmar pago de matrícula",
+    responses={200: PagoResponse, 404: MessageResponse, 409: MessageResponse},
+    security=[{"jwt": []}],
+)
+@role_required("Administrador")
+def validar_pago(path: PagoPath):
+    response, status = enrollmentController.validar_pago_ctrl(path.id_pago)
     return response, status
 
 

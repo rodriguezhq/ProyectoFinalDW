@@ -1,4 +1,3 @@
-from datetime import timedelta
 
 from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -39,11 +38,10 @@ def login_user(username, password, ip=None):
     access_token = create_access_token(
         identity=str(user.id_usuario),
         additional_claims=additional_claims,
-        expires_delta=timedelta(hours=8),
     )
     
     refresh_token = create_refresh_token(
-        identity=str(user.id_usuario), expires_delta=timedelta(days=30)
+        identity=str(user.id_usuario)
     )
     return {
         "access_token": access_token,
@@ -71,7 +69,6 @@ def refresh_user_token(user_id):
     access_token = create_access_token(
         identity=str(user.id_usuario),
         additional_claims=additional_claims,
-        expires_delta=timedelta(hours=8),
     )
     return access_token
 
