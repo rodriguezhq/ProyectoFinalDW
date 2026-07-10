@@ -82,7 +82,7 @@ const CursoService = {
         return await response.json();
     },
     async getCumplimientoPlan(idPlan, idPeriodo) {
-        const response = await fetch(`${BASE_URL}/api/courses/secciones/cumplimiento?id_plan=${idPlan}&id_periodo=${idPeriodo}`, {
+        const response = await fetch(`${BASE_URL}/api/courses/cumplimiento-plan?id_plan=${idPlan}&id_periodo=${idPeriodo}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
