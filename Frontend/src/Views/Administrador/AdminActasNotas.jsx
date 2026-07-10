@@ -4,6 +4,7 @@ import { RefreshCw } from "lucide-react";
 import SeccionesTable from "../../components/administrador/SeccionesTable";
 import ConsolidadoTable from "../../components/administrador/ConsolidadoTable";
 import Dialog from "../../components/Ui/Dialog";
+import CursoService from "../../Services/CursoService";
 export function AdminActasNotas() {
     const [activeTab, setActiveTab] = useState('actas');
     //estados 
@@ -31,7 +32,7 @@ export function AdminActasNotas() {
         const initData = async () => {
             try {
                 setError(null);
-                const perData = await GradeService.getPeriodos();
+                const perData = await CursoService.getPeriodos();
                 const listPeriodos = perData.periodos || [];
                 setPeriodos(listPeriodos);
                 if (listPeriodos.length > 0) {
@@ -39,7 +40,7 @@ export function AdminActasNotas() {
                 }
 
                 //cargar especialidades
-                const espData = await GradeService.getEspecialidades();
+                const espData = await CursoService.getEspecialidades();
                 const listEspecialidades = espData.especialidades || [];
                 setEspecialidades(listEspecialidades);
                 if (listEspecialidades.length > 0) {
@@ -68,7 +69,7 @@ export function AdminActasNotas() {
         try {
             setLoadingSecciones(true);
             setError(null);
-            const data = await GradeService.getSecciones(idPeriodo);
+            const data = await CursoService.getSecciones(idPeriodo);
             setSecciones(data.secciones || []);
         } catch (err) {
             setError(err.message || "Error al cargar las secciones.");
@@ -116,7 +117,7 @@ export function AdminActasNotas() {
 
         try {
             setError(null);
-            await GradeService.updateSeccionEstado(idSeccion, 'cerrada');
+            await CursoService.updateSeccionEstado(idSeccion, 'cerrada');
             alert("El acta de notas ha sido validada y cerrada de forma exitosa.");
             // Recargar la lista de secciones
             if (selectedPeriodo) {
@@ -127,10 +128,9 @@ export function AdminActasNotas() {
         }
     };
     return (
-        <div className="w-full flex flex-col gap-4">
+        <div className="w-full flex flex-col gap-2">
             <div className="border-b border-border pb-3">
-                <h1 className="text-xl font-bold tracking-tight text-text-heading">Actas y Consolidación de Notas</h1>
-                <p className="text-xs text-text-muted mt-0.5">
+                <p className="text-xs text-text-heading mt-0.5">
                     Gestione las actas oficiales de secciones y consulte reportes consolidados académicos globales.
                 </p>
             </div>

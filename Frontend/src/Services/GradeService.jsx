@@ -86,37 +86,11 @@ const GradeService = {
         }
         return await response.json();
     },
-    async getPeriodos() {
-        const response = await fetch(`${BASE_URL}/api/courses/periodos`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            credentials: 'include'
-        });
-        if (!response.ok) {
-            throw new Error("No se pudieron cargar los periodos académicos.");
-        }
-        return await response.json();
-    },
-    async getEspecialidades() {
-        const response = await fetch(`${BASE_URL}/api/courses/especialidades`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            credentials: 'include'
-        });
-        if (!response.ok) {
-            throw new Error("No se pudieron cargar las especialidades.");
-        }
-        return await response.json();
-    },
-    async getSecciones(idPeriodo) {
-        // Si viene idPeriodo lo añadimos como query parameter
-        const url = idPeriodo
-            ? `${BASE_URL}/api/courses/secciones?id_periodo=${idPeriodo}`
-            : `${BASE_URL}/api/courses/secciones`;
+    async getDesempenoCohortes(idEspecialidad) {
+        const url = idEspecialidad
+            ? `${BASE_URL}/api/records/desempeno?id_especialidad=${idEspecialidad}`
+            : `${BASE_URL}/api/records/desempeno`;
+
         const response = await fetch(url, {
             method: 'GET',
             headers: {
@@ -125,25 +99,7 @@ const GradeService = {
             credentials: 'include'
         });
         if (!response.ok) {
-            throw new Error("No se pudieron cargar las secciones.");
-        }
-        return await response.json();
-    },
-    async updateSeccionEstado(idSeccion, estado) {
-        const csrfToken = getCookie('csrf_access_token');
-        const response = await fetch(`${BASE_URL}/api/courses/secciones/${idSeccion}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-CSRF-TOKEN': csrfToken || ''
-            },
-            body: JSON.stringify({ estado }),
-            credentials: 'include'
-        });
-        if (!response.ok) {
-            const errData = await response.json().catch(() => ({}));
-            throw new Error(errData.msg || "No se pudo actualizar el estado de la sección.");
+            throw new Error("No se pudo cargar el reporte de desempeño por cohorte.");
         }
         return await response.json();
     },
@@ -157,6 +113,19 @@ const GradeService = {
         });
         if (!response.ok) {
             throw new Error("No se pudo cargar el reporte consolidado.");
+        }
+        return await response.json();
+    },
+    async getRecordEstudiante(idEstudiante) {
+        const response = await fetch(`${BASE_URL}/api/records/${idEstudiante}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include'
+        });
+        if (!response.ok) {
+            throw new Error("No se pudo cargar el récord del estudiante.");
         }
         return await response.json();
     }
