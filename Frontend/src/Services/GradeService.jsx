@@ -72,6 +72,19 @@ const GradeService = {
             throw new Error(errData.msg || "No se pudo guardar la nota del estudiante.");
         }
         return await response.json();
+    },
+    async getMisNotas() {
+        const response = await fetch(`${BASE_URL}/api/grades/mis-notas`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        });
+        if (!response.ok) {
+            throw new Error("No se pudieron cargar las notas del estudiante.");
+        }
+        return await response.json();
     }
 };
 

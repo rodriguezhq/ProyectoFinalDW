@@ -88,3 +88,16 @@ def registrar_notas_bulk(body: BulkGradeBody):
     response, status = gradeController.registrar_notas_bulk(body)
     return response, status
 
+
+@grades_bp.get(
+    "/mis-notas",
+    summary="Consultar notas del estudiante autenticado",
+    description="Devuelve todas las notas del alumno conectado mediante su sesión JWT.",
+    responses={200: GradeListResponse, 403: MessageResponse},
+    security=[{"cookie": []}],
+)
+@role_required("Estudiante")
+def consultar_mis_notas():
+    """Consulta las notas del estudiante conectado."""
+    response, status = gradeController.consultar_mis_notas()
+    return response, status

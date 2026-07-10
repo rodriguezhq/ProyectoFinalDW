@@ -42,7 +42,7 @@ export default function SidebarShell({ menuOptions = [], children }) {
     };
 
     return (
-        <div className="flex min-w-300 h-screen overflow-hidden bg-white relative w-full font-sans">
+        <div className="flex min-w-0 h-screen overflow-hidden bg-white relative w-full font-sans">
             {/* Mobile Sidebar Overlay */}
             {sidebarOpen && (
                 <div
