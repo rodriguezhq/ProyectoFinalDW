@@ -140,6 +140,18 @@ class SeccionListResponse(BaseModel):
     secciones: list[SeccionResponse]
 
 
+class PeriodoResponse(BaseModel):
+    id_periodo: int
+    nombre: str
+    fecha_inicio: str
+    fecha_fin: str
+    estado: str
+
+
+class PeriodoListResponse(BaseModel):
+    periodos: list[PeriodoResponse]
+
+
 # ---------------- Silabo (Docente) ----------------
 class SilaboForm(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)

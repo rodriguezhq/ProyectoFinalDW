@@ -342,3 +342,7 @@ def cumplimiento_plan(id_plan, id_periodo):
         "porcentaje_cumplimiento": porcentaje,
         "detalle": detalle,
     }
+
+
+def listar_periodos():
+    return PeriodoAcademico.query.all()

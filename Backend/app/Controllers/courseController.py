@@ -258,3 +258,20 @@ def cumplimiento_plan_ctrl(id_plan, id_periodo):
     except PlanNoEncontradoError:
         return {"msg": "Plan de estudios no encontrado"}, 404
     return resultado, 200
+
+
+def listar_periodos_ctrl():
+    from app.services.course_service import listar_periodos
+    periodos = listar_periodos()
+    return {
+        "periodos": [
+            {
+                "id_periodo": p.id_periodo,
+                "nombre": p.nombre,
+                "fecha_inicio": str(p.fecha_inicio),
+                "fecha_fin": str(p.fecha_fin),
+                "estado": p.estado,
+            }
+            for p in periodos
+        ]
+    }, 200

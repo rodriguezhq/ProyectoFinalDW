@@ -30,6 +30,7 @@ from app.schemas.course_schema import (
     SeccionUpdateBody,
     SilaboForm,
     SilaboResponse,
+    PeriodoListResponse,
 )
 from app.utils.decorators import role_required
 
@@ -239,5 +240,16 @@ def carga_docente(query: PeriodoQuery):
 )
 @role_required("Direccion")
 def cumplimiento_plan(query: CumplimientoQuery):
-    response, status = courseController.cumplimiento_plan_ctrl(query.id_plan, query.id_periodo)
+    response, status = courseController.cumplimiento_plan_ctrl(
+        query.id_plan, query.id_periodo
+    )
+    return response, status
+
+
+@courses_bp.get(
+    "/periodos", responses={200: PeriodoListResponse}, security=[{"cookie": []}]
+)
+@jwt_required()
+def listar_periodos():
+    response, status = courseController.listar_periodos_ctrl()
     return response, status
