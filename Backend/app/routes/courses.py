@@ -17,17 +17,16 @@ from app.schemas.course_schema import (
     FacultadBody,
     FacultadListResponse,
     FacultadResponse,
-    SeccionBody,
-    SeccionListResponse,
-    SeccionResponse,
-    SeccionUpdateBody,
-    SeccionBatchBody,
+    HorarioBody,
+    HorarioResponse,
+    HorarioQuery,
+    HorarioListResponse,
     SilaboForm,
     SilaboResponse,
 )
 from app.utils.decorators import role_required
 
-courses_tag = Tag(name="Cursos y Docentes", description="Estructura académica, secciones, sílabos y reportes")
+courses_tag = Tag(name="Cursos y Docentes", description="Estructura académica, horarios, sílabos y reportes")
 courses_bp = APIBlueprint("courses", __name__, abp_tags=[courses_tag])
 
 
@@ -35,8 +34,8 @@ class IdPath(BaseModel):
     id: int = Field(..., description="ID del recurso")
 
 
-class SeccionPath(BaseModel):
-    id_seccion: int
+class IdCursoPath(BaseModel):
+    id_curso: int = Field(..., description="ID del curso")
 
 
 class PeriodoQuery(BaseModel):
@@ -141,63 +140,39 @@ def eliminar_curso(path: IdPath):
     return response, status
 
 
-# ---------------- Seccion ----------------
+# ---------------- Horario ----------------
 
-@courses_bp.post(
-    "/secciones", responses={201: SeccionResponse, 404: MessageResponse}, security=[{"jwt": []}]
+@courses_bp.get(
+    "/horarios",
+    responses={200: HorarioResponse, 404: MessageResponse},
+    security=[{"jwt": []}]
 )
-@role_required("Administrador")
-def crear_seccion(body: SeccionBody):
-    response, status = courseController.crear_seccion_ctrl(body)
-    return response, status
-
-
-@courses_bp.get("/secciones", responses={200: SeccionListResponse}, security=[{"jwt": []}])
 @jwt_required()
-def listar_secciones(query: PeriodoQuery):
-    response, status = courseController.listar_secciones_ctrl(query.id_periodo)
+def obtener_horario(query: HorarioQuery):
+    response, status = courseController.obtener_horario_ciclo_ctrl(
+        query.id_periodo, query.id_facultad, query.id_especialidad, query.ciclo
+    )
     return response, status
 
 
 @courses_bp.post(
-    "/secciones/lote",
-    summary="Guardar secciones en lote / Diseñar Horario",
-    responses={200: MessageResponse, 404: MessageResponse, 400: MessageResponse},
-    security=[{"jwt": []}],
+    "/horarios",
+    responses={200: HorarioResponse, 400: MessageResponse},
+    security=[{"jwt": []}]
 )
 @role_required("Administrador")
-def guardar_secciones_lote(body: SeccionBatchBody):
-    response, status = courseController.guardar_secciones_lote_ctrl(body)
-    return response, status
-
-
-@courses_bp.put(
-    "/secciones/<int:id_seccion>",
-    summary="Actualizar sección / Cerrar Acta",
-    responses={200: SeccionResponse, 404: MessageResponse},
-    security=[{"jwt": []}],
-)
-@role_required("Administrador")
-def actualizar_seccion(path: SeccionPath, body: SeccionUpdateBody):
-    response, status = courseController.actualizar_seccion_ctrl(path.id_seccion, body)
-    return response, status
-
-
-@courses_bp.delete(
-    "/secciones/<int:id_seccion>",
-    summary="Eliminar sección",
-    responses={200: MessageResponse, 404: MessageResponse, 400: MessageResponse},
-    security=[{"jwt": []}],
-)
-@role_required("Administrador")
-def eliminar_seccion(path: SeccionPath):
-    response, status = courseController.eliminar_seccion_ctrl(path.id_seccion)
+def guardar_horario(body: HorarioBody):
+    response, status = courseController.guardar_horario_ciclo_ctrl(body)
     return response, status
 
 
 # ---------------- Docente ----------------
 
-@courses_bp.get("/mis-secciones", responses={200: SeccionListResponse, 403: MessageResponse}, security=[{"jwt": []}])
+@courses_bp.get(
+    "/mis-secciones",
+    responses={200: HorarioListResponse, 403: MessageResponse},
+    security=[{"jwt": []}]
+)
 @role_required("Docente")
 def mis_secciones():
     response, status = teacherController.mis_secciones()
@@ -205,13 +180,13 @@ def mis_secciones():
 
 
 @courses_bp.post(
-    "/secciones/<int:id_seccion>/silabo",
+    "/cursos/<int:id_curso>/silabo",
     responses={201: SilaboResponse, 403: MessageResponse, 404: MessageResponse},
     security=[{"jwt": []}],
 )
 @role_required("Docente")
-def subir_silabo(path: SeccionPath, form: SilaboForm):
-    response, status = teacherController.subir_silabo_ctrl(path.id_seccion, form)
+def subir_silabo(path: IdCursoPath, form: SilaboForm):
+    response, status = teacherController.subir_silabo_ctrl(path.id_curso, form)
     return response, status
 
 
@@ -222,5 +197,6 @@ def subir_silabo(path: SeccionPath, form: SilaboForm):
 def carga_docente(query: PeriodoQuery):
     response, status = courseController.carga_docente_ctrl(query.id_periodo)
     return response, status
+
 
 

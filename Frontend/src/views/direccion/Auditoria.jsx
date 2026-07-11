@@ -1,110 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import { toast } from 'sonner';
-import { apiFetch } from '../../utils/api';
+import React, { useState } from 'react';
+import { useAuditoria } from '../../hooks/direccion/useAuditoria';
 
 export default function Auditoria() {
-  const [auditorias, setAuditorias] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const {
+    auditorias,
+    estaCargando,
+    accionesDisponibles,
+    usuariosDisponibles,
+    filtroAccion,
+    filtroUsuario,
+    cambiarFiltroAccion,
+    cambiarFiltroUsuario,
+    limpiarFiltros
+  } = useAuditoria();
 
-  // Opciones cargadas dinámicamente para los Dropdowns
-  const [accionesDisponibles, setAccionesDisponibles] = useState([]);
-  const [usuariosDisponibles, setUsuariosDisponibles] = useState([]);
+  // Modal para ver detalles
+  const [auditSeleccionado, setAuditSeleccionado] = useState(null);
+  const [modalDetalleOpen, setModalDetalleOpen] = useState(false);
 
-  // Valores seleccionados de los Filtros (Dropdowns)
-  const [filtroAccion, setFiltroAccion] = useState('');
-  const [filtroUsuario, setFiltroUsuario] = useState('');
-
-  // Modal para ver detalle
-  const [selectedAudit, setSelectedAudit] = useState(null);
-  const [detailModalOpen, setDetailModalOpen] = useState(false);
-
-  // Carga inicial para popular la tabla y extraer los filtros únicos
-  const fetchDatosIniciales = async () => {
-    setIsLoading(true);
-    try {
-      const response = await apiFetch(`/api/admin/auditoria`, { method: 'GET' });
-      if (!response.ok) throw new Error('Error al cargar la bitácora de auditoría');
-      const data = await response.json();
-      const list = data.auditorias || [];
-      setAuditorias(list);
-
-      // Extraer acciones únicas para el dropdown
-      const accionesUnicas = Array.from(new Set(list.map(a => a.accion).filter(Boolean)));
-      setAccionesDisponibles(accionesUnicas);
-
-      // Extraer usuarios únicos para el dropdown
-      const usuariosMapa = {};
-      list.forEach(a => {
-        if (a.id_usuario && !usuariosMapa[a.id_usuario]) {
-          usuariosMapa[a.id_usuario] = a.usuario_nombre || `ID: ${a.id_usuario}`;
-        }
-      });
-      const usuariosLista = Object.keys(usuariosMapa).map(id => ({
-        id_usuario: parseInt(id),
-        nombre: usuariosMapa[id]
-      }));
-      setUsuariosDisponibles(usuariosLista);
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setIsLoading(false);
-    }
+  const abrirModalDetalle = (audit) => {
+    setAuditSeleccionado(audit);
+    setModalDetalleOpen(true);
   };
 
-  // Consulta al backend filtrando por parámetros
-  const fetchFiltrado = async (accion, idUsuario) => {
-    setIsLoading(true);
-    try {
-      let url = `/api/admin/auditoria`;
-      const params = [];
-      if (accion) params.push(`accion=${accion}`);
-      if (idUsuario) params.push(`id_usuario=${idUsuario}`);
-      
-      if (params.length > 0) {
-        url += `?${params.join('&')}`;
-      }
-
-      const response = await apiFetch(url, { method: 'GET' });
-      if (!response.ok) throw new Error('Error al filtrar los registros');
-      const data = await response.json();
-      setAuditorias(data.auditorias || []);
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchDatosIniciales();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Invocar consulta al backend cada vez que cambien los dropdowns
-  const handleFiltroAccionChange = (e) => {
-    const val = e.target.value;
-    setFiltroAccion(val);
-    fetchFiltrado(val, filtroUsuario);
-  };
-
-  const handleFiltroUsuarioChange = (e) => {
-    const val = e.target.value;
-    setFiltroUsuario(val);
-    fetchFiltrado(filtroAccion, val);
-  };
-
-  const limpiarFiltros = () => {
-    setFiltroAccion('');
-    setFiltroUsuario('');
-    fetchFiltrado('', '');
-  };
-
-  const openDetailModal = (audit) => {
-    setSelectedAudit(audit);
-    setDetailModalOpen(true);
-  };
-
-  const getBadgeColor = (accion) => {
+  const obtenerColorInsignia = (accion) => {
     const act = (accion || '').toLowerCase();
     if (act.includes('crear') || act.includes('registrar_pago')) {
       return 'bg-emerald-50 text-emerald-700 border-emerald-100';
@@ -140,14 +59,14 @@ export default function Auditoria() {
           )}
         </div>
 
-        {/* Barra de Filtros (Dropdowns conectados al Backend) */}
+        {/* Filtros */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-white border border-border rounded-xl p-4 shadow-sm">
           <div className="flex flex-col gap-1.5">
             <label htmlFor="filtro-accion" className="text-[0.78rem] font-bold text-text-muted uppercase">Filtrar por Acción</label>
             <select
               id="filtro-accion"
               value={filtroAccion}
-              onChange={handleFiltroAccionChange}
+              onChange={(e) => cambiarFiltroAccion(e.target.value)}
               className="p-2.5 border border-border rounded-md focus:outline-none focus:border-primary text-[0.85rem] bg-white cursor-pointer"
             >
               <option value="">-- Todas las Acciones --</option>
@@ -163,7 +82,7 @@ export default function Auditoria() {
             <select
               id="filtro-usuario"
               value={filtroUsuario}
-              onChange={handleFiltroUsuarioChange}
+              onChange={(e) => cambiarFiltroUsuario(e.target.value)}
               className="p-2.5 border border-border rounded-md focus:outline-none focus:border-primary text-[0.85rem] bg-white cursor-pointer"
             >
               <option value="">-- Todos los Usuarios --</option>
@@ -176,9 +95,9 @@ export default function Auditoria() {
           </div>
         </div>
 
-        {/* Tabla de Resultados */}
+        {/* Tabla */}
         <div className="bg-white border border-border rounded-xl shadow-sm overflow-hidden">
-          {isLoading ? (
+          {estaCargando ? (
             <div className="p-12 text-center">
               <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-3"></div>
               <p className="text-[0.88rem] text-text-muted">Consultando servidor...</p>
@@ -205,7 +124,7 @@ export default function Auditoria() {
                   {auditorias.map((audit) => (
                     <tr key={audit.id_auditoria} className="hover:bg-slate-50 transition-colors">
                       <td className="p-4 text-[0.82rem] font-bold">
-                        <span className={`py-1 px-2.5 rounded-full border ${getBadgeColor(audit.accion)}`}>
+                        <span className={`py-1 px-2.5 rounded-full border ${obtenerColorInsignia(audit.accion)}`}>
                           {audit.accion}
                         </span>
                       </td>
@@ -219,7 +138,7 @@ export default function Auditoria() {
                       <td className="p-4 text-center">
                         <button
                           type="button"
-                          onClick={() => openDetailModal(audit)}
+                          onClick={() => abrirModalDetalle(audit)}
                           className="bg-primary/5 hover:bg-primary-light text-primary py-1 px-3.5 rounded text-[0.82rem] font-bold transition-all cursor-pointer border border-primary/10"
                         >
                           🔎 Ver Detalle
@@ -235,8 +154,8 @@ export default function Auditoria() {
       </div>
 
       {/* Modal de Detalle */}
-      {detailModalOpen && selectedAudit && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setDetailModalOpen(false)}>
+      {modalDetalleOpen && auditSeleccionado && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setModalDetalleOpen(false)}>
           <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-[500px] w-full overflow-hidden animate-scale-in text-left" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 bg-primary-light border-b border-primary/10 flex justify-between items-center">
               <h3 className="font-heading font-extrabold text-primary text-[1.1rem]">
@@ -244,7 +163,7 @@ export default function Auditoria() {
               </h3>
               <button
                 type="button"
-                onClick={() => setDetailModalOpen(false)}
+                onClick={() => setModalDetalleOpen(false)}
                 className="text-text-muted hover:text-primary transition-all text-2xl font-bold cursor-pointer focus:outline-none"
               >
                 ×
@@ -255,8 +174,8 @@ export default function Auditoria() {
               <div className="flex flex-col gap-1">
                 <span className="text-[0.72rem] font-bold text-text-muted uppercase tracking-wider">Acción Realizada</span>
                 <div className="text-[0.95rem] font-extrabold">
-                  <span className={`py-1 px-3 rounded-full border inline-block ${getBadgeColor(selectedAudit.accion)}`}>
-                    {selectedAudit.accion}
+                  <span className={`py-1 px-3 rounded-full border inline-block ${obtenerColorInsignia(auditSeleccionado.accion)}`}>
+                    {auditSeleccionado.accion}
                   </span>
                 </div>
               </div>
@@ -265,13 +184,13 @@ export default function Auditoria() {
                 <div className="flex flex-col gap-1">
                   <span className="text-[0.72rem] font-bold text-text-muted uppercase tracking-wider">Tabla Afectada</span>
                   <span className="text-[0.9rem] font-mono font-bold text-slate-700 bg-slate-100 py-1 px-2.5 rounded self-start">
-                    {selectedAudit.tabla}
+                    {auditSeleccionado.tabla}
                   </span>
                 </div>
                 <div className="flex flex-col gap-1">
                   <span className="text-[0.72rem] font-bold text-text-muted uppercase tracking-wider">ID de Registro</span>
                   <span className="text-[0.9rem] font-bold text-slate-700 bg-slate-100 py-1 px-2.5 rounded self-start font-mono">
-                    {selectedAudit.registro || 'N/A'}
+                    {auditSeleccionado.registro || 'N/A'}
                   </span>
                 </div>
               </div>
@@ -280,16 +199,16 @@ export default function Auditoria() {
                 <div className="flex flex-col gap-1">
                   <span className="text-[0.72rem] font-bold text-text-muted uppercase tracking-wider">Usuario / Autor</span>
                   <span className="text-[0.9rem] font-semibold text-text-heading">
-                    {selectedAudit.usuario_nombre || 'Invitado (Sin Login)'}
+                    {auditSeleccionado.usuario_nombre || 'Invitado (Sin Login)'}
                   </span>
-                  {selectedAudit.id_usuario && (
-                    <span className="text-[0.75rem] text-text-muted font-mono">ID Usuario: {selectedAudit.id_usuario}</span>
+                  {auditSeleccionado.id_usuario && (
+                    <span className="text-[0.75rem] text-text-muted font-mono">ID Usuario: {auditSeleccionado.id_usuario}</span>
                   )}
                 </div>
                 <div className="flex flex-col gap-1">
                   <span className="text-[0.72rem] font-bold text-text-muted uppercase tracking-wider">IP de Origen</span>
                   <span className="text-[0.9rem] font-bold text-slate-600 font-mono">
-                    {selectedAudit.ip || 'Local/Desconocido'}
+                    {auditSeleccionado.ip || 'Local/Desconocido'}
                   </span>
                 </div>
               </div>
@@ -297,10 +216,10 @@ export default function Auditoria() {
               <div className="border-t border-border pt-4 flex flex-col gap-1">
                 <span className="text-[0.72rem] font-bold text-text-muted uppercase tracking-wider">Fecha y Hora de la Operación</span>
                 <span className="text-[0.9rem] font-semibold text-text-heading">
-                  {new Date(selectedAudit.fecha).toLocaleString()}
+                  {new Date(auditSeleccionado.fecha).toLocaleString()}
                 </span>
                 <span className="text-[0.78rem] text-text-muted font-mono">
-                  {selectedAudit.fecha}
+                  {auditSeleccionado.fecha}
                 </span>
               </div>
             </div>
@@ -308,7 +227,7 @@ export default function Auditoria() {
             <div className="p-4 bg-bg-alt border-t border-border flex justify-end gap-3">
               <button
                 type="button"
-                onClick={() => setDetailModalOpen(false)}
+                onClick={() => setModalDetalleOpen(false)}
                 className="bg-primary text-white py-2 px-6 font-bold text-[0.88rem] rounded-md hover:bg-primary-hover transition-colors shadow-sm cursor-pointer"
               >
                 Cerrar Detalle

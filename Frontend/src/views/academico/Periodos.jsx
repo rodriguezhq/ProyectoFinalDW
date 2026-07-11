@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { apiFetch } from '../../utils/api';
+import { obtenerPeriodos, guardarPeriodo, activarPeriodo } from '../../services/servicioAcademico';
 
 export default function Periodos() {
   const [periodos, setPeriodos] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [estaCargando, setEstaCargando] = useState(false);
 
-  // Form State
+  // Estados del Formulario
   const [modalOpen, setModalOpen] = useState(false);
   const [nombre, setNombre] = useState('');
   const [fechaInicio, setFechaInicio] = useState('');
@@ -15,32 +15,30 @@ export default function Periodos() {
   // Confirmar activación
   const [confirmActivarId, setConfirmActivarId] = useState(null);
 
-  const fetchPeriodos = async () => {
-    setIsLoading(true);
+  const cargarPeriodos = async () => {
+    setEstaCargando(true);
     try {
-      const response = await apiFetch(`/api/admin/periodos`, { method: 'GET' });
-      if (!response.ok) throw new Error('Error al cargar los periodos académicos');
-      const data = await response.json();
-      setPeriodos(data.periodos || []);
+      const datos = await obtenerPeriodos();
+      setPeriodos(datos.periodos || []);
     } catch (err) {
       toast.error(err.message);
     } finally {
-      setIsLoading(false);
+      setEstaCargando(false);
     }
   };
 
   useEffect(() => {
-    fetchPeriodos();
+    cargarPeriodos();
   }, []);
 
-  const openAddModal = () => {
+  const abrirModalAgregar = () => {
     setNombre('');
     setFechaInicio('');
     setFechaFin('');
     setModalOpen(true);
   };
 
-  const handleSubmit = async (e) => {
+  const manejarEnvio = async (e) => {
     e.preventDefault();
 
     if (!nombre.trim() || !fechaInicio || !fechaFin) {
@@ -60,38 +58,20 @@ export default function Periodos() {
     };
 
     try {
-      const response = await apiFetch(`/api/admin/periodos`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.msg || 'Error al crear el periodo académico.');
-      }
-
+      await guardarPeriodo(payload);
       toast.success('Periodo académico creado y activado con éxito. Se cerraron los anteriores.');
       setModalOpen(false);
-      fetchPeriodos();
+      cargarPeriodos();
     } catch (err) {
       toast.error(err.message);
     }
   };
 
-  const handleActivar = async (id) => {
+  const manejarActivar = async (id) => {
     try {
-      const response = await apiFetch(`/api/admin/periodos/${id}/activar`, {
-        method: 'POST'
-      });
-
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.msg || 'Error al activar el periodo académico.');
-      }
-
+      await activarPeriodo(id);
       toast.success('Periodo académico reabierto con éxito. Se habilitaron sus clases asociadas.');
-      fetchPeriodos();
+      cargarPeriodos();
     } catch (err) {
       toast.error(err.message);
     }
@@ -107,7 +87,7 @@ export default function Periodos() {
           </div>
           <button
             type="button"
-            onClick={openAddModal}
+            onClick={abrirModalAgregar}
             className="bg-primary text-white py-2 px-4 text-[0.88rem] font-bold rounded-md transition-all duration-300 hover:bg-primary-hover shadow-sm self-start sm:self-auto cursor-pointer"
           >
             + Crear Periodo
@@ -115,7 +95,7 @@ export default function Periodos() {
         </div>
 
         <div className="bg-white border border-border rounded-xl shadow-sm overflow-hidden">
-          {isLoading ? (
+          {estaCargando ? (
             <div className="p-12 text-center">
               <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-3"></div>
               <p className="text-[0.88rem] text-text-muted">Cargando periodos académicos...</p>
@@ -189,7 +169,7 @@ export default function Periodos() {
                 ×
               </button>
             </div>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={manejarEnvio}>
               <div className="p-6 flex flex-col gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="nombre-periodo" className="text-[0.82rem] font-bold text-text-muted uppercase">Nombre del Periodo</label>
@@ -267,7 +247,7 @@ export default function Periodos() {
               <button
                 type="button"
                 onClick={() => {
-                  handleActivar(confirmActivarId);
+                  manejarActivar(confirmActivarId);
                   setConfirmActivarId(null);
                 }}
                 className="bg-primary text-white py-2 px-5 font-bold text-[0.88rem] rounded-md hover:bg-primary-hover transition-colors shadow-sm cursor-pointer"

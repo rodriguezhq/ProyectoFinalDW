@@ -199,3 +199,9 @@ def crear_rol(nombre, descripcion=None):
 
 def listar_roles():
     return Rol.query.all()
+
+
+def listar_docentes():
+    # Obtiene todos los docentes de la base de datos
+    return Docente.query.all()
+

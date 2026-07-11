@@ -72,41 +72,32 @@ class CursoListResponse(BaseModel):
     cursos: list[CursoResponse]
 
 
-# ---------------- Seccion ----------------
-class SeccionBody(BaseModel):
-    codigo: str
-    horario: str | None = None
-    aula: str | None = None
-    capacidad: int = 30
-    id_curso: int
-    id_docente: int | None = None
+# ---------------- Horario ----------------
+class HorarioBody(BaseModel):
     id_periodo: int
+    id_facultad: int
+    id_especialidad: int
+    ciclo: int
+    detalles: list | dict | None = []
+    estado: str = "activo"
 
 
-class SeccionUpdateBody(BaseModel):
-    horario: str | None = None
-    aula: str | None = None
-    capacidad: int | None = None
-    id_docente: int | None = None
-    estado: str | None = None
-
-
-class SeccionResponse(BaseModel):
-    id_seccion: int
-    codigo: str
-    horario: str | None
-    aula: str | None
-    capacidad: int
+class HorarioResponse(BaseModel):
+    id_horario: int
+    id_periodo: int
+    id_facultad: int
+    id_especialidad: int
+    ciclo: int
+    detalles: list | dict
     estado: str
-    id_curso: int
-    curso_nombre: str
+
+
+class HorarioQuery(BaseModel):
     id_periodo: int
-    id_docente: int | None
-    docente_nombre: str | None
+    id_facultad: int
+    id_especialidad: int
+    ciclo: int
 
-
-class SeccionListResponse(BaseModel):
-    secciones: list[SeccionResponse]
 
 
 # ---------------- Silabo (Docente) ----------------
@@ -148,18 +139,7 @@ class CumplimientoPlanResponse(BaseModel):
     detalle: list[CumplimientoCursoItem]
 
 
-# ---------------- Seccion Lote ----------------
-class SeccionBatchItem(BaseModel):
-    id_seccion: int | None = None
-    codigo: str
-    horario: str | None = None
-    aula: str | None = None
-    capacidad: int = 30
-    id_curso: int
-    id_docente: int | None = None
-    id_periodo: int
-    eliminar: bool | None = False
+# ---------------- Horario List ----------------
+class HorarioListResponse(BaseModel):
+    horarios: list[HorarioResponse]
 
-
-class SeccionBatchBody(BaseModel):
-    secciones: list[SeccionBatchItem]

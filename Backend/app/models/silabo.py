@@ -8,8 +8,9 @@ class Silabo(db.Model):
     archivo = db.Column(db.String(255), nullable=False)
     fecha_subida = db.Column(db.DateTime, nullable=False, default=db.func.now())
     estado = db.Column(db.String(20), nullable=False, default="pendiente")
-    id_seccion = db.Column(
-        db.Integer, db.ForeignKey("seccion.id_seccion"), nullable=False, unique=True
+    id_curso = db.Column(
+        db.Integer, db.ForeignKey("curso.id_curso"), nullable=False, unique=True
     )
 
-    seccion = db.relationship("Seccion", back_populates="silabo")
+    curso = db.relationship("Curso")
+

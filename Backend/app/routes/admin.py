@@ -16,6 +16,7 @@ from app.schemas.user_schema import (
     UsuarioListResponse,
     UsuarioResponse,
     UsuarioUpdateBody,
+    DocenteListResponse,
 )
 from app.utils.decorators import role_required
 
@@ -78,3 +79,12 @@ def listar_roles():
 def listar_auditoria(query: AuditoriaQuery):
     response, status = auditController.listar_auditoria_ctrl(query.id_usuario, query.accion)
     return response, status
+
+
+@admin_bp.get("/docentes", responses={200: DocenteListResponse}, security=[{"jwt": []}])
+@role_required("Administrador")
+def listar_docentes():
+    # Retorna la lista de docentes registrados en el sistema
+    response, status = userController.listar_docentes_ctrl()
+    return response, status
+

@@ -5,17 +5,16 @@ from pydantic import BaseModel
 
 class SolicitarMatriculaBody(BaseModel):
     id_periodo: int
-    secciones: list[int]
+    cursos: list[int]
 
 
 class MatriculaDetalleResponse(BaseModel):
     id_matricula_detalle: int
-    id_seccion: int
+    id_curso: int
     curso: str
-    codigo_seccion: str
+    codigo_curso: str
     estado: str
     horario: str | None = None
-    aula: str | None = None
 
 
 class MatriculaResponse(BaseModel):

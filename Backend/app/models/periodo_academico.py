@@ -10,5 +10,4 @@ class PeriodoAcademico(db.Model):
     fecha_fin = db.Column(db.Date, nullable=False)
     estado = db.Column(db.String(20), nullable=False, default="activo")
 
-    secciones = db.relationship("Seccion", back_populates="periodo")
     matriculas = db.relationship("Matricula", back_populates="periodo")

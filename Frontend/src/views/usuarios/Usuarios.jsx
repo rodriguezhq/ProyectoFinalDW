@@ -1,13 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { toast } from 'sonner';
-import { apiFetch } from '../../utils/api';
+import { useUsuarios } from '../../hooks/usuarios/useUsuarios';
 
 export default function Usuarios({ rolFiltrado }) {
-  const [usuarios, setUsuarios] = useState([]);
-  const [roles, setRoles] = useState([]);
-  const [facultades, setFacultades] = useState([]);
-  const [especialidades, setEspecialidades] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  // Consumir estados y funciones del gancho personalizado
+  const {
+    usuarios,
+    roles,
+    facultades,
+    especialidades,
+    estaCargando,
+    registrarUsuario,
+    modificarUsuarioExistente
+  } = useUsuarios();
 
   // Estados del Formulario (Creación y Edición)
   const [modalOpen, setModalOpen] = useState(false);
@@ -31,55 +36,14 @@ export default function Usuarios({ rolFiltrado }) {
   const [tempUser, setTempUser] = useState('');
   const [tempPassword, setTempPassword] = useState('');
 
-  const fetchData = async () => {
-    setIsLoading(true);
-    try {
-      const userRes = await apiFetch(`/api/admin/usuarios`, {
-        method: 'GET'
-      });
-      if (!userRes.ok) throw new Error('Error al cargar los usuarios');
-      const userData = await userRes.json();
-      setUsuarios(userData.usuarios || []);
-
-      const rolRes = await apiFetch(`/api/admin/roles`, {
-        method: 'GET'
-      });
-      if (rolRes.ok) {
-        const rolData = await rolRes.json();
-        setRoles(rolData.roles || []);
-      }
-
-      const facRes = await apiFetch(`/api/courses/facultades`, { method: 'GET' });
-      if (facRes.ok) {
-        const facData = await facRes.json();
-        setFacultades(facData.facultades || []);
-      }
-
-      const espRes = await apiFetch(`/api/courses/especialidades`, { method: 'GET' });
-      if (espRes.ok) {
-        const espData = await espRes.json();
-        setEspecialidades(espData.especialidades || []);
-      }
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const openAddModal = () => {
+  const abrirModalAgregar = () => {
     setEditingId(null);
     setUsername('');
     setNombres('');
     setApellidos('');
     setCorreo('');
     
-    // Auto-seleccionar el rol actual según el tab seleccionado
+    // Auto-seleccionar el rol actual según la pestaña seleccionada
     const rolEncontrado = roles.find(r => r.nombre === rolFiltrado);
     setIdRol(rolEncontrado ? String(rolEncontrado.id_rol) : '');
     
@@ -91,37 +55,37 @@ export default function Usuarios({ rolFiltrado }) {
     setModalOpen(true);
   };
 
-  const openEditModal = (user) => {
-    setEditingId(user.id_usuario);
-    setUsername(user.username);
-    setNombres(user.nombres || '');
-    setApellidos(user.apellidos || '');
-    setCorreo(user.correo || '');
-    setIdRol(String(user.id_rol));
+  const abrirModalEditar = (usuario) => {
+    setEditingId(usuario.id_usuario);
+    setUsername(usuario.username);
+    setNombres(usuario.nombres || '');
+    setApellidos(usuario.apellidos || '');
+    setCorreo(usuario.correo || '');
+    setIdRol(String(usuario.id_rol));
     
     setCodigoPersona('');
     setDniPersona('');
-    setIdFacultad(user.id_facultad ? String(user.id_facultad) : '');
-    setIdEspecialidad(user.id_especialidad ? String(user.id_especialidad) : '');
-    setEstado(user.estado || 'Activo');
+    setIdFacultad(usuario.id_facultad ? String(usuario.id_facultad) : '');
+    setIdEspecialidad(usuario.id_especialidad ? String(usuario.id_especialidad) : '');
+    setEstado(usuario.estado || 'Activo');
     setModalOpen(true);
   };
 
   // Retorna el nombre del rol seleccionado
-  const getSelectedRolName = () => {
+  const obtenerNombreRolSeleccionado = () => {
     const r = roles.find(rol => rol.id_rol === parseInt(idRol));
     return r ? r.nombre : '';
   };
 
-  const handleFacultadChange = (e) => {
+  const manejarCambioFacultad = (e) => {
     setIdFacultad(e.target.value);
     setIdEspecialidad(''); // Limpiar especialidad seleccionada al cambiar de facultad
   };
 
-  const handleSubmit = async (e) => {
+  const manejarEnvio = async (e) => {
     e.preventDefault();
 
-    const rolName = getSelectedRolName();
+    const nombreRol = obtenerNombreRolSeleccionado();
 
     if (!editingId) {
       // Creación
@@ -138,8 +102,8 @@ export default function Usuarios({ rolFiltrado }) {
         correo: correo.trim() || null
       };
 
-      // Si es Estudiante, agregar campos obligatorios correspondientes
-      if (rolName === 'Estudiante') {
+      // Si es Estudiante, agregar campos obligatorios
+      if (nombreRol === 'Estudiante') {
         const espIdInt = parseInt(idEspecialidad);
         if (!codigoPersona.trim() || !dniPersona.trim() || isNaN(espIdInt) || espIdInt <= 0) {
           toast.error('El Código, DNI y la Carrera/Especialidad son obligatorios para estudiantes.');
@@ -150,8 +114,8 @@ export default function Usuarios({ rolFiltrado }) {
         payload.id_especialidad = espIdInt;
       }
 
-      // Si es Docente, agregar campos obligatorios correspondientes
-      if (rolName === 'Docente') {
+      // Si es Docente, agregar campos obligatorios
+      if (nombreRol === 'Docente') {
         const facIdInt = parseInt(idFacultad);
         if (!codigoPersona.trim() || !dniPersona.trim() || isNaN(facIdInt) || facIdInt <= 0) {
           toast.error('El Código, DNI y la Facultad son obligatorios para docentes.');
@@ -163,30 +127,16 @@ export default function Usuarios({ rolFiltrado }) {
       }
 
       try {
-        const response = await apiFetch(`/api/admin/usuarios`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(errData.msg || 'Error al crear el usuario.');
-        }
-
-        const resData = await response.json();
+        const respuesta = await registrarUsuario(payload);
         
         // Cargar contraseña temporal
-        setTempUser(resData.username);
-        setTempPassword(resData.password_temporal);
+        setTempUser(respuesta.username);
+        setTempPassword(respuesta.password_temporal);
 
         setModalOpen(false);
         setPasswordModalOpen(true);
-        fetchData();
       } catch (err) {
-        toast.error(err.message);
+        // El error ya es manejado y mostrado por el hook
       }
     } else {
       // Edición
@@ -199,30 +149,16 @@ export default function Usuarios({ rolFiltrado }) {
       };
 
       try {
-        const response = await apiFetch(`/api/admin/usuarios/${editingId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-          const errData = await response.json();
-          throw new Error(errData.msg || 'Error al actualizar el usuario.');
-        }
-
-        toast.success('Usuario actualizado con éxito.');
+        await modificarUsuarioExistente(editingId, payload);
         setModalOpen(false);
-        fetchData();
       } catch (err) {
-        toast.error(err.message);
+        // El error ya es manejado y mostrado por el hook
       }
     }
   };
 
-  const selectedRolName = getSelectedRolName();
-  const usuariosFiltrados = usuarios.filter(user => !rolFiltrado || user.rol === rolFiltrado);
+  const nombreRolSeleccionado = obtenerNombreRolSeleccionado();
+  const usuariosFiltrados = usuarios.filter(usuario => !rolFiltrado || usuario.rol === rolFiltrado);
 
   const especialidadesFiltradas = especialidades.filter(
     esp => esp.id_facultad === parseInt(idFacultad)
@@ -234,7 +170,7 @@ export default function Usuarios({ rolFiltrado }) {
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start md:items-center gap-4">
           <div>
             <h3 className="font-heading text-[1.25rem] font-extrabold text-text-heading mb-1">
-              👤 Cuentas de {rolFiltrado ? `${rolFiltrado}s` : 'Usuario'}
+              {rolFiltrado ? `👤 Cuentas de ${rolFiltrado}s` : '👤 Cuentas de Usuario'}
             </h3>
             <p className="text-[0.88rem] text-text-muted">
               Listado y gestión de credenciales, accesos y estado para {rolFiltrado ? `usuarios con rol ${rolFiltrado}` : 'todas las cuentas'}.
@@ -242,7 +178,7 @@ export default function Usuarios({ rolFiltrado }) {
           </div>
           <button
             type="button"
-            onClick={openAddModal}
+            onClick={abrirModalAgregar}
             className="bg-primary text-white py-2 px-4 text-[0.88rem] font-bold rounded-md transition-all duration-300 hover:bg-primary-hover shadow-sm self-start sm:self-auto cursor-pointer"
           >
             + Agregar {rolFiltrado || 'Usuario'}
@@ -250,7 +186,7 @@ export default function Usuarios({ rolFiltrado }) {
         </div>
 
         <div className="bg-white border border-border rounded-xl shadow-sm overflow-hidden">
-          {isLoading ? (
+          {estaCargando ? (
             <div className="p-12 text-center">
               <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-3"></div>
               <p className="text-[0.88rem] text-text-muted">Cargando usuarios...</p>
@@ -284,38 +220,38 @@ export default function Usuarios({ rolFiltrado }) {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {usuariosFiltrados.map((user) => (
-                    <tr key={user.id_usuario} className="hover:bg-slate-50 transition-colors">
-                      <td className="p-4 text-[0.88rem] font-bold text-primary">{user.username}</td>
+                  {usuariosFiltrados.map((usuario) => (
+                    <tr key={usuario.id_usuario} className="hover:bg-slate-50 transition-colors">
+                      <td className="p-4 text-[0.88rem] font-bold text-primary">{usuario.username}</td>
                       <td className="p-4 text-[0.88rem] font-semibold text-text-heading">
-                        {user.nombres || user.apellidos ? `${user.nombres || ''} ${user.apellidos || ''}`.trim() : '-'}
+                        {usuario.nombres || usuario.apellidos ? `${usuario.nombres || ''} ${usuario.apellidos || ''}`.trim() : '-'}
                       </td>
-                      <td className="p-4 text-[0.88rem] text-text-muted font-medium">{user.correo || '-'}</td>
+                      <td className="p-4 text-[0.88rem] text-text-muted font-medium">{usuario.correo || '-'}</td>
                       {rolFiltrado === 'Estudiante' && (
                         <>
-                          <td className="p-4 text-[0.88rem] text-text-muted font-medium">{user.facultad_nombre || '-'}</td>
-                          <td className="p-4 text-[0.88rem] font-semibold text-primary">{user.especialidad_nombre || '-'}</td>
+                          <td className="p-4 text-[0.88rem] text-text-muted font-medium">{usuario.facultad_nombre || '-'}</td>
+                          <td className="p-4 text-[0.88rem] font-semibold text-primary">{usuario.especialidad_nombre || '-'}</td>
                         </>
                       )}
                       {rolFiltrado === 'Docente' && (
-                        <td className="p-4 text-[0.88rem] text-text-muted font-medium">{user.facultad_nombre || '-'}</td>
+                        <td className="p-4 text-[0.88rem] text-text-muted font-medium">{usuario.facultad_nombre || '-'}</td>
                       )}
                       {!rolFiltrado && (
                         <td className="p-4 text-center text-[0.82rem] font-bold">
                           <span className="inline-block bg-slate-100 text-slate-700 py-0.5 px-2.5 rounded font-mono">
-                            {user.rol || 'Sin rol'}
+                            {usuario.rol || 'Sin rol'}
                           </span>
                         </td>
                       )}
                       <td className="p-4 text-center text-[0.82rem] font-bold">
-                        <span className={`inline-block py-0.5 px-2.5 rounded ${user.estado === 'Activo' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
-                          {user.estado}
+                        <span className={`inline-block py-0.5 px-2.5 rounded ${usuario.estado === 'Activo' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
+                          {usuario.estado}
                         </span>
                       </td>
                       <td className="p-4 text-center flex justify-center gap-2">
                         <button
                           type="button"
-                          onClick={() => openEditModal(user)}
+                          onClick={() => abrirModalEditar(usuario)}
                           className="text-primary hover:text-primary-hover font-bold text-[0.88rem] px-3 py-1 rounded hover:bg-primary-light transition-all cursor-pointer"
                         >
                           Editar
@@ -330,7 +266,7 @@ export default function Usuarios({ rolFiltrado }) {
         </div>
       </div>
 
-      {/* Form Modal */}
+      {/* Modal de Formulario */}
       {modalOpen && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setModalOpen(false)}>
           <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-[480px] w-full overflow-hidden animate-scale-in text-left" onClick={(e) => e.stopPropagation()}>
@@ -346,10 +282,9 @@ export default function Usuarios({ rolFiltrado }) {
                 ×
               </button>
             </div>
-            <form onSubmit={handleSubmit}>
-              <div className="p-6 flex flex-col gap-4 max-h-[70vh] overflow-y-auto">
+            <form onSubmit={manejarEnvio}>
+              <div className="p-6 flex flex-col gap-4 max-h-[70vh] overflow-y-auto font-sans">
                 
-                {/* Username read-only if editing, editable if creating */}
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="user-username" className="text-[0.82rem] font-bold text-text-muted uppercase">Nombre de Usuario (Login)</label>
                   <input
@@ -398,7 +333,7 @@ export default function Usuarios({ rolFiltrado }) {
                   />
                 </div>
 
-                {/* Rol Selection */}
+                {/* Selección de Rol */}
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="user-rol" className="text-[0.82rem] font-bold text-text-muted uppercase">Rol de Usuario</label>
                   <select
@@ -406,7 +341,7 @@ export default function Usuarios({ rolFiltrado }) {
                     value={idRol}
                     onChange={(e) => setIdRol(e.target.value)}
                     disabled={!!rolFiltrado}
-                    className="p-2.5 border border-border bg-white rounded-md focus:outline-none focus:border-primary text-[0.88rem] disabled:bg-slate-100 disabled:text-slate-500"
+                    className="p-2.5 border border-border bg-white rounded-md focus:outline-none focus:border-primary text-[0.88rem] disabled:bg-slate-100 disabled:text-slate-500 cursor-pointer"
                   >
                     <option value="" disabled>Seleccione un Rol</option>
                     {roles.map(rol => (
@@ -416,24 +351,24 @@ export default function Usuarios({ rolFiltrado }) {
                 </div>
 
                 {/* Código de Identificación (solo creación) */}
-                {!editingId && (selectedRolName === 'Estudiante' || selectedRolName === 'Docente') && (
+                {!editingId && (nombreRolSeleccionado === 'Estudiante' || nombreRolSeleccionado === 'Docente') && (
                   <div className="flex flex-col gap-1.5 animate-slide-up">
                     <label htmlFor="user-codigo-persona" className="text-[0.82rem] font-bold text-text-muted uppercase">
-                      Código de {selectedRolName}
+                      Código de {nombreRolSeleccionado}
                     </label>
                     <input
                       id="user-codigo-persona"
                       type="text"
                       value={codigoPersona}
                       onChange={(e) => setCodigoPersona(e.target.value)}
-                      placeholder={selectedRolName === 'Estudiante' ? "Ej. 2026100101" : "Ej. D501"}
+                      placeholder={nombreRolSeleccionado === 'Estudiante' ? "Ej. 2026100101" : "Ej. D501"}
                       className="p-2.5 border border-border rounded-md focus:outline-none focus:border-primary text-[0.88rem]"
                     />
                   </div>
                 )}
 
                 {/* DNI (solo creación) */}
-                {!editingId && (selectedRolName === 'Estudiante' || selectedRolName === 'Docente') && (
+                {!editingId && (nombreRolSeleccionado === 'Estudiante' || nombreRolSeleccionado === 'Docente') && (
                   <div className="flex flex-col gap-1.5 animate-slide-up">
                     <label htmlFor="user-dni-persona" className="text-[0.82rem] font-bold text-text-muted uppercase">
                       Documento Nacional de Identidad (DNI)
@@ -449,8 +384,8 @@ export default function Usuarios({ rolFiltrado }) {
                   </div>
                 )}
 
-                {/* Facultad (Creación obligatoria para Estudiantes y Docentes; Bloqueado en edición) */}
-                {(selectedRolName === 'Estudiante' || selectedRolName === 'Docente') && (
+                {/* Facultad */}
+                {(nombreRolSeleccionado === 'Estudiante' || nombreRolSeleccionado === 'Docente') && (
                   <div className="flex flex-col gap-1.5">
                     <label htmlFor="user-facultad" className="text-[0.82rem] font-bold text-text-muted uppercase">
                       Facultad
@@ -458,7 +393,7 @@ export default function Usuarios({ rolFiltrado }) {
                     <select
                       id="user-facultad"
                       value={idFacultad}
-                      onChange={handleFacultadChange}
+                      onChange={manejarCambioFacultad}
                       disabled={!!editingId}
                       className="p-2.5 border border-border bg-white rounded-md focus:outline-none focus:border-primary text-[0.88rem] disabled:bg-slate-100 disabled:text-slate-500 cursor-pointer"
                     >
@@ -470,8 +405,8 @@ export default function Usuarios({ rolFiltrado }) {
                   </div>
                 )}
 
-                {/* Carrera / Especialidad (Creación obligatoria solo para Estudiantes; Bloqueado en edición) */}
-                {selectedRolName === 'Estudiante' && (
+                {/* Carrera / Especialidad */}
+                {nombreRolSeleccionado === 'Estudiante' && (
                   <div className="flex flex-col gap-1.5 animate-slide-up">
                     <label htmlFor="user-carrera" className="text-[0.82rem] font-bold text-text-muted uppercase">
                       Carrera / Especialidad
@@ -491,7 +426,7 @@ export default function Usuarios({ rolFiltrado }) {
                   </div>
                 )}
 
-                {/* Estado Selection on Edit */}
+                {/* Estado */}
                 {editingId && (
                   <div className="flex flex-col gap-1.5">
                     <label htmlFor="user-estado" className="text-[0.82rem] font-bold text-text-muted uppercase">Estado de la Cuenta</label>
@@ -499,7 +434,7 @@ export default function Usuarios({ rolFiltrado }) {
                       id="user-estado"
                       value={estado}
                       onChange={(e) => setEstado(e.target.value)}
-                      className="p-2.5 border border-border bg-white rounded-md focus:outline-none focus:border-primary text-[0.88rem]"
+                      className="p-2.5 border border-border bg-white rounded-md focus:outline-none focus:border-primary text-[0.88rem] cursor-pointer"
                     >
                       <option value="Activo">Activo</option>
                       <option value="Inactivo">Inactivo</option>
@@ -528,7 +463,7 @@ export default function Usuarios({ rolFiltrado }) {
         </div>
       )}
 
-      {/* Password Modal (Advertencia) */}
+      {/* Modal de Contraseña temporal */}
       {passwordModalOpen && (
         <div className="fixed inset-0 z-[1001] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setPasswordModalOpen(false)}>
           <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-[420px] w-full p-6 animate-scale-in text-center" onClick={(e) => e.stopPropagation()}>

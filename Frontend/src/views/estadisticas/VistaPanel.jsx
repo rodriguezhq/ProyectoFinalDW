@@ -1,24 +1,26 @@
 import React from 'react';
 
 export default function VistaPanel({ isDirection = false }) {
+  const esDireccion = isDirection;
+
   return (
     <div className="flex flex-col gap-8 animate-slide-up">
-      {/* Metric Cards Grid */}
+      {/* Cuadrícula de Tarjetas de Métricas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <div className="bg-white rounded-xl border border-border p-6 shadow-sm flex flex-col gap-3 transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-md border-t-4 border-t-primary">
           <div className="flex justify-between items-start gap-2">
             <span className="text-[0.85rem] font-bold text-text-muted uppercase tracking-wider leading-tight">
-              {isDirection ? 'Promedio Ponderado Acumulado' : 'Total Alumnos Matriculados'}
+              {esDireccion ? 'Promedio Ponderado Acumulado' : 'Total Alumnos Matriculados'}
             </span>
             <span className="text-[0.75rem] font-bold py-0.5 px-1.5 rounded bg-emerald-100 text-emerald-600">
-              {isDirection ? '↑ 4.2%' : '↑ 8.5%'}
+              {esDireccion ? '↑ 4.2%' : '↑ 8.5%'}
             </span>
           </div>
           <div className="font-heading text-[2.25rem] font-extrabold text-text-heading leading-none">
-            {isDirection ? '14.62' : '1,248'}
+            {esDireccion ? '14.62' : '1,248'}
           </div>
           <p className="text-[0.78rem] text-text-muted leading-relaxed">
-            {isDirection 
+            {esDireccion 
               ? 'Promedio general ponderado de estudiantes de pregrado.' 
               : 'Estudiantes con matrícula aprobada en el periodo 2026-I.'}
           </p>
@@ -27,17 +29,17 @@ export default function VistaPanel({ isDirection = false }) {
         <div className="bg-white rounded-xl border border-border p-6 shadow-sm flex flex-col gap-3 transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-md border-t-4 border-t-accent">
           <div className="flex justify-between items-start gap-2">
             <span className="text-[0.85rem] font-bold text-text-muted uppercase tracking-wider leading-tight">
-              {isDirection ? 'Tasa de Aprobación General' : 'Validaciones Pendientes'}
+              {esDireccion ? 'Tasa de Aprobación General' : 'Validaciones Pendientes'}
             </span>
             <span className="text-[0.75rem] font-bold py-0.5 px-1.5 rounded bg-emerald-100 text-emerald-600">
-              {isDirection ? '↑ 1.8%' : '↓ 15%'}
+              {esDireccion ? '↑ 1.8%' : '↓ 15%'}
             </span>
           </div>
           <div className="font-heading text-[2.25rem] font-extrabold text-text-heading leading-none">
-            {isDirection ? '79.4%' : '23'}
+            {esDireccion ? '79.4%' : '23'}
           </div>
           <p className="text-[0.78rem] text-text-muted leading-relaxed">
-            {isDirection 
+            {esDireccion 
               ? 'Alumnos que pasaron satisfactoriamente sus asignaturas.' 
               : 'Fichas de matrícula en espera de confirmación de requisitos.'}
           </p>
@@ -46,17 +48,17 @@ export default function VistaPanel({ isDirection = false }) {
         <div className="bg-white rounded-xl border border-border p-6 shadow-sm flex flex-col gap-3 transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-md border-t-4 border-t-blue-500">
           <div className="flex justify-between items-start gap-2">
             <span className="text-[0.85rem] font-bold text-text-muted uppercase tracking-wider leading-tight">
-              {isDirection ? 'Carga Horaria Docente' : 'Tasas de Pago Registradas'}
+              {esDireccion ? 'Carga Horaria Docente' : 'Tasas de Pago Registradas'}
             </span>
             <span className="text-[0.75rem] font-bold py-0.5 px-1.5 rounded bg-slate-100 text-slate-500">
-              {isDirection ? '=' : '↑ 92%'}
+              {esDireccion ? '=' : '↑ 92%'}
             </span>
           </div>
           <div className="font-heading text-[2.25rem] font-extrabold text-text-heading leading-none">
-            {isDirection ? '18.5 hrs' : 'S/. 184.2K'}
+            {esDireccion ? '18.5 hrs' : 'S/. 184.2K'}
           </div>
           <p className="text-[0.78rem] text-text-muted leading-relaxed">
-            {isDirection 
+            {esDireccion 
               ? 'Promedio de horas lectivas semanales por docente asignado.' 
               : 'Monto recaudado de pagos verificados por caja institucional.'}
           </p>
@@ -65,29 +67,29 @@ export default function VistaPanel({ isDirection = false }) {
         <div className="bg-white rounded-xl border border-border p-6 shadow-sm flex flex-col gap-3 transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-md border-t-4 border-t-emerald-500">
           <div className="flex justify-between items-start gap-2">
             <span className="text-[0.85rem] font-bold text-text-muted uppercase tracking-wider leading-tight">
-              {isDirection ? 'Certificados Emitidos' : 'Secciones Aperturadas'}
+              {esDireccion ? 'Certificados Emitidos' : 'Secciones Aperturadas'}
             </span>
             <span className="text-[0.75rem] font-bold py-0.5 px-1.5 rounded bg-emerald-100 text-emerald-600">
-              {isDirection ? '↑ 12%' : '↑ 4'}
+              {esDireccion ? '↑ 12%' : '↑ 4'}
             </span>
           </div>
           <div className="font-heading text-[2.25rem] font-extrabold text-text-heading leading-none">
-            {isDirection ? '348' : '74'}
+            {esDireccion ? '348' : '74'}
           </div>
           <p className="text-[0.78rem] text-text-muted leading-relaxed">
-            {isDirection 
+            {esDireccion 
               ? 'Documentos académicos validados e impresos con código QR.' 
               : 'Aulas programadas para el ciclo en curso en diversas facultades.'}
           </p>
         </div>
       </div>
 
-      {/* Main Charts / Status row */}
+      {/* Gráficos y Bitácora */}
       <div className="grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-6">
-        {/* Left Side: Custom CSS Chart */}
+        {/* Gráfico Customizado en CSS */}
         <div className="bg-white rounded-xl border border-border p-6 md:p-8 shadow-md">
           <h3 className="font-heading text-[1.25rem] font-extrabold text-text-heading mb-1">
-            {isDirection ? '📈 Rendimiento Académico por Especialidad' : '📈 Estado de Trámites y Matrículas'}
+            {esDireccion ? '📈 Rendimiento Académico por Especialidad' : '📈 Estado de Trámites y Matrículas'}
           </h3>
           <p className="text-[0.88rem] text-text-muted mb-7">Resumen visual de los indicadores críticos del periodo lectivo.</p>
           
@@ -98,7 +100,7 @@ export default function VistaPanel({ isDirection = false }) {
                 <div className="h-full rounded-full transition-all duration-1000 animate-slide-right bg-primary" style={{ width: '85%' }}></div>
               </div>
               <span className="text-[0.88rem] font-bold text-text-heading text-right">
-                {isDirection ? '15.4' : '85%'}
+                {esDireccion ? '15.4' : '85%'}
               </span>
             </div>
             <div className="grid grid-cols-[120px_1fr_50px] gap-4 items-center">
@@ -107,7 +109,7 @@ export default function VistaPanel({ isDirection = false }) {
                 <div className="h-full rounded-full transition-all duration-1000 animate-slide-right bg-accent" style={{ width: '70%' }}></div>
               </div>
               <span className="text-[0.88rem] font-bold text-text-heading text-right">
-                {isDirection ? '14.1' : '70%'}
+                {esDireccion ? '14.1' : '70%'}
               </span>
             </div>
             <div className="grid grid-cols-[120px_1fr_50px] gap-4 items-center">
@@ -116,7 +118,7 @@ export default function VistaPanel({ isDirection = false }) {
                 <div className="h-full rounded-full transition-all duration-1000 animate-slide-right bg-blue-500" style={{ width: '78%' }}></div>
               </div>
               <span className="text-[0.88rem] font-bold text-text-heading text-right">
-                {isDirection ? '14.8' : '78%'}
+                {esDireccion ? '14.8' : '78%'}
               </span>
             </div>
             <div className="grid grid-cols-[120px_1fr_50px] gap-4 items-center">
@@ -125,16 +127,16 @@ export default function VistaPanel({ isDirection = false }) {
                 <div className="h-full rounded-full transition-all duration-1000 animate-slide-right bg-emerald-500" style={{ width: '62%' }}></div>
               </div>
               <span className="text-[0.88rem] font-bold text-text-heading text-right">
-                {isDirection ? '13.2' : '62%'}
+                {esDireccion ? '13.2' : '62%'}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Right Side: Activity List */}
+        {/* Solicitudes / Bitácora Recientes */}
         <div className="bg-white rounded-xl border border-border p-6 md:p-8 shadow-md">
           <h3 className="font-heading text-[1.25rem] font-extrabold text-text-heading mb-1">
-            ⏱️ {isDirection ? 'Control de Auditoría y Bitácora' : 'Solicitudes Recientes'}
+            ⏱️ {esDireccion ? 'Control de Auditoría y Bitácora' : 'Solicitudes Recientes'}
           </h3>
           <p className="text-[0.88rem] text-text-muted mb-7">Registro inmediato de operaciones críticas en el sistema.</p>
 
@@ -143,7 +145,7 @@ export default function VistaPanel({ isDirection = false }) {
               <span className="w-3 h-3 rounded-full border-2 border-white shrink-0 mt-1.5 z-10 bg-emerald-500 shadow-[0_0_0_2px_#A7F3D0]"></span>
               <div className="flex flex-col gap-1 text-left">
                 <span className="text-[0.88rem] text-text-main leading-relaxed font-medium">
-                  {isDirection 
+                  {esDireccion 
                     ? 'Firma autorizada para el Certificado de Notas de la alumna María Huamán.' 
                     : 'Pago registrado por concepto de matrícula — Estudiante Scoot F.'}
                 </span>
@@ -154,7 +156,7 @@ export default function VistaPanel({ isDirection = false }) {
               <span className="w-3 h-3 rounded-full border-2 border-white shrink-0 mt-1.5 z-10 bg-blue-500 shadow-[0_0_0_2px_#BFDBFE]"></span>
               <div className="flex flex-col gap-1 text-left">
                 <span className="text-[0.88rem] text-text-main leading-relaxed font-medium">
-                  {isDirection 
+                  {esDireccion 
                     ? 'Carga de sílabos aprobada para la asignatura Estructuras de Datos.' 
                     : 'Nueva solicitud de matrícula registrada — Alumno Cristhian R.'}
                 </span>
@@ -165,7 +167,7 @@ export default function VistaPanel({ isDirection = false }) {
               <span className="w-3 h-3 rounded-full border-2 border-white shrink-0 mt-1.5 z-10 bg-amber-500 shadow-[0_0_0_2px_#FDE68A]"></span>
               <div className="flex flex-col gap-1 text-left">
                 <span className="text-[0.88rem] text-text-main leading-relaxed font-medium">
-                  {isDirection 
+                  {esDireccion 
                     ? 'Auditoría: Acceso administrativo detectado desde IP 192.168.1.10.' 
                     : 'Ficha de matrícula generada y firmada en PDF.'}
                 </span>
@@ -176,7 +178,7 @@ export default function VistaPanel({ isDirection = false }) {
               <span className="w-3 h-3 rounded-full border-2 border-white shrink-0 mt-1.5 z-10 bg-red-500 shadow-[0_0_0_2px_#FCA5A5]"></span>
               <div className="flex flex-col gap-1 text-left">
                 <span className="text-[0.88rem] text-text-main leading-relaxed font-medium">
-                  {isDirection 
+                  {esDireccion 
                     ? 'Intento fallido de modificación de notas detectado en Seccion A.' 
                     : 'Validación de requisitos rechazada (documento pendiente).'}
                 </span>

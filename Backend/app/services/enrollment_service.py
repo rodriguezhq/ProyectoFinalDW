@@ -12,7 +12,7 @@ from app.models.matricula_detalle import MatriculaDetalle
 from app.models.nota import Nota
 from app.models.pago import Pago
 from app.models.periodo_academico import PeriodoAcademico
-from app.models.seccion import Seccion
+from app.models.curso import Curso
 
 
 class EstudianteInactivoError(Exception):
@@ -35,14 +35,9 @@ class MatriculaNoEncontradaError(Exception):
     pass
 
 
-class SeccionNoEncontradaError(Exception):
+class CursoNoEncontradoError(Exception):
     pass
 
-
-class SeccionLlenaError(Exception):
-    def __init__(self, secciones_llenas):
-        self.secciones_llenas = secciones_llenas
-        super().__init__(f"Secciones sin cupo: {secciones_llenas}")
 
 
 class EstadoInvalidoError(Exception):
@@ -57,7 +52,7 @@ class PagoNoEncontradoError(Exception):
     pass
 
 
-def solicitar_matricula(id_estudiante, id_periodo, secciones_ids):
+def solicitar_matricula(id_estudiante, id_periodo, cursos_ids):
     estudiante = db.session.get(Estudiante, id_estudiante)
     if not estudiante or estudiante.estado != "activo":
         raise EstudianteInactivoError()
@@ -72,23 +67,17 @@ def solicitar_matricula(id_estudiante, id_periodo, secciones_ids):
     if ya_existe:
         raise MatriculaDuplicadaError()
 
-    secciones = Seccion.query.filter(Seccion.id_seccion.in_(secciones_ids)).all()
-    if len(secciones) != len(set(secciones_ids)):
-        raise SeccionNoEncontradaError()
-
-
-
-    llenas = [s.codigo for s in secciones if _cupos_ocupados(s.id_seccion) >= s.capacidad]
-    if llenas:
-        raise SeccionLlenaError(llenas)
+    cursos = Curso.query.filter(Curso.id_curso.in_(cursos_ids)).all()
+    if len(cursos) != len(set(cursos_ids)):
+        raise CursoNoEncontradoError()
 
     matricula = Matricula(id_estudiante=id_estudiante, id_periodo=id_periodo, estado="pendiente")
     db.session.add(matricula)
     db.session.flush()
 
-    for seccion in secciones:
+    for curso in cursos:
         detalle = MatriculaDetalle(
-            id_matricula=matricula.id_matricula, id_seccion=seccion.id_seccion, estado="matriculado"
+            id_matricula=matricula.id_matricula, id_curso=curso.id_curso, estado="matriculado"
         )
         db.session.add(detalle)
         db.session.flush()
@@ -96,10 +85,6 @@ def solicitar_matricula(id_estudiante, id_periodo, secciones_ids):
 
     db.session.commit()
     return matricula
-
-
-def _cupos_ocupados(id_seccion):
-    return MatriculaDetalle.query.filter_by(id_seccion=id_seccion, estado="matriculado").count()
 
 
 def obtener_matriculas_estudiante(id_estudiante):
@@ -194,10 +179,11 @@ def generar_ficha_pdf(matricula):
         Spacer(1, 16),
     ]
 
-    data = [["Curso", "Sección", "Estado"]]
+    data = [["Curso", "Código", "Estado"]]
     for detalle in matricula.detalles:
-        curso = detalle.seccion.curso.nombre
-        data.append([curso, detalle.seccion.codigo, detalle.estado])
+        curso = detalle.curso.nombre
+        data.append([curso, detalle.curso.codigo, detalle.estado])
+
 
     tabla = Table(data, hAlign="LEFT")
     tabla.setStyle(

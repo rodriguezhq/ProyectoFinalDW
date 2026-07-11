@@ -45,4 +45,4 @@ class Curso(db.Model):
         back_populates="cursos"
     )
 
-    secciones = db.relationship("Seccion", back_populates="curso")
+

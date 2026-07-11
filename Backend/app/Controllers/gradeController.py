@@ -37,10 +37,10 @@ def consultar_notas_estudiante(id_estudiante):
     return {"msg": "Notas del estudiante", "estudiante": estudiante, "notas": notas}, 200
 
 
-def consultar_notas_seccion(id_seccion):
+def consultar_notas_curso(id_curso):
     """
-    Devuelve todas las notas de una sección (para el docente).
+    Devuelve todas las notas de un curso (para el docente).
     Retorna: (dict_respuesta, status_code)
     """
-    notas = grade_service.obtener_notas_seccion(id_seccion)
+    notas = grade_service.obtener_notas_curso(id_curso)
     return {"msg": "Notas de la sección", "notas": notas}, 200

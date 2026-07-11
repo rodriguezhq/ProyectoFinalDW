@@ -8,7 +8,7 @@ from app.models.docente import Docente
 from app.models.especialidad import Especialidad
 from app.models.facultad import Facultad
 from app.models.periodo_academico import PeriodoAcademico
-from app.models.seccion import Seccion
+from app.models.horario import Horario
 from app.models.silabo import Silabo
 
 UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "uploads", "silabos")
@@ -38,7 +38,7 @@ class PlanCursoNoEncontradoError(Exception):
     pass
 
 
-class SeccionNoEncontradaError(Exception):
+class HorarioNoEncontradoError(Exception):
     pass
 
 
@@ -226,82 +226,68 @@ def actualizar_curso(id_curso, nombre=None, creditos=None, horas_teoria=None, ho
                 raise CarreraDiferenteFacultadError()
 
 
-# ---------------- Seccion ----------------
+# ---------------- Horario ----------------
 
-def crear_seccion(codigo, horario, aula, capacidad, id_curso, id_docente, id_periodo):
-    if not db.session.get(Curso, id_curso):
-        raise CursoNoEncontradoError()
-    if not db.session.get(PeriodoAcademico, id_periodo):
-        raise PeriodoNoEncontradoError()
-    if id_docente is not None and not db.session.get(Docente, id_docente):
-        raise DocenteNoEncontradoError()
-
-    seccion = Seccion(
-        codigo=codigo,
-        horario=horario,
-        aula=aula,
-        capacidad=capacidad,
-        estado="abierta",
-        id_curso=id_curso,
-        id_docente=id_docente,
+def obtener_horario_ciclo(id_periodo, id_facultad, id_especialidad, ciclo):
+    # Recupera el horario único registrado para una carrera y ciclo específicos en un periodo
+    return Horario.query.filter_by(
         id_periodo=id_periodo,
-    )
-    db.session.add(seccion)
+        id_facultad=id_facultad,
+        id_especialidad=id_especialidad,
+        ciclo=ciclo
+    ).first()
+
+
+def guardar_horario_ciclo(id_periodo, id_facultad, id_especialidad, ciclo, detalles):
+    # Guarda o actualiza el horario correspondiente a un ciclo y carrera académica
+    horario = obtener_horario_ciclo(id_periodo, id_facultad, id_especialidad, ciclo)
+    if not horario:
+        horario = Horario(
+            id_periodo=id_periodo,
+            id_facultad=id_facultad,
+            id_especialidad=id_especialidad,
+            ciclo=ciclo,
+            detalles=detalles
+        )
+        db.session.add(horario)
+    else:
+        horario.detalles = detalles
     db.session.commit()
-    return seccion
+    return horario
 
 
-def listar_secciones(id_periodo=None):
-    query = Seccion.query
-    if id_periodo is not None:
-        query = query.filter_by(id_periodo=id_periodo)
-    return query.all()
-
-
-def obtener_seccion(id_seccion):
-    seccion = db.session.get(Seccion, id_seccion)
-    if not seccion:
-        raise SeccionNoEncontradaError()
-    return seccion
-
-
-def actualizar_seccion(id_seccion, horario=None, aula=None, capacidad=None, id_docente=None, estado=None):
-    seccion = obtener_seccion(id_seccion)
-    if id_docente is not None:
-        if not db.session.get(Docente, id_docente):
-            raise DocenteNoEncontradoError()
-        seccion.id_docente = id_docente
-    if horario is not None:
-        seccion.horario = horario
-    if aula is not None:
-        seccion.aula = aula
-    if capacidad is not None:
-        seccion.capacidad = capacidad
-    if estado is not None:
-        seccion.estado = estado
-    db.session.commit()
-    return seccion
-
-
-def secciones_de_docente(id_docente):
-    return Seccion.query.filter_by(id_docente=id_docente).all()
+def obtener_horario_docente(id_periodo, id_docente):
+    # Recupera todos los bloques de asignaturas programadas asignados a un docente en el periodo actual
+    horarios = Horario.query.filter_by(id_periodo=id_periodo).all()
+    bloques_docente = []
+    
+    for h in horarios:
+        for bloque in h.detalles:
+            # Comprobar si el bloque pertenece al docente indicado
+            id_doc_bloque = bloque.get("id_docente")
+            if id_doc_bloque is not None and str(id_doc_bloque) == str(id_docente):
+                # Enriquecer el bloque con nombres de curso y aula para la vista del horario
+                bloques_docente.append(bloque)
+                
+    return bloques_docente
 
 
 # ---------------- Silabo ----------------
 
-def subir_silabo(seccion, archivo_storage):
+def subir_silabo(curso, archivo_storage):
+    # Carga de sílabos por curso
     os.makedirs(UPLOAD_DIR, exist_ok=True)
-    nombre_archivo = f"seccion_{seccion.id_seccion}_{secure_filename(archivo_storage.filename)}"
+    nombre_archivo = f"curso_{curso.id_curso}_{secure_filename(archivo_storage.filename)}"
     ruta_absoluta = os.path.join(UPLOAD_DIR, nombre_archivo)
     archivo_storage.save(ruta_absoluta)
     ruta_relativa = os.path.join("uploads", "silabos", nombre_archivo)
 
-    if seccion.silabo:
-        seccion.silabo.archivo = ruta_relativa
-        seccion.silabo.estado = "pendiente"
-        silabo = seccion.silabo
+    if curso.silabo:
+        curso.silabo.archivo = ruta_relativa
+        curso.silabo.estado = "pendiente"
+        silabo = curso.silabo
     else:
-        silabo = Silabo(archivo=ruta_relativa, estado="pendiente", id_seccion=seccion.id_seccion)
+        silabo = Silabo(archivo=ruta_relativa, estado="pendiente", id_curso=curso.id_curso)
         db.session.add(silabo)
 
     db.session.commit()
@@ -311,25 +297,37 @@ def subir_silabo(seccion, archivo_storage):
 # ---------------- Direccion ----------------
 
 def carga_docente(id_periodo):
-    secciones = Seccion.query.filter_by(id_periodo=id_periodo).filter(Seccion.id_docente.isnot(None)).all()
-
+    # Calcula las horas totales y asignaturas asignadas a cada docente basándose en la grilla del Horario
+    horarios = Horario.query.filter_by(id_periodo=id_periodo).all()
     por_docente = {}
-    for seccion in secciones:
-        docente = seccion.docente
-        curso = seccion.curso
-        horas = curso.horas_teoria + curso.horas_practica
-        if docente.id_docente not in por_docente:
-            por_docente[docente.id_docente] = {
-                "id_docente": docente.id_docente,
-                "nombre": f"{docente.nombres} {docente.apellidos}",
-                "total_secciones": 0,
-                "total_horas": 0,
-            }
-        por_docente[docente.id_docente]["total_secciones"] += 1
-        por_docente[docente.id_docente]["total_horas"] += horas
+
+    for h in horarios:
+        for bloque in h.detalles:
+            id_docente = bloque.get("id_docente")
+            id_curso = bloque.get("id_curso")
+            
+            if id_docente and id_curso:
+                id_docente = int(id_docente)
+                curso = db.session.get(Curso, int(id_curso))
+                if not curso:
+                    continue
+                
+                horas = curso.horas_teoria + curso.horas_practica
+                docente = db.session.get(Docente, id_docente)
+                if not docente:
+                    continue
+                
+                if id_docente not in por_docente:
+                    por_docente[id_docente] = {
+                        "id_docente": id_docente,
+                        "nombre": f"{docente.nombres} {docente.apellidos}",
+                        "total_secciones": 0,
+                        "total_horas": 0,
+                    }
+                por_docente[id_docente]["total_secciones"] += 1
+                por_docente[id_docente]["total_horas"] += horas
 
     return list(por_docente.values())
-
 
 
 def eliminar_facultad(id_facultad):
@@ -357,75 +355,6 @@ def eliminar_curso(id_curso):
     curso = db.session.get(Curso, id_curso)
     if not curso:
         raise CursoNoEncontradoError()
-    from app.models.seccion import Seccion
-    if Seccion.query.filter_by(id_curso=id_curso).first():
-        raise EntidadConDependenciasError()
     db.session.delete(curso)
     db.session.commit()
 
-
-def eliminar_seccion(id_seccion):
-    seccion = db.session.get(Seccion, id_seccion)
-    if not seccion:
-        raise SeccionNoEncontradaError()
-    if len(seccion.matricula_detalles) > 0:
-        raise EntidadConDependenciasError()
-    db.session.delete(seccion)
-    db.session.commit()
-
-
-def guardar_secciones_lote(secciones_list):
-    for item in secciones_list:
-        eliminar = item.get("eliminar", False)
-        id_seccion = item.get("id_seccion")
-
-        if eliminar:
-            if id_seccion:
-                sec = db.session.get(Seccion, id_seccion)
-                if sec:
-                    if len(sec.matricula_detalles) > 0:
-                        raise EntidadConDependenciasError()
-                    db.session.delete(sec)
-        else:
-            id_curso = item.get("id_curso")
-            id_periodo = item.get("id_periodo")
-            id_docente = item.get("id_docente")
-
-            # Validación obligatoria del docente
-            if not id_docente:
-                raise ValueError("Cada sección debe tener asignado un docente obligatorio.")
-
-            if not db.session.get(Docente, id_docente):
-                raise DocenteNoEncontradoError()
-
-            if not id_seccion:
-                # Crear nueva sección
-                if not db.session.get(Curso, id_curso):
-                    raise CursoNoEncontradoError()
-                if not db.session.get(PeriodoAcademico, id_periodo):
-                    raise PeriodoNoEncontradoError()
-
-                sec = Seccion(
-                    codigo=item.get("codigo"),
-                    horario=item.get("horario"),
-                    aula=item.get("aula"),
-                    capacidad=item.get("capacidad", 30),
-                    estado="abierta",
-                    id_curso=id_curso,
-                    id_docente=id_docente,
-                    id_periodo=id_periodo
-                )
-                db.session.add(sec)
-            else:
-                # Modificar sección existente
-                sec = db.session.get(Seccion, id_seccion)
-                if not sec:
-                    raise SeccionNoEncontradaError()
-                
-                sec.codigo = item.get("codigo", sec.codigo)
-                sec.horario = item.get("horario", sec.horario)
-                sec.aula = item.get("aula", sec.aula)
-                sec.capacidad = item.get("capacidad", sec.capacidad)
-                sec.id_docente = id_docente
-
-    db.session.commit()

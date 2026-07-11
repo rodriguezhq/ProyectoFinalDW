@@ -28,7 +28,7 @@ from app.models import (
     PeriodoAcademico,
 
     Rol,
-    Seccion,
+    Horario,
     Silabo,
     Usuario,
 )
@@ -46,7 +46,7 @@ def clear_data():
     Documento.query.delete()
     MatriculaDetalle.query.delete()
     Matricula.query.delete()
-    Seccion.query.delete()
+    Horario.query.delete()
     Usuario.query.delete()
     db.session.execute(Facultad.__table__.update().values(id_decano=None))
     db.session.commit()
@@ -176,31 +176,92 @@ def seed():
     db.session.add_all([est_cristhian, est_scoot, est_maria, est_pedro])
     db.session.commit()
 
-    # ---------- Secciones ----------
-    print("Creando secciones...")
-    # Periodo pasado (2025-II): donde ya se cursaron y calificaron cursos
-    sec_ed_pasado = Seccion(
-        codigo="A", horario="Lun/Mie 08:00-10:00", aula="B-201", capacidad=30, estado="cerrada",
-        id_curso=curso_ed.id_curso, id_docente=docente_ana.id_docente, id_periodo=periodo_pasado.id_periodo,
+    # ---------- Horarios ----------
+    print("Creando horarios...")
+    # Periodo pasado (2025-II):
+    horario_is_c3_pasado = Horario(
+        id_periodo=periodo_pasado.id_periodo,
+        id_facultad=facultad_fis.id_facultad,
+        id_especialidad=esp_is.id_especialidad,
+        ciclo=3,
+        estado="activo",
+        detalles=[{
+            "codigo": "A",
+            "dia": "LUNES",
+            "horaInicio": "08:00",
+            "horaFin": "10:00",
+            "id_curso": curso_ed.id_curso,
+            "curso_nombre": curso_ed.nombre,
+            "id_docente": docente_ana.id_docente
+        }]
     )
-    sec_bd_pasado = Seccion(
-        codigo="A", horario="Mar/Jue 10:00-12:00", aula="B-105", capacidad=30, estado="cerrada",
-        id_curso=curso_bd.id_curso, id_docente=docente_luis.id_docente, id_periodo=periodo_pasado.id_periodo,
+    horario_is_c5_pasado = Horario(
+        id_periodo=periodo_pasado.id_periodo,
+        id_facultad=facultad_fis.id_facultad,
+        id_especialidad=esp_is.id_especialidad,
+        ciclo=5,
+        estado="activo",
+        detalles=[{
+            "codigo": "A",
+            "dia": "MARTES",
+            "horaInicio": "10:00",
+            "horaFin": "12:00",
+            "id_curso": curso_bd.id_curso,
+            "curso_nombre": curso_bd.nombre,
+            "id_docente": docente_luis.id_docente
+        }]
     )
-    # Periodo actual (2026-I): en curso
-    sec_daw_actual = Seccion(
-        codigo="A", horario="Lun/Mie 14:00-18:00", aula="Lab-03", capacidad=25, estado="abierta",
-        id_curso=curso_daw.id_curso, id_docente=docente_ana.id_docente, id_periodo=periodo_actual.id_periodo,
+    
+    # Periodo actual (2026-I):
+    horario_is_c9_actual = Horario(
+        id_periodo=periodo_actual.id_periodo,
+        id_facultad=facultad_fis.id_facultad,
+        id_especialidad=esp_is.id_especialidad,
+        ciclo=9,
+        estado="activo",
+        detalles=[{
+            "codigo": "A",
+            "dia": "LUNES",
+            "horaInicio": "14:00",
+            "horaFin": "18:00",
+            "id_curso": curso_daw.id_curso,
+            "curso_nombre": curso_daw.nombre,
+            "id_docente": docente_ana.id_docente
+        }]
     )
-    sec_isw_actual = Seccion(
-        codigo="A", horario="Vie 08:00-12:00", aula="C-302", capacidad=30, estado="abierta",
-        id_curso=curso_isw.id_curso, id_docente=docente_luis.id_docente, id_periodo=periodo_actual.id_periodo,
+    horario_is_c7_actual = Horario(
+        id_periodo=periodo_actual.id_periodo,
+        id_facultad=facultad_fis.id_facultad,
+        id_especialidad=esp_is.id_especialidad,
+        ciclo=7,
+        estado="activo",
+        detalles=[{
+            "codigo": "A",
+            "dia": "VIERNES",
+            "horaInicio": "08:00",
+            "horaFin": "12:00",
+            "id_curso": curso_isw.id_curso,
+            "curso_nombre": curso_isw.nombre,
+            "id_docente": docente_luis.id_docente
+        }]
     )
-    sec_ms_actual = Seccion(
-        codigo="A", horario="Mar/Jue 08:00-10:00", aula="A-101", capacidad=35, estado="abierta",
-        id_curso=curso_ms.id_curso, id_docente=docente_carlos.id_docente, id_periodo=periodo_actual.id_periodo,
+    horario_ic_c4_actual = Horario(
+        id_periodo=periodo_actual.id_periodo,
+        id_facultad=facultad_fic.id_facultad,
+        id_especialidad=esp_ic.id_especialidad,
+        ciclo=4,
+        estado="activo",
+        detalles=[{
+            "codigo": "A",
+            "dia": "MARTES",
+            "horaInicio": "08:00",
+            "horaFin": "10:00",
+            "id_curso": curso_ms.id_curso,
+            "curso_nombre": curso_ms.nombre,
+            "id_docente": docente_carlos.id_docente
+        }]
     )
-    db.session.add_all([sec_ed_pasado, sec_bd_pasado, sec_daw_actual, sec_isw_actual, sec_ms_actual])
+    db.session.add_all([horario_is_c3_pasado, horario_is_c5_pasado, horario_is_c9_actual, horario_is_c7_actual, horario_ic_c4_actual])
     db.session.commit()
 
     # ---------- Usuarios (login) ----------
@@ -259,13 +320,13 @@ def seed():
 
     # ---------- Matricula_Detalle ----------
     print("Creando matricula_detalle...")
-    det_cristhian_ed = MatriculaDetalle(id_matricula=mat_cristhian_pasado.id_matricula, id_seccion=sec_ed_pasado.id_seccion, estado="matriculado")
-    det_cristhian_bd = MatriculaDetalle(id_matricula=mat_cristhian_pasado.id_matricula, id_seccion=sec_bd_pasado.id_seccion, estado="matriculado")
-    det_cristhian_daw = MatriculaDetalle(id_matricula=mat_cristhian_actual.id_matricula, id_seccion=sec_daw_actual.id_seccion, estado="matriculado")
-    det_cristhian_isw = MatriculaDetalle(id_matricula=mat_cristhian_actual.id_matricula, id_seccion=sec_isw_actual.id_seccion, estado="matriculado")
-    det_scoot_daw = MatriculaDetalle(id_matricula=mat_scoot_actual.id_matricula, id_seccion=sec_daw_actual.id_seccion, estado="matriculado")
-    det_maria_isw = MatriculaDetalle(id_matricula=mat_maria_actual.id_matricula, id_seccion=sec_isw_actual.id_seccion, estado="matriculado")
-    det_pedro_ms = MatriculaDetalle(id_matricula=mat_pedro_actual.id_matricula, id_seccion=sec_ms_actual.id_seccion, estado="matriculado")
+    det_cristhian_ed = MatriculaDetalle(id_matricula=mat_cristhian_pasado.id_matricula, id_curso=curso_ed.id_curso, estado="matriculado")
+    det_cristhian_bd = MatriculaDetalle(id_matricula=mat_cristhian_pasado.id_matricula, id_curso=curso_bd.id_curso, estado="matriculado")
+    det_cristhian_daw = MatriculaDetalle(id_matricula=mat_cristhian_actual.id_matricula, id_curso=curso_daw.id_curso, estado="matriculado")
+    det_cristhian_isw = MatriculaDetalle(id_matricula=mat_cristhian_actual.id_matricula, id_curso=curso_isw.id_curso, estado="matriculado")
+    det_scoot_daw = MatriculaDetalle(id_matricula=mat_scoot_actual.id_matricula, id_curso=curso_daw.id_curso, estado="matriculado")
+    det_maria_isw = MatriculaDetalle(id_matricula=mat_maria_actual.id_matricula, id_curso=curso_isw.id_curso, estado="matriculado")
+    det_pedro_ms = MatriculaDetalle(id_matricula=mat_pedro_actual.id_matricula, id_curso=curso_ms.id_curso, estado="matriculado")
     db.session.add_all([
         det_cristhian_ed, det_cristhian_bd, det_cristhian_daw, det_cristhian_isw,
         det_scoot_daw, det_maria_isw, det_pedro_ms,
@@ -312,11 +373,11 @@ def seed():
     print("Creando silabos...")
     db.session.add_all([
         Silabo(archivo="/silabos/daw301_2026-1.pdf", fecha_subida=datetime(2026, 2, 15, 9, 0),
-               estado="aprobado", id_seccion=sec_daw_actual.id_seccion),
+               estado="aprobado", id_curso=curso_daw.id_curso),
         Silabo(archivo="/silabos/isw301_2026-1.pdf", fecha_subida=datetime(2026, 2, 16, 9, 0),
-               estado="aprobado", id_seccion=sec_isw_actual.id_seccion),
+               estado="aprobado", id_curso=curso_isw.id_curso),
         Silabo(archivo="/silabos/msu101_2026-1.pdf", fecha_subida=datetime(2026, 2, 17, 9, 0),
-               estado="pendiente", id_seccion=sec_ms_actual.id_seccion),
+               estado="pendiente", id_curso=curso_ms.id_curso),
     ])
     db.session.commit()
 

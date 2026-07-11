@@ -25,4 +25,4 @@ class Docente(db.Model):
         "Facultad", back_populates="docentes", foreign_keys=[id_facultad]
     )
     usuario = db.relationship("Usuario", back_populates="docente", uselist=False)
-    secciones = db.relationship("Seccion", back_populates="docente")
+

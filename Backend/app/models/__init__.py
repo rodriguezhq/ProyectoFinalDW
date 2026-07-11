@@ -11,7 +11,7 @@ from app.models.nota import Nota
 from app.models.pago import Pago
 from app.models.periodo_academico import PeriodoAcademico
 from app.models.rol import Rol
-from app.models.seccion import Seccion
+from app.models.horario import Horario
 from app.models.silabo import Silabo
 from app.models.usuario import Usuario
 
@@ -20,7 +20,7 @@ __all__ = [
     "Especialidad",
     "Curso",
     "PeriodoAcademico",
-    "Seccion",
+    "Horario",
     "Rol",
     "Usuario",
     "Estudiante",

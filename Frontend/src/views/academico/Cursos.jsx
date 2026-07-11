@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { apiFetch } from '../../utils/api';
+import { obtenerCursos, obtenerFacultades, obtenerEspecialidades, guardarCurso, actualizarCurso, eliminarCurso } from '../../services/servicioAcademico';
 
 export default function Cursos() {
   const [cursos, setCursos] = useState([]);
   const [facultades, setFacultades] = useState([]);
   const [especialidades, setEspecialidades] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [estaCargando, setEstaCargando] = useState(false);
 
   // Estado del formulario
   const [modalOpen, setModalOpen] = useState(false);
@@ -16,92 +16,83 @@ export default function Cursos() {
   const [creditos, setCreditos] = useState('');
   const [ciclo, setCiclo] = useState('1');
   const [idFacultad, setIdFacultad] = useState('');
-  const [selectedPrerrequisitos, setSelectedPrerrequisitos] = useState([]);
-  const [selectedEspecialidades, setSelectedEspecialidades] = useState([]);
+  const [prerrequisitosSeleccionados, setPrerrequisitosSeleccionados] = useState([]);
+  const [especialidadesSeleccionadas, setEspecialidadesSeleccionadas] = useState([]);
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
 
-  const fetchCursos = async () => {
-    setIsLoading(true);
+  const cargarDatos = async () => {
+    setEstaCargando(true);
     try {
-      const response = await apiFetch(`/api/courses/cursos`, { method: 'GET' });
-      if (!response.ok) throw new Error('Error al cargar los cursos');
-      const data = await response.json();
-      setCursos(data.cursos || []);
+      const datosCursos = await obtenerCursos();
+      setCursos(datosCursos.cursos || []);
 
-      const facResponse = await apiFetch(`/api/courses/facultades`, { method: 'GET' });
-      if (facResponse.ok) {
-        const facData = await facResponse.json();
-        setFacultades(facData.facultades || []);
-      }
+      const datosFac = await obtenerFacultades();
+      setFacultades(datosFac.facultades || []);
 
-      const espResponse = await apiFetch(`/api/courses/especialidades`, { method: 'GET' });
-      if (espResponse.ok) {
-        const espData = await espResponse.json();
-        setEspecialidades(espData.especialidades || []);
-      }
+      const datosEsp = await obtenerEspecialidades();
+      setEspecialidades(datosEsp.especialidades || []);
     } catch (err) {
       toast.error(err.message);
     } finally {
-      setIsLoading(false);
+      setEstaCargando(false);
     }
   };
 
   useEffect(() => {
-    fetchCursos();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    cargarDatos();
   }, []);
 
-  const openAddModal = () => {
+  const abrirModalAgregar = () => {
     setEditingId(null);
     setNombre('');
     setCodigo('');
     setCreditos('');
     setCiclo('1');
     setIdFacultad('');
-    setSelectedPrerrequisitos([]);
-    setSelectedEspecialidades([]);
+    setPrerrequisitosSeleccionados([]);
+    setEspecialidadesSeleccionadas([]);
     setModalOpen(true);
   };
 
-  const openEditModal = (cur) => {
+  const abrirModalEditar = (cur) => {
     setEditingId(cur.id_curso);
     setNombre(cur.nombre);
     setCodigo(cur.codigo);
     setCreditos(cur.creditos);
     setCiclo(String(cur.ciclo || 1));
     setIdFacultad(String(cur.id_facultad || ''));
-    setSelectedPrerrequisitos(cur.id_prerrequisitos || []);
-    setSelectedEspecialidades(cur.id_especialidades || []);
+    setPrerrequisitosSeleccionados(cur.id_prerrequisitos || []);
+    setEspecialidadesSeleccionadas(cur.id_especialidades || []);
     setModalOpen(true);
   };
 
-  const handleFacultadChange = (e) => {
-    const newFacId = e.target.value;
-    setIdFacultad(newFacId);
+  const manejarCambioFacultad = (e) => {
+    const nuevaFacId = e.target.value;
+    setIdFacultad(nuevaFacId);
     
     // Filtrar prerrequisitos que ya no pertenecen a la nueva facultad
-    const newFacIdInt = parseInt(newFacId);
-    const filtradosPrerreqs = selectedPrerrequisitos.filter(preId => {
+    const nuevaFacIdInt = parseInt(nuevaFacId);
+    const filtradosPrerreqs = prerrequisitosSeleccionados.filter(preId => {
       const prerreqCurso = cursos.find(c => c.id_curso === preId);
-      return prerreqCurso && prerreqCurso.id_facultad === newFacIdInt;
+      return prerreqCurso && prerreqCurso.id_facultad === nuevaFacIdInt;
     });
-    setSelectedPrerrequisitos(filtradosPrerreqs);
+    setPrerrequisitosSeleccionados(filtradosPrerreqs);
 
     // Filtrar carreras que ya no pertenecen a la nueva facultad
-    const filtradasEspecialidades = selectedEspecialidades.filter(espId => {
+    const filtradasEspecialidades = especialidadesSeleccionadas.filter(espId => {
       const espObj = especialidades.find(e => e.id_especialidad === espId);
-      return espObj && espObj.id_facultad === newFacIdInt;
+      return espObj && espObj.id_facultad === nuevaFacIdInt;
     });
-    setSelectedEspecialidades(filtradasEspecialidades);
+    setEspecialidadesSeleccionadas(filtradasEspecialidades);
   };
 
-  const handleSubmit = async (e) => {
+  const manejarEnvio = async (e) => {
     e.preventDefault();
-    const creditsNum = parseInt(creditos);
+    const creditosNum = parseInt(creditos);
     const cicloNum = parseInt(ciclo);
     const facIdNum = parseInt(idFacultad);
     
-    if (!nombre.trim() || !codigo.trim() || isNaN(creditsNum) || creditsNum <= 0 || isNaN(cicloNum) || cicloNum <= 0 || isNaN(facIdNum) || facIdNum <= 0) {
+    if (!nombre.trim() || !codigo.trim() || isNaN(creditosNum) || creditosNum <= 0 || isNaN(cicloNum) || cicloNum <= 0 || isNaN(facIdNum) || facIdNum <= 0) {
       toast.error('Todos los campos son obligatorios. Créditos, Ciclo y Facultad deben ser válidos.');
       return;
     }
@@ -109,42 +100,33 @@ export default function Cursos() {
     const payload = {
       nombre: nombre.trim(),
       codigo: codigo.trim().toUpperCase(),
-      creditos: creditsNum,
+      creditos: creditosNum,
       ciclo: cicloNum,
       id_facultad: facIdNum,
-      id_prerrequisitos: selectedPrerrequisitos,
-      id_especialidades: selectedEspecialidades,
+      id_prerrequisitos: prerrequisitosSeleccionados,
+      id_especialidades: especialidadesSeleccionadas,
     };
 
     try {
-      const endpoint = editingId ? `/api/courses/cursos/${editingId}` : `/api/courses/cursos`;
-      const method = editingId ? 'PUT' : 'POST';
-      const response = await apiFetch(endpoint, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.msg || 'Error al guardar el curso.');
+      if (editingId) {
+        await actualizarCurso(editingId, payload);
+        toast.success('Curso actualizado con éxito.');
+      } else {
+        await guardarCurso(payload);
+        toast.success('Curso creado con éxito.');
       }
-      toast.success(editingId ? 'Curso actualizado con éxito.' : 'Curso creado con éxito.');
       setModalOpen(false);
-      fetchCursos();
+      cargarDatos();
     } catch (err) {
       toast.error(err.message);
     }
   };
 
-  const handleDelete = async (id) => {
+  const manejarEliminar = async (id) => {
     try {
-      const response = await apiFetch(`/api/courses/cursos/${id}`, { method: 'DELETE' });
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.msg || 'Error al eliminar el curso.');
-      }
+      await eliminarCurso(id);
       toast.success('Curso eliminado con éxito.');
-      fetchCursos();
+      cargarDatos();
     } catch (err) {
       toast.error(err.message);
     }
@@ -170,7 +152,7 @@ export default function Cursos() {
           </div>
           <button
             type="button"
-            onClick={openAddModal}
+            onClick={abrirModalAgregar}
             className="bg-primary text-white py-2 px-4 text-[0.88rem] font-bold rounded-md transition-all duration-300 hover:bg-primary-hover shadow-sm self-start sm:self-auto cursor-pointer"
           >
             + Agregar Curso
@@ -178,7 +160,7 @@ export default function Cursos() {
         </div>
 
         <div className="bg-white border border-border rounded-xl shadow-sm overflow-hidden">
-          {isLoading ? (
+          {estaCargando ? (
             <div className="p-12 text-center">
               <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-3"></div>
               <p className="text-[0.88rem] text-text-muted">Cargando cursos...</p>
@@ -246,7 +228,7 @@ export default function Cursos() {
                         <td className="p-4 text-center flex justify-center gap-2">
                           <button
                             type="button"
-                            onClick={() => openEditModal(cur)}
+                            onClick={() => abrirModalEditar(cur)}
                             className="text-primary hover:text-primary-hover font-bold text-[0.88rem] px-3 py-1 rounded hover:bg-primary-light transition-all cursor-pointer"
                           >
                             Editar
@@ -285,7 +267,7 @@ export default function Cursos() {
                 ×
               </button>
             </div>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={manejarEnvio}>
               <div className="p-6 flex flex-col gap-4 max-h-[70vh] overflow-y-auto">
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="codigo-curso" className="text-[0.82rem] font-bold text-text-muted uppercase">Código de Curso</label>
@@ -327,7 +309,7 @@ export default function Cursos() {
                   <select
                     id="facultad-curso"
                     value={idFacultad}
-                    onChange={handleFacultadChange}
+                    onChange={manejarCambioFacultad}
                     className="p-2.5 border border-border rounded-md focus:outline-none focus:border-primary text-[0.88rem] bg-white cursor-pointer"
                   >
                     <option value="">-- Seleccionar Facultad --</option>
@@ -350,12 +332,12 @@ export default function Cursos() {
                         <label key={esp.id_especialidad} className="flex items-center gap-2 text-[0.88rem] text-text-heading font-medium cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={selectedEspecialidades.includes(esp.id_especialidad)}
+                            checked={especialidadesSeleccionadas.includes(esp.id_especialidad)}
                             onChange={(e) => {
                               if (e.target.checked) {
-                                  setSelectedEspecialidades([...selectedEspecialidades, esp.id_especialidad]);
+                                  setEspecialidadesSeleccionadas([...especialidadesSeleccionadas, esp.id_especialidad]);
                               } else {
-                                  setSelectedEspecialidades(selectedEspecialidades.filter(id => id !== esp.id_especialidad));
+                                  setEspecialidadesSeleccionadas(especialidadesSeleccionadas.filter(id => id !== esp.id_especialidad));
                               }
                             }}
                             className="rounded border-border text-primary focus:ring-primary w-4 h-4 cursor-pointer"
@@ -391,12 +373,12 @@ export default function Cursos() {
                         <label key={c.id_curso} className="flex items-center gap-2 text-[0.88rem] text-text-heading font-medium cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={selectedPrerrequisitos.includes(c.id_curso)}
+                            checked={prerrequisitosSeleccionados.includes(c.id_curso)}
                             onChange={(e) => {
                               if (e.target.checked) {
-                                  setSelectedPrerrequisitos([...selectedPrerrequisitos, c.id_curso]);
+                                  setPrerrequisitosSeleccionados([...prerrequisitosSeleccionados, c.id_curso]);
                               } else {
-                                  setSelectedPrerrequisitos(selectedPrerrequisitos.filter(id => id !== c.id_curso));
+                                  setPrerrequisitosSeleccionados(prerrequisitosSeleccionados.filter(id => id !== c.id_curso));
                               }
                             }}
                             className="rounded border-border text-primary focus:ring-primary w-4 h-4 cursor-pointer"
@@ -428,7 +410,7 @@ export default function Cursos() {
         </div>
       )}
 
-      {/* Modal de confirmación de eliminación */}
+      {/* Confirmar Eliminación Modal */}
       {deleteConfirmId && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setDeleteConfirmId(null)}>
           <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-[400px] w-full p-6 animate-scale-in text-center" onClick={(e) => e.stopPropagation()}>
@@ -452,7 +434,7 @@ export default function Cursos() {
               <button
                 type="button"
                 onClick={() => {
-                  handleDelete(deleteConfirmId);
+                  manejarEliminar(deleteConfirmId);
                   setDeleteConfirmId(null);
                 }}
                 className="bg-red-600 hover:bg-red-700 text-white py-2 px-5 font-bold text-[0.88rem] rounded-md transition-colors shadow-sm cursor-pointer"

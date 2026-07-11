@@ -1,7 +1,6 @@
 from flask import request
 from app.extensions import db
 from app.models.periodo_academico import PeriodoAcademico
-from app.models.seccion import Seccion
 from app.services.auth_service import usuario_actual
 from app.services.audit_service import registrar_auditoria
 from app.schemas.period_schema import PeriodoResponse
@@ -23,12 +22,10 @@ def crear_periodo_ctrl(body):
     if existente:
         return {"msg": "Ya existe un periodo académico con ese nombre"}, 409
 
-    # REGLA: Al crear un nuevo periodo, se cierran automáticamente todos los demás periodos y sus secciones
+    # REGLA: Al crear un nuevo periodo, se cierran automáticamente todos los demás periodos
     periodos_activos = PeriodoAcademico.query.filter_by(estado="activo").all()
     for p_ant in periodos_activos:
         p_ant.estado = "cerrado"
-        for sec in p_ant.secciones:
-            sec.estado = "cerrada"
 
     periodo = PeriodoAcademico(
         nombre=body.nombre,
@@ -65,10 +62,7 @@ def activar_periodo_ctrl(id_periodo):
         return {"msg": "El periodo ya se encuentra activo"}, 400
 
     # REGLA: Al abrir/activar un periodo manualmente, NO se cierran los otros.
-    # Simplemente se activa el periodo seleccionado y se reabren sus secciones asociadas.
     periodo.estado = "activo"
-    for sec in periodo.secciones:
-        sec.estado = "abierta"
         
     db.session.commit()
 

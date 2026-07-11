@@ -95,3 +95,24 @@ class AuditoriaItem(BaseModel):
 
 class AuditoriaListResponse(BaseModel):
     auditorias: list[AuditoriaItem]
+
+
+# ---------------- Docente ----------------
+
+class DocenteItem(BaseModel):
+    id_docente: int
+    codigo: str
+    dni: str
+    nombres: str
+    apellidos: str
+    correo: str | None = None
+    telefono: str | None = None
+    categoria: str | None = None
+    condicion: str | None = None
+    estado: str
+    id_facultad: int
+
+
+class DocenteListResponse(BaseModel):
+    docentes: list[DocenteItem]
+

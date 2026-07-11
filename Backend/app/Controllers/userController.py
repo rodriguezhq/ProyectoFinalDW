@@ -16,6 +16,7 @@ from app.services.admin_service import (
     crear_usuario,
     listar_roles,
     listar_usuarios,
+    listar_docentes,
     CarreraObligatoriaError,
     FacultadObligatoriaError,
     EspecialidadNoEncontradaError,
@@ -162,3 +163,27 @@ def crear_rol_ctrl(body):
 def listar_roles_ctrl():
     roles = listar_roles()
     return {"roles": [_serializar_rol(r) for r in roles]}, 200
+
+
+def _serializar_docente(d):
+    # Serializa la información del docente a un diccionario
+    return {
+        "id_docente": d.id_docente,
+        "codigo": d.codigo,
+        "dni": d.dni,
+        "nombres": d.nombres,
+        "apellidos": d.apellidos,
+        "correo": d.correo,
+        "telefono": d.telefono,
+        "categoria": d.categoria,
+        "condicion": d.condicion,
+        "estado": d.estado,
+        "id_facultad": d.id_facultad,
+    }
+
+
+def listar_docentes_ctrl():
+    # Obtiene todos los docentes y los serializa
+    docentes = listar_docentes()
+    return {"docentes": [_serializar_docente(d) for d in docentes]}, 200
+

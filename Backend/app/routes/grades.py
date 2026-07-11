@@ -24,8 +24,9 @@ class EstudiantePath(BaseModel):
     id_estudiante: int = Field(..., description="ID del estudiante")
 
 
-class SeccionPath(BaseModel):
-    id_seccion: int = Field(..., description="ID de la sección")
+class IdCursoPath(BaseModel):
+    id_curso: int = Field(..., description="ID del curso")
+
 
 
 @grades_bp.post(
@@ -59,15 +60,15 @@ def consultar_notas_estudiante(path: EstudiantePath):
 
 
 @grades_bp.get(
-    "/seccion/<int:id_seccion>",
-    summary="Consultar notas de una sección",
+    "/curso/<int:id_curso>",
+    summary="Consultar notas de un curso",
     description="Devuelve las notas de todos los estudiantes matriculados en "
-    "una sección. Útil para que el docente vea su clase completa.",
+    "un curso. Útil para que el docente vea su clase completa.",
     responses={200: GradeListResponse},
     security=[{"jwt": []}],
 )
 @role_required("Docente", "Administrador", "Direccion")
-def consultar_notas_seccion(path: SeccionPath):
-    """Consulta las notas de todos los estudiantes de una sección."""
-    response, status = gradeController.consultar_notas_seccion(path.id_seccion)
+def consultar_notas_curso(path: IdCursoPath):
+    """Consulta las notas de todos los estudiantes de un curso."""
+    response, status = gradeController.consultar_notas_curso(path.id_curso)
     return response, status

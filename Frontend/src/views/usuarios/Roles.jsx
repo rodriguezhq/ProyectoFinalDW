@@ -1,30 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { apiFetch } from '../../utils/api';
+import { obtenerRoles } from '../../services/servicioUsuarios';
 
 export default function Roles() {
   const [roles, setRoles] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [estaCargando, setEstaCargando] = useState(false);
 
-  const fetchRoles = async () => {
-    setIsLoading(true);
+  const cargarRoles = async () => {
+    setEstaCargando(true);
     try {
-      const response = await apiFetch(`/api/admin/roles`, {
-        method: 'GET'
-      });
-      if (!response.ok) throw new Error('Error al cargar los roles de usuario');
-      const data = await response.json();
-      setRoles(data.roles || []);
+      const datos = await obtenerRoles();
+      setRoles(datos.roles || []);
     } catch (err) {
       toast.error(err.message);
     } finally {
-      setIsLoading(false);
+      setEstaCargando(false);
     }
   };
 
   useEffect(() => {
-    fetchRoles();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    cargarRoles();
   }, []);
 
   return (
@@ -38,7 +33,7 @@ export default function Roles() {
         </div>
 
         <div className="bg-white border border-border rounded-xl shadow-sm overflow-hidden">
-          {isLoading ? (
+          {estaCargando ? (
             <div className="p-12 text-center">
               <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-3"></div>
               <p className="text-[0.88rem] text-text-muted">Cargando roles...</p>

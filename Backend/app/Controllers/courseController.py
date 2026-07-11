@@ -6,7 +6,7 @@ from app.schemas.course_schema import (
     CursoResponse,
     EspecialidadResponse,
     FacultadResponse,
-    SeccionResponse,
+    HorarioResponse,
 )
 from app.services.course_service import (
     CodigoDuplicadoError,
@@ -15,26 +15,23 @@ from app.services.course_service import (
     EspecialidadNoEncontradaError,
     FacultadNoEncontradaError,
     PeriodoNoEncontradoError,
-    SeccionNoEncontradaError,
+    HorarioNoEncontradoError,
     EntidadConDependenciasError,
     actualizar_curso,
     actualizar_especialidad,
     actualizar_facultad,
-    actualizar_seccion,
     carga_docente,
     crear_curso,
     crear_especialidad,
     crear_facultad,
-    crear_seccion,
     listar_cursos,
     listar_especialidades,
     listar_facultades,
-    listar_secciones,
     eliminar_facultad,
     eliminar_especialidad,
     eliminar_curso,
-    eliminar_seccion,
-    guardar_secciones_lote,
+    obtener_horario_ciclo,
+    guardar_horario_ciclo,
     PrerrequisitoDiferenteFacultadError,
     CarreraDiferenteFacultadError,
 )
@@ -67,20 +64,18 @@ def _serializar_curso(c):
     ).model_dump()
 
 
-def _serializar_seccion(seccion):
-    return SeccionResponse(
-        id_seccion=seccion.id_seccion,
-        codigo=seccion.codigo,
-        horario=seccion.horario,
-        aula=seccion.aula,
-        capacidad=seccion.capacidad,
-        estado=seccion.estado,
-        id_curso=seccion.id_curso,
-        curso_nombre=seccion.curso.nombre,
-        id_periodo=seccion.id_periodo,
-        id_docente=seccion.id_docente,
-        docente_nombre=f"{seccion.docente.nombres} {seccion.docente.apellidos}" if seccion.docente else None,
+def _serializar_horario(h):
+    # Serializa la información del objeto Horario
+    return HorarioResponse(
+        id_horario=h.id_horario,
+        id_periodo=h.id_periodo,
+        id_facultad=h.id_facultad,
+        id_especialidad=h.id_especialidad,
+        ciclo=h.ciclo,
+        detalles=h.detalles,
+        estado=h.estado,
     ).model_dump()
+
 
 
 # ---------------- Facultad ----------------
@@ -188,56 +183,32 @@ def actualizar_curso_ctrl(id_curso, body):
     return _serializar_curso(curso), 200
 
 
-# ---------------- Seccion ----------------
+# ---------------- Horario ----------------
 
-def crear_seccion_ctrl(body):
-    try:
-        seccion = crear_seccion(
-            body.codigo, body.horario, body.aula, body.capacidad, body.id_curso, body.id_docente, body.id_periodo
-        )
-    except CursoNoEncontradoError:
-        return {"msg": "El curso indicado no existe"}, 404
-    except PeriodoNoEncontradoError:
-        return {"msg": "El periodo académico indicado no existe"}, 404
-    except DocenteNoEncontradoError:
-        return {"msg": "El docente indicado no existe"}, 404
-    return _serializar_seccion(seccion), 201
+def obtener_horario_ciclo_ctrl(id_periodo, id_facultad, id_especialidad, ciclo):
+    h = obtener_horario_ciclo(id_periodo, id_facultad, id_especialidad, ciclo)
+    if not h:
+        return {"horario": None}, 200
+    return {"horario": _serializar_horario(h)}, 200
 
 
-def listar_secciones_ctrl(id_periodo=None):
-    secciones = listar_secciones(id_periodo)
-    return {"secciones": [_serializar_seccion(s) for s in secciones]}, 200
-
-
-def actualizar_seccion_ctrl(id_seccion, body):
-    try:
-        seccion = actualizar_seccion(
-            id_seccion, body.horario, body.aula, body.capacidad, body.id_docente, body.estado
-        )
-    except SeccionNoEncontradaError:
-        return {"msg": "Sección no encontrada"}, 404
-    except DocenteNoEncontradoError:
-        return {"msg": "El docente indicado no existe"}, 404
-
+def guardar_horario_ciclo_ctrl(body):
+    h = guardar_horario_ciclo(
+        body.id_periodo,
+        body.id_facultad,
+        body.id_especialidad,
+        body.ciclo,
+        body.detalles
+    )
     actor = usuario_actual()
-    if body.estado == "cerrada":
-        registrar_auditoria(
-            "validar_acta",
-            "seccion",
-            registro=seccion.id_seccion,
-            id_usuario=actor.id_usuario if actor else None,
-            ip=request.remote_addr,
-        )
-    else:
-        registrar_auditoria(
-            "actualizar_seccion",
-            "seccion",
-            registro=seccion.id_seccion,
-            id_usuario=actor.id_usuario if actor else None,
-            ip=request.remote_addr,
-        )
-
-    return _serializar_seccion(seccion), 200
+    registrar_auditoria(
+        "guardar_horario_ciclo",
+        "horario",
+        registro=h.id_horario,
+        id_usuario=actor.id_usuario if actor else None,
+        ip=request.remote_addr,
+    )
+    return _serializar_horario(h), 200
 
 
 # ---------------- Direccion ----------------
@@ -245,9 +216,6 @@ def actualizar_seccion_ctrl(id_seccion, body):
 def carga_docente_ctrl(id_periodo):
     carga = carga_docente(id_periodo)
     return {"carga": [CargaDocenteItem(**c).model_dump() for c in carga]}, 200
-
-
-
 
 
 def eliminar_facultad_ctrl(id_facultad):
@@ -275,52 +243,4 @@ def eliminar_curso_ctrl(id_curso):
         eliminar_curso(id_curso)
     except CursoNoEncontradoError:
         return {"msg": "Curso no encontrado"}, 404
-    except EntidadConDependenciasError:
-        return {"msg": "No se puede eliminar el curso porque tiene secciones asociadas"}, 400
     return {"msg": "Curso eliminado con éxito"}, 200
-
-
-def eliminar_seccion_ctrl(id_seccion):
-    try:
-        eliminar_seccion(id_seccion)
-    except SeccionNoEncontradaError:
-        return {"msg": "Sección no encontrada"}, 404
-    except EntidadConDependenciasError:
-        return {"msg": "No se puede eliminar la sección porque tiene estudiantes matriculados"}, 400
-
-    actor = usuario_actual()
-    registrar_auditoria(
-        "eliminar_seccion",
-        "seccion",
-        registro=str(id_seccion),
-        id_usuario=actor.id_usuario if actor else None,
-        ip=request.remote_addr,
-    )
-    return {"msg": "Sección eliminada con éxito"}, 200
-
-
-def guardar_secciones_lote_ctrl(body):
-    try:
-        guardar_secciones_lote([item.model_dump() for item in body.secciones])
-    except CursoNoEncontradoError:
-        return {"msg": "Curso no encontrado"}, 404
-    except PeriodoNoEncontradoError:
-        return {"msg": "Periodo académico no encontrado"}, 404
-    except DocenteNoEncontradoError:
-        return {"msg": "El docente indicado no existe"}, 404
-    except SeccionNoEncontradaError:
-        return {"msg": "Sección no encontrada"}, 404
-    except EntidadConDependenciasError:
-        return {"msg": "No se puede eliminar una sección que tiene alumnos matriculados"}, 400
-    except ValueError as e:
-        return {"msg": str(e)}, 400
-
-    actor = usuario_actual()
-    registrar_auditoria(
-        "guardar_horario_lote",
-        "seccion",
-        registro=None,
-        id_usuario=actor.id_usuario if actor else None,
-        ip=request.remote_addr,
-    )
-    return {"msg": "Horario guardado con éxito"}, 200

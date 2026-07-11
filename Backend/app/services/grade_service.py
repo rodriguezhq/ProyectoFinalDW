@@ -4,7 +4,6 @@ from app.extensions import db
 from app.models.nota import Nota
 from app.models.matricula_detalle import MatriculaDetalle
 from app.models.matricula import Matricula
-from app.models.seccion import Seccion
 from app.models.curso import Curso
 from app.models.periodo_academico import PeriodoAcademico
 from app.models.docente import Docente
@@ -37,10 +36,26 @@ def _determinar_estado(promedio):
 
 def _nota_a_dict(nota):
     detalle = nota.matricula_detalle
-    seccion = detalle.seccion if detalle else None
-    curso = seccion.curso if seccion else None
-    periodo = seccion.periodo if seccion else None
-    docente = seccion.docente if seccion else None
+    curso = detalle.curso if detalle else None
+    periodo = detalle.matricula.periodo if detalle and detalle.matricula else None
+    
+    # Buscar el docente asignado a este curso en el Horario programado
+    docente = None
+    if detalle and detalle.matricula:
+        from app.models.horario import Horario
+        horarios = Horario.query.filter_by(
+            id_periodo=detalle.matricula.id_periodo,
+            id_especialidad=detalle.matricula.estudiante.id_especialidad
+        ).all()
+        for h in horarios:
+            for bloque in h.detalles:
+                if bloque.get("id_curso") and int(bloque.get("id_curso")) == detalle.id_curso:
+                    docente_id = bloque.get("id_docente")
+                    if docente_id:
+                        docente = db.session.get(Docente, int(docente_id))
+                        break
+            if docente:
+                break
 
     return {
         "id_nota": nota.id_nota,
@@ -55,7 +70,7 @@ def _nota_a_dict(nota):
         "id_matricula_detalle": nota.id_matricula_detalle,
         "curso_nombre": curso.nombre if curso else None,
         "curso_codigo": curso.codigo if curso else None,
-        "seccion_codigo": seccion.codigo if seccion else None,
+        "seccion_codigo": "A",  # Simulado
         "periodo_nombre": periodo.nombre if periodo else None,
         "docente_nombre": f"{docente.nombres} {docente.apellidos}" if docente else None,
     }
@@ -129,8 +144,8 @@ def obtener_notas_estudiante(id_estudiante):
     return estudiante_dict, [_nota_a_dict(n) for n in notas]
 
 
-def obtener_notas_seccion(id_seccion):
-    detalles = MatriculaDetalle.query.filter_by(id_seccion=id_seccion).all()
+def obtener_notas_curso(id_curso):
+    detalles = MatriculaDetalle.query.filter_by(id_curso=id_curso).all()
 
     resultado = []
     for detalle in detalles:
@@ -138,10 +153,26 @@ def obtener_notas_seccion(id_seccion):
         if nota:
             nota_dict = _nota_a_dict(nota)
         else:
-            seccion = detalle.seccion
-            curso = seccion.curso if seccion else None
-            periodo = seccion.periodo if seccion else None
-            docente = seccion.docente if seccion else None
+            curso = detalle.curso
+            periodo = detalle.matricula.periodo if detalle.matricula else None
+            
+            # Buscar el docente en el Horario programado
+            docente = None
+            if detalle and detalle.matricula:
+                from app.models.horario import Horario
+                horarios = Horario.query.filter_by(
+                    id_periodo=detalle.matricula.id_periodo,
+                    id_especialidad=detalle.matricula.estudiante.id_especialidad
+                ).all()
+                for h in horarios:
+                    for bloque in h.detalles:
+                        if bloque.get("id_curso") and int(bloque.get("id_curso")) == detalle.id_curso:
+                            docente_id = bloque.get("id_docente")
+                            if docente_id:
+                                docente = db.session.get(Docente, int(docente_id))
+                                break
+                    if docente:
+                        break
 
             nota_dict = {
                 "id_nota": None,
@@ -154,7 +185,7 @@ def obtener_notas_seccion(id_seccion):
                 "id_matricula_detalle": detalle.id_matricula_detalle,
                 "curso_nombre": curso.nombre if curso else None,
                 "curso_codigo": curso.codigo if curso else None,
-                "seccion_codigo": seccion.codigo if seccion else None,
+                "seccion_codigo": "A",
                 "periodo_nombre": periodo.nombre if periodo else None,
                 "docente_nombre": (
                     f"{docente.nombres} {docente.apellidos}" if docente else None

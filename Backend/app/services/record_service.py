@@ -4,7 +4,6 @@ from app.models.estudiante import Estudiante
 from app.models.matricula import Matricula
 from app.models.matricula_detalle import MatriculaDetalle
 from app.models.nota import Nota
-from app.models.seccion import Seccion
 from app.models.curso import Curso
 from app.models.periodo_academico import PeriodoAcademico
 from app.models.especialidad import Especialidad
@@ -40,10 +39,7 @@ def obtener_record_estudiante(id_estudiante):
             continue
             
         for detalle in matricula.detalles:
-            seccion = detalle.seccion
-            if not seccion:
-                continue
-            curso = seccion.curso
+            curso = detalle.curso
             if not curso:
                 continue
                 
@@ -156,9 +152,8 @@ def obtener_reporte_consolidado(id_especialidad=None):
         for matricula in estudiante.matriculas:
             periodos_matriculados.add(matricula.id_periodo)
             for detalle in matricula.detalles:
-                seccion = detalle.seccion
-                if seccion and seccion.curso:
-                    curso = seccion.curso
+                curso = detalle.curso
+                if curso:
                     total_creditos_matriculados += curso.creditos
                     
                     nota = detalle.nota
@@ -219,9 +214,8 @@ def obtener_desempeno_cohortes(id_especialidad=None):
             
             for mat in est.matriculas:
                 for det in mat.detalles:
-                    seccion = det.seccion
-                    if seccion and seccion.curso:
-                        curso = seccion.curso
+                    curso = det.curso
+                    if curso:
                         nota = det.nota
                         if nota and nota.promedio is not None:
                             promedio = float(nota.promedio)

@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { apiFetch } from '../../utils/api';
+import { obtenerFacultades, obtenerEspecialidades, obtenerCursos, guardarEspecialidad, actualizarEspecialidad, eliminarEspecialidad } from '../../services/servicioAcademico';
 
 export default function Especialidades() {
   const [especialidades, setEspecialidades] = useState([]);
   const [facultades, setFacultades] = useState([]);
   const [todosLosCursos, setTodosLosCursos] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [estaCargando, setEstaCargando] = useState(false);
 
-  // Form State
+  // Estados del Formulario
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [nombre, setNombre] = useState('');
@@ -16,49 +16,33 @@ export default function Especialidades() {
   const [idFacultad, setIdFacultad] = useState('');
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
 
-  // Malla Curricular Modal State
+  // Estado del Modal de Malla Curricular
   const [mallaModalOpen, setMallaModalOpen] = useState(false);
   const [especialidadSeleccionada, setEspecialidadSeleccionada] = useState(null);
 
-  const fetchData = async () => {
-    setIsLoading(true);
+  const cargarDatos = async () => {
+    setEstaCargando(true);
     try {
-      // Fetch Especialidades
-      const espRes = await apiFetch(`/api/courses/especialidades`, {
-        method: 'GET'
-      });
-      if (!espRes.ok) throw new Error('Error al cargar las especialidades');
-      const espData = await espRes.json();
-      setEspecialidades(espData.especialidades || []);
+      const datosEsp = await obtenerEspecialidades();
+      setEspecialidades(datosEsp.especialidades || []);
 
-      // Fetch Facultades for dropdown
-      const facRes = await apiFetch(`/api/courses/facultades`, {
-        method: 'GET'
-      });
-      if (facRes.ok) {
-        const facData = await facRes.json();
-        setFacultades(facData.facultades || []);
-      }
+      const datosFac = await obtenerFacultades();
+      setFacultades(datosFac.facultades || []);
 
-      // Fetch todos los cursos para la malla curricular
-      const cursoRes = await apiFetch(`/api/courses/cursos`, { method: 'GET' });
-      if (cursoRes.ok) {
-        const cursoData = await cursoRes.json();
-        setTodosLosCursos(cursoData.cursos || []);
-      }
+      const datosCursos = await obtenerCursos();
+      setTodosLosCursos(datosCursos.cursos || []);
     } catch (err) {
       toast.error(err.message);
     } finally {
-      setIsLoading(false);
+      setEstaCargando(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    cargarDatos();
   }, []);
 
-  const openAddModal = () => {
+  const abrirModalAgregar = () => {
     setEditingId(null);
     setNombre('');
     setCodigo('');
@@ -66,7 +50,7 @@ export default function Especialidades() {
     setModalOpen(true);
   };
 
-  const openEditModal = (esp) => {
+  const abrirModalEditar = (esp) => {
     setEditingId(esp.id_especialidad);
     setNombre(esp.nombre);
     setCodigo(esp.codigo);
@@ -74,12 +58,12 @@ export default function Especialidades() {
     setModalOpen(true);
   };
 
-  const openMallaModal = (esp) => {
+  const abrirMallaModal = (esp) => {
     setEspecialidadSeleccionada(esp);
     setMallaModalOpen(true);
   };
 
-  const handleSubmit = async (e) => {
+  const manejarEnvio = async (e) => {
     e.preventDefault();
 
     if (!nombre.trim() || !codigo.trim() || !idFacultad) {
@@ -94,43 +78,25 @@ export default function Especialidades() {
     };
 
     try {
-      const endpoint = editingId 
-        ? `/api/courses/especialidades/${editingId}`
-        : `/api/courses/especialidades`;
-      const method = editingId ? 'PUT' : 'POST';
-
-      const response = await apiFetch(endpoint, {
-        method,
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.msg || 'Error al guardar la especialidad.');
+      if (editingId) {
+        await actualizarEspecialidad(editingId, payload);
+        toast.success('Especialidad actualizada con éxito.');
+      } else {
+        await guardarEspecialidad(payload);
+        toast.success('Especialidad creada con éxito.');
       }
-
-      toast.success(editingId ? 'Especialidad actualizada con éxito.' : 'Especialidad creada con éxito.');
       setModalOpen(false);
-      fetchData();
+      cargarDatos();
     } catch (err) {
       toast.error(err.message);
     }
   };
 
-  const handleDelete = async (id) => {
+  const manejarEliminar = async (id) => {
     try {
-      const response = await apiFetch(`/api/courses/especialidades/${id}`, {
-        method: 'DELETE'
-      });
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.msg || 'Error al eliminar la especialidad.');
-      }
+      await eliminarEspecialidad(id);
       toast.success('Especialidad eliminada con éxito.');
-      fetchData();
+      cargarDatos();
     } catch (err) {
       toast.error(err.message);
     }
@@ -153,7 +119,7 @@ export default function Especialidades() {
           </div>
           <button
             type="button"
-            onClick={openAddModal}
+            onClick={abrirModalAgregar}
             className="bg-primary text-white py-2 px-4 text-[0.88rem] font-bold rounded-md transition-all duration-300 hover:bg-primary-hover shadow-sm self-start sm:self-auto cursor-pointer"
           >
             + Agregar Especialidad
@@ -161,7 +127,7 @@ export default function Especialidades() {
         </div>
 
         <div className="bg-white border border-border rounded-xl shadow-sm overflow-hidden">
-          {isLoading ? (
+          {estaCargando ? (
             <div className="p-12 text-center">
               <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-3"></div>
               <p className="text-[0.88rem] text-text-muted">Cargando especialidades...</p>
@@ -197,14 +163,14 @@ export default function Especialidades() {
                         <td className="p-4 text-center flex justify-center gap-2">
                           <button
                             type="button"
-                            onClick={() => openMallaModal(esp)}
+                            onClick={() => abrirMallaModal(esp)}
                             className="bg-accent-light hover:bg-accent/15 text-accent-hover font-bold text-[0.88rem] px-3.5 py-1 rounded transition-all cursor-pointer"
                           >
                             🗺️ Ver Malla
                           </button>
                           <button
                             type="button"
-                            onClick={() => openEditModal(esp)}
+                            onClick={() => abrirModalEditar(esp)}
                             className="text-primary hover:text-primary-hover font-bold text-[0.88rem] px-3 py-1 rounded hover:bg-primary-light transition-all cursor-pointer"
                           >
                             Editar
@@ -227,7 +193,7 @@ export default function Especialidades() {
         </div>
       </div>
 
-      {/* Add/Edit Modal */}
+      {/* Modal de Agregar / Editar */}
       {modalOpen && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setModalOpen(false)}>
           <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-[450px] w-full overflow-hidden animate-scale-in text-left" onClick={(e) => e.stopPropagation()}>
@@ -243,7 +209,7 @@ export default function Especialidades() {
                 ×
               </button>
             </div>
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={manejarEnvio}>
               <div className="p-6 flex flex-col gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="codigo-especialidad" className="text-[0.82rem] font-bold text-text-muted uppercase">Código de Especialidad</label>
@@ -273,7 +239,7 @@ export default function Especialidades() {
                     id="facultad-asociada"
                     value={idFacultad}
                     onChange={(e) => setIdFacultad(e.target.value)}
-                    className="p-2.5 border border-border bg-white rounded-md focus:outline-none focus:border-primary text-[0.88rem]"
+                    className="p-2.5 border border-border bg-white rounded-md focus:outline-none focus:border-primary text-[0.88rem] cursor-pointer"
                   >
                     <option value="" disabled>Seleccione una Facultad</option>
                     {facultades.map(fac => (
@@ -302,7 +268,7 @@ export default function Especialidades() {
         </div>
       )}
 
-      {/* Malla Curricular Diagram Modal (No arrows) */}
+      {/* Modal Malla Curricular */}
       {mallaModalOpen && especialidadSeleccionada && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in" onClick={() => setMallaModalOpen(false)}>
           <div 
@@ -327,7 +293,7 @@ export default function Especialidades() {
               </button>
             </div>
 
-            {/* Scrollable Diagram Area */}
+            {/* Diagrama con scroll */}
             <div className="grow overflow-auto p-8 bg-slate-50 select-none">
               {cursosCarrera.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-text-muted italic gap-2">
@@ -336,18 +302,15 @@ export default function Especialidades() {
                 </div>
               ) : (
                 <div className="relative flex gap-12 min-w-max pb-16 pt-8 pr-12">
-                  {/* Flow chart columns grouped by cycle */}
                   {ciclosValores.map(cicloNum => {
                     const cursosDelCiclo = cursosCarrera.filter(c => c.ciclo === cicloNum);
                     
                     return (
                       <div key={cicloNum} className="flex flex-col gap-6 w-[200px] shrink-0 items-center">
-                        {/* Header Column */}
                         <div className="bg-primary/5 text-primary text-center py-2.5 px-4 rounded-xl border border-primary/10 w-full font-heading font-extrabold text-[0.88rem] tracking-tight uppercase shadow-sm">
                           {cicloNum}° Ciclo
                         </div>
                         
-                        {/* Courses Column Stack */}
                         <div className="flex flex-col gap-5 w-full grow justify-start">
                           {cursosDelCiclo.map(cur => {
                             const nombresPrerrequisitos = (cur.id_prerrequisitos || [])
@@ -406,7 +369,7 @@ export default function Especialidades() {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* Confirmar Eliminación Modal */}
       {deleteConfirmId && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setDeleteConfirmId(null)}>
           <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-[400px] w-full p-6 animate-scale-in text-center" onClick={(e) => e.stopPropagation()}>
@@ -430,7 +393,7 @@ export default function Especialidades() {
               <button
                 type="button"
                 onClick={() => {
-                  handleDelete(deleteConfirmId);
+                  manejarEliminar(deleteConfirmId);
                   setDeleteConfirmId(null);
                 }}
                 className="bg-red-600 hover:bg-red-700 text-white py-2 px-5 font-bold text-[0.88rem] rounded-md transition-colors shadow-sm cursor-pointer"
