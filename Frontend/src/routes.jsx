@@ -29,6 +29,8 @@ import UsuariosRoles from './views/usuarios/UsuariosRoles';
 
 // Vistas de Dirección
 import Auditoria from './views/direccion/Auditoria';
+import DireccionReportes from './views/direccion/DireccionReportes';
+
 import ProfileView from './views/compartidos/ProfileView';
 import RegistrarNotasDocente from './views/academico/RegistrarNotasDocente';
 import GradesView from './views/academico/GradesView';
@@ -61,12 +63,8 @@ const AdminActasNotas = () => (
     </div>
 );
 
-const DireccionReportes = () => (
-    <div className="p-6 bg-white border border-border rounded-xl shadow-sm">
-        <h2 className="text-xl font-bold text-text-heading mb-2">Rendimiento por Cohorte</h2>
-        <p className="text-text-muted">Análisis comparativo de deserción, promedios y tasas de aprobación por programa de estudio.</p>
-    </div>
-);
+
+
 
 export function AppRoutes() {
     return (

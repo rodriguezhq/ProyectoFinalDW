@@ -15,3 +15,24 @@ export async function obtenerAuditoria(accion = '', idUsuario = '') {
   if (!respuesta.ok) throw new Error('Error al cargar la bitácora de auditoría');
   return respuesta.json();
 }
+
+// Obtiene el desempeño académico por cohorte filtrado opcionalmente por especialidad
+export async function obtenerDesempenoCohortes(idEspecialidad = '') {
+  let url = '/api/records/desempeno';
+  if (idEspecialidad) url += `?id_especialidad=${idEspecialidad}`;
+
+  const respuesta = await consultarApi(url, { method: 'GET' });
+  if (!respuesta.ok) throw new Error('Error al cargar el desempeño por cohorte');
+  return respuesta.json();
+}
+
+// Obtiene el consolidado de alumnos por especialidad
+export async function obtenerConsolidadoEspecialidad(idEspecialidad = '') {
+  let url = '/api/records/consolidado';
+  if (idEspecialidad) url += `?id_especialidad=${idEspecialidad}`;
+
+  const respuesta = await consultarApi(url, { method: 'GET' });
+  if (!respuesta.ok) throw new Error('Error al cargar el reporte consolidado de especialidad');
+  return respuesta.json();
+}
+
