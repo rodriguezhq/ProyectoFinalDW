@@ -182,25 +182,13 @@ function App() {
       ) : rutaActual.startsWith("/estudiante") ? (
         usuario && usuario.rol === "Estudiante" ? (
           <DisenoPanel user={usuario} onLogout={manejarCerrarSesion} activeMenuIndex={indiceMenuActivo} setActiveMenuIndex={manejarNavegacionPestana}>
-            {indiceMenuActivo === 0 ? (
-              <VistaHorario isTeacher={false} />
-            ) : (
-              <div className="p-8 text-center text-text-muted font-medium bg-white rounded-2xl border border-border shadow-md">
-                Esta sección del portal de Estudiante estará disponible próximamente.
-              </div>
-            )}
+            {indiceMenuActivo === 0 && <VistaHorario isTeacher={false} />}
           </DisenoPanel>
         ) : null
       ) : rutaActual.startsWith("/docente") ? (
         usuario && usuario.rol === "Docente" ? (
           <DisenoPanel user={usuario} onLogout={manejarCerrarSesion} activeMenuIndex={indiceMenuActivo} setActiveMenuIndex={manejarNavegacionPestana}>
-            {indiceMenuActivo === 0 ? (
-              <VistaHorario isTeacher={true} />
-            ) : (
-              <div className="p-8 text-center text-text-muted font-medium bg-white rounded-2xl border border-border shadow-md">
-                Esta sección del portal de Docente estará disponible próximamente.
-              </div>
-            )}
+            {indiceMenuActivo === 0 && <VistaHorario isTeacher={true} />}
           </DisenoPanel>
         ) : null
       ) : rutaActual.startsWith("/administrador") ? (
@@ -210,15 +198,11 @@ function App() {
               <VistaPanel isDirection={false} />
             ) : indiceMenuActivo === 1 ? (
               <MantenimientoAcademico />
-            ) : indiceMenuActivo === 4 ? (
+            ) : indiceMenuActivo === 2 ? (
               <DisenoHorario />
-            ) : indiceMenuActivo === 7 ? (
+            ) : indiceMenuActivo === 3 ? (
               <UsuariosRoles />
-            ) : (
-              <div className="p-8 text-center text-text-muted font-medium bg-white rounded-2xl border border-border shadow-md">
-                Esta sección de Administración estará disponible próximamente.
-              </div>
-            )}
+            ) : null}
           </DisenoPanel>
         ) : null
       ) : rutaActual.startsWith("/direccion") ? (
@@ -226,13 +210,9 @@ function App() {
           <DisenoPanel user={usuario} onLogout={manejarCerrarSesion} activeMenuIndex={indiceMenuActivo} setActiveMenuIndex={manejarNavegacionPestana}>
             {indiceMenuActivo === 0 ? (
               <VistaPanel isDirection={true} />
-            ) : indiceMenuActivo === 5 ? (
+            ) : indiceMenuActivo === 1 ? (
               <Auditoria />
-            ) : (
-              <div className="p-8 text-center text-text-muted font-medium bg-white rounded-2xl border border-border shadow-md">
-                Esta sección de Dirección estará disponible próximamente.
-              </div>
-            )}
+            ) : null}
           </DisenoPanel>
         ) : null
       ) : (
