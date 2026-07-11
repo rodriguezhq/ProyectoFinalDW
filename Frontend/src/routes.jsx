@@ -29,16 +29,7 @@ import UsuariosRoles from './views/usuarios/UsuariosRoles';
 
 // Vistas de Dirección
 import Auditoria from './views/direccion/Auditoria';
-
-// -------------------------------------------------------------
-// Marcadores de posición para módulos pendientes de desarrollo
-// -------------------------------------------------------------
-const ProfileView = () => (
-    <div className="p-6 bg-white border border-border rounded-xl shadow-sm">
-        <h2 className="text-xl font-bold text-text-heading mb-2">Mi Perfil</h2>
-        <p className="text-text-muted">Información del perfil de usuario y configuración de cuenta.</p>
-    </div>
-);
+import ProfileView from './views/compartidos/ProfileView';
 
 const EnrollmentView = () => (
     <div className="p-6 bg-white border border-border rounded-xl shadow-sm">

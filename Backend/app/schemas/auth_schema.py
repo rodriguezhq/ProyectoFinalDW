@@ -13,3 +13,20 @@ class LoginResponse(BaseModel):
     access_token: str
     refresh_token: str
     user: UserData
+
+
+class ProfileUpdateBody(BaseModel):
+    telefono: str | None = None
+    password: str | None = None
+    currentPassword: str | None = None
+
+
+class ProfileResponse(BaseModel):
+    id_usuario: int
+    username: str
+    nombres: str | None
+    apellidos: str | None
+    correo: str | None
+    telefono: str | None
+    rol: str | None
+
