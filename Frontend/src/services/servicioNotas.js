@@ -39,3 +39,12 @@ export async function registrarNotas(idMatriculaDetalle, notas) {
   
   return respuesta.json();
 }
+
+export async function obtenerNotasEstudiante(idEstudiante) {
+  const respuesta = await consultarApi(`/api/grades/estudiante/${idEstudiante}`, { method: 'GET' });
+  if (!respuesta.ok) {
+    throw new Error('Error al cargar las calificaciones del estudiante.');
+  }
+  const datos = await respuesta.json();
+  return datos.notas || [];
+}

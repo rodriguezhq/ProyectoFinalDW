@@ -42,7 +42,7 @@ export default function VistaHorario({ isTeacher = false }) {
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-border shadow-md p-6 md:p-8 mb-6 animate-slide-up">
+    <div className="bg-white rounded-2xl border border-border shadow-md p-4 md:p-6 mb-4 animate-slide-up">
       <div className="mb-7">
         <h3 className="font-heading text-[1.35rem] font-extrabold text-text-heading mb-1.5">📅 Horario Académico — Periodo 2026-I</h3>
         <p className="text-[0.95rem] text-text-muted">

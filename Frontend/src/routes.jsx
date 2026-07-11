@@ -31,18 +31,12 @@ import UsuariosRoles from './views/usuarios/UsuariosRoles';
 import Auditoria from './views/direccion/Auditoria';
 import ProfileView from './views/compartidos/ProfileView';
 import RegistrarNotasDocente from './views/academico/RegistrarNotasDocente';
+import GradesView from './views/academico/GradesView';
 
 const EnrollmentView = () => (
     <div className="p-6 bg-white border border-border rounded-xl shadow-sm">
         <h2 className="text-xl font-bold text-text-heading mb-2">Matrícula en Línea</h2>
         <p className="text-text-muted">Proceso de matrícula para asignaturas del ciclo lectivo.</p>
-    </div>
-);
-
-const GradesView = () => (
-    <div className="p-6 bg-white border border-border rounded-xl shadow-sm">
-        <h2 className="text-xl font-bold text-text-heading mb-2">Hoja de Notas por Ciclo</h2>
-        <p className="text-text-muted">Consulta de calificaciones parciales y consolidadas del semestre actual.</p>
     </div>
 );
 

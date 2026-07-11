@@ -4,7 +4,7 @@ from app.schemas.user_schema import UserData
 
 
 class LoginBody(BaseModel):
-    username: str
+    email: str
     password: str
 
 
@@ -29,4 +29,6 @@ class ProfileResponse(BaseModel):
     correo: str | None
     telefono: str | None
     rol: str | None
+    id_estudiante: int | None = None
+    id_docente: int | None = None
 

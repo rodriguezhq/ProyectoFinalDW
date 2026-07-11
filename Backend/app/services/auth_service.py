@@ -18,11 +18,29 @@ def usuario_actual():
     return db.session.get(Usuario, id_usuario)
 
 
-def login_user(username, password, ip=None):
-    user = Usuario.query.filter_by(username=username).first()
+def login_user(username_or_email, password, ip=None):
+    # 1. Buscar en Usuario por username o correo directo
+    user = Usuario.query.filter(
+        (Usuario.username == username_or_email) | (Usuario.correo == username_or_email)
+    ).first()
+    
+    # 2. Si no se encuentra, buscar por correo del Estudiante
+    if not user:
+        from app.models.estudiante import Estudiante
+        estudiante = Estudiante.query.filter_by(correo=username_or_email).first()
+        if estudiante and estudiante.usuario:
+            user = estudiante.usuario
+            
+    # 3. Si no se encuentra, buscar por correo del Docente
+    if not user:
+        from app.models.docente import Docente
+        docente = Docente.query.filter_by(correo=username_or_email).first()
+        if docente and docente.usuario:
+            user = docente.usuario
+
     if not user or not verify_password(password, user.password_hash):
         registrar_auditoria(
-            "login_fallido", "usuario", registro=username, id_usuario=user.id_usuario if user else None, ip=ip
+            "login_fallido", "usuario", registro=username_or_email, id_usuario=user.id_usuario if user else None, ip=ip
         )
         return None
     if user.estado != "activo":
@@ -54,6 +72,8 @@ def login_user(username, password, ip=None):
             "correo": user.correo_efectivo,
             "id_rol": user.id_rol,
             "rol": user.rol.nombre if user.rol else None,
+            "id_estudiante": user.id_estudiante,
+            "id_docente": user.id_docente,
         },
     }
 

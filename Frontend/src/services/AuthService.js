@@ -2,15 +2,12 @@ import { consultarApi } from './clienteApi';
 
 const AuthService = {
     Login: async (email, password) => {
-        // El backend espera el nombre de usuario (puede ser el prefijo del correo o correo completo)
-        const username = email.includes('@') ? email.split('@')[0] : email;
-
         const respuesta = await consultarApi('/api/auth/login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ email, password })
         });
 
         if (!respuesta.ok) {
