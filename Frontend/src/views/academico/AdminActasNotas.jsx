@@ -3,6 +3,8 @@ import { obtenerEspecialidades } from '../../services/servicioAcademico';
 import { obtenerConsolidadoEspecialidad } from '../../services/servicioDireccion';
 import ConsolidadoAdminTable from '../../components/administrador/ConsolidadoAdminTable';
 import { FileSpreadsheet, FileText, Search, RefreshCw, AlertCircle, Loader2, Award, Users, BookOpen } from 'lucide-react';
+import { exportarConsolidadoCSV, exportarConsolidadoPDF } from '../../utils/exportUtils';
+
 
 export default function AdminActasNotas() {
     const [especialidades, setEspecialidades] = useState([]);
@@ -80,102 +82,19 @@ export default function AdminActasNotas() {
     // --- ACCIÓN: EXPORTAR A EXCEL (CSV) ---
     const exportarExcel = () => {
         if (alumnosFiltrados.length === 0) return;
-
-        const especialidadNombre = especialidades.find(e => e.id_especialidad.toString() === selectedEspecialidad)?.nombre || 'Reporte';
-
-        const headers = ['Codigo', 'Apellidos y Nombres', 'Especialidad', 'Creditos Matriculados', 'Creditos Aprobados', 'Promedio PPA', 'Semestres Cursados'];
-        const rows = alumnosFiltrados.map(a => [
-            a.codigo,
-            `"${a.apellidos}, ${a.nombres}"`,
-            `"${a.especialidad_nombre}"`,
-            a.total_creditos_matriculados,
-            a.total_creditos_aprobados,
-            a.promedio_ponderado_acumulado !== null && a.promedio_ponderado_acumulado !== undefined ? a.promedio_ponderado_acumulado.toFixed(2) : '-',
-            a.periodos_matriculados
-        ]);
-
-        const csvContent = "\uFEFF" + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.setAttribute("href", url);
-        link.setAttribute("download", `Reporte_Consolidado_${especialidadNombre.replace(/\s+/g, '_')}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        const espNombre = especialidades.find(e => e.id_especialidad.toString() === selectedEspecialidad)?.nombre || 'Reporte';
+        exportarConsolidadoCSV(alumnosFiltrados, espNombre);
     };
 
+    // --- ACCIÓN: EXPORTAR A PDF ---
     const exportarPDF = () => {
         if (alumnosFiltrados.length === 0) return;
-
-        const especialidadNombre = especialidades.find(e => e.id_especialidad.toString() === selectedEspecialidad)?.nombre || 'Reporte';
-
-        const printWindow = window.open('', '_blank');
-        printWindow.document.write(`
-            <html>
-            <head>
-                <title>Reporte Consolidado Académico</title>
-                <style>
-                    body { font-family: sans-serif; padding: 25px; color: #334155; }
-                    .header { border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 20px; }
-                    h1 { font-size: 22px; color: #1e293b; margin: 0; }
-                    .meta { font-size: 11px; color: #64748b; margin-top: 5px; }
-                    table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 11px; }
-                    th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
-                    th { background-color: #f8fafc; font-weight: bold; color: #0f172a; }
-                    .text-center { text-align: center; }
-                    .font-bold { font-weight: bold; }
-                    .footer { font-size: 9px; color: #94a3b8; text-align: center; margin-top: 30px; border-top: 1px solid #f1f5f9; padding-top: 10px; }
-                </style>
-            </head>
-            <body>
-                <div class="header">
-                    <h1>Reporte Consolidado Académico - UNCP</h1>
-                    <div class="meta">
-                        <span>Carrera: <strong>${especialidadNombre}</strong></span> | 
-                        <span>Alumnos Listados: <strong>${totalAlumnos}</strong></span> | 
-                        <span>PPA Promedio: <strong>${promedioPpaGlobal}</strong></span> | 
-                        <span>Fecha: <strong>${new Date().toLocaleDateString('es-PE')}</strong></span>
-                    </div>
-                </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th style="width: 100px;">Código</th>
-                            <th>Estudiante (Apellidos, Nombres)</th>
-                            <th style="text-align: center; width: 90px;">Créditos Mat.</th>
-                            <th style="text-align: center; width: 90px;">Créditos Aprob.</th>
-                            <th style="text-align: center; width: 90px;">Promedio PPA</th>
-                            <th style="text-align: center; width: 80px;">Semestres</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${alumnosFiltrados.map(a => `
-                            <tr>
-                                <td>${a.codigo}</td>
-                                <td>${a.apellidos}, ${a.nombres}</td>
-                                <td class="text-center">${a.total_creditos_matriculados}</td>
-                                <td class="text-center">${a.total_creditos_aprobados}</td>
-                                <td class="text-center font-bold" style="color: #2563eb;">${a.promedio_ponderado_acumulado !== null && a.promedio_ponderado_acumulado !== undefined ? a.promedio_ponderado_acumulado.toFixed(2) : '-'}</td>
-                                <td class="text-center">${a.periodos_matriculados}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-                <div class="footer">
-                    Sistema de Gestión Académica - Universidad Nacional del Centro del Perú (UNCP)
-                </div>
-                <script>
-                    window.onload = function() {
-                        window.print();
-                        window.close();
-                    };
-                </script>
-            </body>
-            </html>
-        `);
-        printWindow.document.close();
+        const espNombre = especialidades.find(e => e.id_especialidad.toString() === selectedEspecialidad)?.nombre || 'Reporte';
+        exportarConsolidadoPDF(alumnosFiltrados, espNombre, {
+            totalAlumnos,
+            promedioPpaGlobal,
+            promCreditosAprobados
+        });
     };
 
     return (

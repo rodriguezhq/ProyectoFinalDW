@@ -52,8 +52,8 @@ export default function SidebarShell({ menuOptions = [], children }) {
             )}
 
             {/* Sidebar */}
-            <aside className={`fixed lg:static inset-y-0 left-0 h-screen bg-primary-light text-text-main flex flex-col overflow-y-auto border-r border-primary/10 transition-all duration-300 z-[99] shrink-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} ${isCollapsed ? 'lg:w-[80px]' : 'w-[250px]'}`}>
-                <div className={`flex items-center gap-3 p-4.5 border-b border-primary/10 ${isCollapsed ? 'lg:justify-center lg:p-5' : ''}`}>
+            <aside className={`fixed lg:static inset-y-0 left-0 h-screen bg-primary-light text-text-main flex flex-col overflow-y-auto border-r border-primary/10 transition-all duration-300 z-[99] shrink-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} ${isCollapsed ? 'lg:w-[80px]' : 'w-[240px]'}`}>
+                <div className={`flex items-center gap-3 p-3.5 border-b border-primary/10 ${isCollapsed ? 'lg:justify-center lg:p-5' : ''}`}>
                     <img src={uncpImagen} alt="UNCP logo" className="h-10 w-auto drop-shadow-sm" />
                     <div className={`flex flex-col ${isCollapsed ? 'lg:hidden' : ''}`}>
                         <span className="font-heading text-[1.15rem] font-extrabold text-primary tracking-tight leading-none">SGA - UNCP</span>
@@ -118,7 +118,7 @@ export default function SidebarShell({ menuOptions = [], children }) {
                     <div className="relative">
                         <button
                             type="button"
-                            className="flex items-center gap-2 py-1.5 pl-1.5 pr-3 rounded-full border border-border hover:bg-bg-alt transition-all duration-150 focus:outline-none"
+                            className="flex items-center gap-2 py-1.5 pl-1.5 pr-3 rounded-none border border-border hover:bg-bg-alt transition-all duration-150 focus:outline-none"
                             onClick={() => setDropdownOpen(!dropdownOpen)}
                         >
                             <div className="w-8 h-8 rounded-full bg-primary text-white text-[0.9rem] font-bold flex items-center justify-center shrink-0">
@@ -133,7 +133,7 @@ export default function SidebarShell({ menuOptions = [], children }) {
                         {dropdownOpen && (
                             <>
                                 <div className="fixed inset-0 z-[95]" onClick={() => setDropdownOpen(false)} />
-                                <div className="absolute right-0 top-[calc(100%+8px)] w-56 bg-white border border-border rounded-lg shadow-lg z-[96] overflow-hidden">
+                                <div className="absolute right-0 top-[calc(100%+8px)] w-56 bg-white border border-border rounded-none shadow-lg z-[96] overflow-hidden">
                                     <button
                                         type="button"
                                         className="w-full flex items-center gap-2.5 py-2.5 px-4 text-[0.88rem] font-medium text-text-heading hover:bg-bg-alt transition-all duration-150"

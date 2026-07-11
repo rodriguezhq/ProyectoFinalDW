@@ -3,7 +3,9 @@ import { obtenerEspecialidades } from '../../services/servicioAcademico';
 import { obtenerDesempenoCohortes, obtenerConsolidadoEspecialidad } from '../../services/servicioDireccion';
 import TablaCohortes from './components/TablaCohortes';
 import TablaConsolidado from './components/TablaConsolidado';
-import { RefreshCw, BarChart3, Users, Award, AlertCircle, Loader2 } from 'lucide-react';
+import { RefreshCw, BarChart3, Users, Award, AlertCircle, Loader2, FileSpreadsheet, FileText } from 'lucide-react';
+import { exportarConsolidadoCSV, exportarConsolidadoPDF, exportarCohortesCSV, exportarCohortesPDF } from '../../utils/exportUtils';
+
 
 export default function DireccionReportes() {
     const [activeTab, setActiveTab] = useState('cohortes'); // 'cohortes' | 'consolidado'
@@ -67,6 +69,47 @@ export default function DireccionReportes() {
         }
     };
 
+    // --- ACCIÓN: EXPORTAR A EXCEL (CSV) ---
+    const exportarExcel = () => {
+        const espNombre = especialidades.find(e => e.id_especialidad.toString() === selectedEspecialidad)?.nombre || 'Reporte';
+        if (activeTab === 'cohortes') {
+            exportarCohortesCSV(cohortesData, espNombre);
+        } else {
+            exportarConsolidadoCSV(consolidadoData, espNombre);
+        }
+    };
+
+    // --- ACCIÓN: EXPORTAR A PDF (IMPRESIÓN) ---
+    const exportarPDF = () => {
+        const espNombre = especialidades.find(e => e.id_especialidad.toString() === selectedEspecialidad)?.nombre || 'Reporte';
+        if (activeTab === 'cohortes') {
+            const totalEst = cohortesData.reduce((acc, curr) => acc + (curr.total_estudiantes || 0), 0);
+            const promValidos = cohortesData.map(d => d.promedio_ponderado_promedio).filter(p => p !== null && p !== undefined);
+            const promGlob = promValidos.length > 0 ? (promValidos.reduce((acc, curr) => acc + curr, 0) / promValidos.length).toFixed(2) : '-';
+            const tasValidas = cohortesData.map(d => d.tasa_aprobacion).filter(t => t !== null && t !== undefined);
+            const tasAprobGlob = tasValidas.length > 0 ? (tasasValidas.reduce((acc, curr) => acc + curr, 0) / tasValidas.length).toFixed(1) : '-';
+            
+            exportarCohortesPDF(cohortesData, espNombre, {
+                totalEstudiantes: totalEst,
+                promedioGlobal: promGlob,
+                tasaAprobacionGlobal: tasAprobGlob
+            });
+        } else {
+            const totalAl = consolidadoData.length;
+            const ppasVal = consolidadoData.map(a => a.promedio_ponderado_acumulado).filter(p => p !== null && p !== undefined);
+            const promPpaG = ppasVal.length > 0 ? (ppasVal.reduce((acc, curr) => acc + curr, 0) / ppasVal.length).toFixed(2) : '0.00';
+            const credsApVal = consolidadoData.map(a => a.total_creditos_aprobados).filter(c => c !== null && c !== undefined);
+            const promCredsAp = credsApVal.length > 0 ? (credsApVal.reduce((acc, curr) => acc + curr, 0) / credsApVal.length).toFixed(1) : '0.0';
+
+            exportarConsolidadoPDF(consolidadoData, espNombre, {
+                totalAlumnos: totalAl,
+                promedioPpaGlobal: promPpaG,
+                promCreditosAprobados: promCredsAp
+            });
+        }
+    };
+
+
     return (
         <div className="w-full flex flex-col gap-6 animate-slide-up">
             {/* Cabecera */}
@@ -82,15 +125,35 @@ export default function DireccionReportes() {
                         Supervise los promedios históricos y la tasa de aprobación de las cohortes y estudiantes de la institución.
                     </p>
                 </div>
-                <button
-                    type="button"
-                    onClick={cargarDatosReporte}
-                    disabled={loading}
-                    className="flex items-center gap-2 py-2 px-4 bg-bg-alt hover:bg-slate-100 border border-border text-text-heading font-bold text-xs uppercase tracking-wider transition-colors rounded-none cursor-pointer"
-                >
-                    <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-                    Actualizar
-                </button>
+                <div className="flex gap-2 items-center shrink-0 w-full sm:w-auto justify-end">
+                    <button
+                        type="button"
+                        onClick={exportarExcel}
+                        disabled={loading || (activeTab === 'cohortes' ? cohortesData.length === 0 : consolidadoData.length === 0)}
+                        className="flex items-center gap-1.5 py-1.5 px-3 bg-[#107C41] hover:bg-[#0e6b37] text-white font-bold text-xs uppercase tracking-wider transition-colors rounded-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                    >
+                        <FileSpreadsheet size={13} />
+                        Excel
+                    </button>
+                    <button
+                        type="button"
+                        onClick={exportarPDF}
+                        disabled={loading || (activeTab === 'cohortes' ? cohortesData.length === 0 : consolidadoData.length === 0)}
+                        className="flex items-center gap-1.5 py-1.5 px-3 bg-[#E11D48] hover:bg-[#be183d] text-white font-bold text-xs uppercase tracking-wider transition-colors rounded-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                    >
+                        <FileText size={13} />
+                        PDF
+                    </button>
+                    <button
+                        type="button"
+                        onClick={cargarDatosReporte}
+                        disabled={loading}
+                        className="flex items-center gap-1.5 py-1.5 px-3 bg-bg-alt hover:bg-slate-100 border border-border text-text-heading font-bold text-xs uppercase tracking-wider transition-colors rounded-none cursor-pointer shadow-sm"
+                    >
+                        <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
+                        Actualizar
+                    </button>
+                </div>
             </div>
 
             {/* Banner de error */}
