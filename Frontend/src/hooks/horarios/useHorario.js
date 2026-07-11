@@ -62,7 +62,7 @@ export function useHorario(esDocente = false) {
   const obtenerHorario = useCallback(async () => {
     setEstaCargando(true);
     setMensajeError(null);
-    
+
     try {
       let secciones = [];
       if (esDocente) {
