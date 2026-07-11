@@ -92,6 +92,7 @@ export async function consultarApi(ruta, opciones = {}) {
         estaRefrescando = false;
         suscriptoresRefresco = [];
         localStorage.removeItem('user');
+        localStorage.removeItem('sga_user');
         toast.error("Tu sesión ha expirado. Por favor, inicia sesión nuevamente.");
         setTimeout(() => {
           window.location.href = '/login';
@@ -102,6 +103,7 @@ export async function consultarApi(ruta, opciones = {}) {
       estaRefrescando = false;
       suscriptoresRefresco = [];
       localStorage.removeItem('user');
+      localStorage.removeItem('sga_user');
       window.location.href = '/login';
       throw errorRefresco;
     }
