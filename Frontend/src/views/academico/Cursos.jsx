@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { BookOpen, Plus, Pencil, X, AlertTriangle } from 'lucide-react';
 import { obtenerCursos, obtenerFacultades, obtenerEspecialidades, guardarCurso, actualizarCurso, eliminarCurso } from '../../services/servicioAcademico';
 
 export default function Cursos() {
@@ -147,15 +148,15 @@ export default function Cursos() {
       <div className="flex flex-col gap-6 animate-slide-up">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start md:items-center gap-4">
           <div>
-            <h3 className="font-heading text-[1.25rem] font-extrabold text-text-heading mb-1">📚 Catálogo de Cursos</h3>
+            <h3 className="flex items-center gap-2 font-heading text-[1.25rem] font-extrabold text-text-heading mb-1"><BookOpen size={20} /> Catálogo de Cursos</h3>
             <p className="text-[0.88rem] text-text-muted">Gestión de las asignaturas académicas, ciclo, facultad, carreras y prerrequisitos asociados.</p>
           </div>
           <button
             type="button"
             onClick={abrirModalAgregar}
-            className="bg-primary text-white py-2 px-4 text-[0.88rem] font-bold rounded-md transition-all duration-300 hover:bg-primary-hover shadow-sm self-start sm:self-auto cursor-pointer"
+            className="flex items-center gap-1.5 bg-primary text-white py-2 px-4 text-[0.88rem] font-bold rounded-md transition-all duration-300 hover:bg-primary-hover shadow-sm self-start sm:self-auto cursor-pointer"
           >
-            + Agregar Curso
+            <Plus size={16} /> Agregar Curso
           </button>
         </div>
 
@@ -256,15 +257,15 @@ export default function Cursos() {
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setModalOpen(false)}>
           <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-[450px] w-full overflow-hidden animate-scale-in text-left" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 bg-primary-light border-b border-primary/10 flex justify-between items-center">
-              <h3 className="font-heading font-extrabold text-primary text-[1.1rem]">
-                {editingId ? '📝 Editar Curso' : '📚 Nuevo Curso'}
+              <h3 className="flex items-center gap-2 font-heading font-extrabold text-primary text-[1.1rem]">
+                {editingId ? <><Pencil size={18} /> Editar Curso</> : <><BookOpen size={18} /> Nuevo Curso</>}
               </h3>
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="text-text-muted hover:text-primary transition-all text-2xl font-bold cursor-pointer focus:outline-none"
+                className="text-text-muted hover:text-primary transition-all cursor-pointer focus:outline-none"
               >
-                ×
+                <X size={22} />
               </button>
             </div>
             <form onSubmit={manejarEnvio}>
@@ -414,8 +415,8 @@ export default function Cursos() {
       {deleteConfirmId && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setDeleteConfirmId(null)}>
           <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-[400px] w-full p-6 animate-scale-in text-center" onClick={(e) => e.stopPropagation()}>
-            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
-              ⚠️
+            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle size={28} />
             </div>
             <h3 className="font-heading font-extrabold text-[1.1rem] text-text-heading mb-2">
               ¿Confirmar eliminación?

@@ -4,8 +4,8 @@ from tests.conftest import TEST_PASSWORD, token_para
 ADMIN_URL = "/api/admin"
 
 
-def _login(client, username, password=TEST_PASSWORD):
-    return client.post("/api/auth/login", json={"username": username, "password": password})
+def _login(client, correo, password=TEST_PASSWORD):
+    return client.post("/api/auth/login", json={"correo": correo, "password": password})
 
 
 def _auth_headers(client, username):
@@ -26,7 +26,7 @@ def _id_estudiante_sin_cuenta(app):
         especialidad = Especialidad.query.filter_by(codigo="EP").first()
         est = Estudiante(
             codigo="E003", dni="99988877", nombres="Luis", apellidos="Nuevo",
-            estado="activo", id_especialidad=especialidad.id_especialidad,
+            correo="luis.nuevo@test.com", estado="activo", id_especialidad=especialidad.id_especialidad,
         )
         db.session.add(est)
         db.session.commit()
@@ -61,7 +61,7 @@ def test_password_temporal_generada_funciona_para_loguearse(client, app):
     ).get_json()
 
     resp = client.post(
-        "/api/auth/login", json={"username": "lnuevo2", "password": creado["password_temporal"]}
+        "/api/auth/login", json={"correo": "luis.nuevo@test.com", "password": creado["password_temporal"]}
     )
     assert resp.status_code == 200
 
@@ -179,7 +179,7 @@ def test_listar_roles_cualquier_autenticado(client, app):
 # ---------------- Auditoria ----------------
 
 def test_login_exitoso_queda_registrado_en_auditoria(client, app):
-    _login(client, "jperez")  # dispara login_exitoso
+    _login(client, "juan.perez@test.com")  # dispara login_exitoso
 
     resp = client.get(f"{ADMIN_URL}/auditoria?accion=login_exitoso", headers=_auth_headers(client, "direccion_test"))
     body = resp.get_json()
@@ -189,7 +189,7 @@ def test_login_exitoso_queda_registrado_en_auditoria(client, app):
 
 
 def test_login_fallido_queda_registrado_en_auditoria(client, app):
-    client.post("/api/auth/login", json={"username": "jperez", "password": "clave-mala"})
+    client.post("/api/auth/login", json={"correo": "juan.perez@test.com", "password": "clave-mala"})
 
     resp = client.get(f"{ADMIN_URL}/auditoria?accion=login_fallido", headers=_auth_headers(client, "direccion_test"))
     body = resp.get_json()

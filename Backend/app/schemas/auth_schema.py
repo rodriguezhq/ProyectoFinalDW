@@ -4,7 +4,7 @@ from app.schemas.user_schema import UserData
 
 
 class LoginBody(BaseModel):
-    username: str
+    correo: str
     password: str
 
 

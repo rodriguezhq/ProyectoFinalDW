@@ -1,4 +1,13 @@
 from datetime import datetime
+from io import BytesIO
+
+from flask import current_app
+from reportlab.graphics.barcode.qr import QrCodeWidget
+from reportlab.graphics.shapes import Drawing
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table
+
 from app.extensions import db
 from app.models.documento import Documento
 from app.models.estudiante import Estudiante
@@ -75,6 +84,23 @@ def _generar_qr(documento):
     return f"QR-{tipo}-{documento.id_documento}-{fecha}"
 
 
+def url_verificacion(codigo_qr):
+    """URL publica que el QR codifica: al escanearlo, abre esta pagina de verificacion."""
+    return f"{current_app.config['FRONTEND_URL']}/verificar/{codigo_qr}"
+
+
+def verificar_documento(codigo_qr):
+    """Busca un documento emitido por su codigo QR, para la pagina publica de verificacion.
+
+    Solo encuentra documentos ya emitidos (un documento 'solicitado' o
+    'autorizado' todavia no tiene codigo_qr, asi que no es verificable).
+    """
+    documento = Documento.query.filter_by(codigo_qr=codigo_qr, estado="emitido").first()
+    if not documento:
+        raise DocumentoNoEncontradoError()
+    return documento
+
+
 def obtener_documentos_estudiante(id_estudiante):
     """Todos los documentos de un estudiante."""
     return (
@@ -95,3 +121,59 @@ def obtener_documento(id_documento):
 def obtener_todos_documentos():
     """Todos los documentos."""
     return Documento.query.order_by(Documento.fecha_solicitud.desc()).all()
+
+
+def _dibujo_qr(contenido, tamano=90):
+    """Genera un codigo QR real (no una imagen externa) para embeber en el PDF."""
+    widget = QrCodeWidget(contenido)
+    x1, y1, x2, y2 = widget.getBounds()
+    ancho, alto = x2 - x1, y2 - y1
+    dibujo = Drawing(tamano, tamano, transform=[tamano / ancho, 0, 0, tamano / alto, 0, 0])
+    dibujo.add(widget)
+    return dibujo
+
+
+def generar_certificado_pdf(documento):
+    """Genera el PDF del certificado/constancia al vuelo (no se guarda en disco).
+
+    La "firma digital" institucional se representa como el nombre de quien
+    emitio el documento + el codigo QR de verificacion, que es lo unico
+    verificable sin una infraestructura de firma criptografica real.
+    """
+    buffer = BytesIO()
+    doc_pdf = SimpleDocTemplate(buffer, pagesize=letter)
+    styles = getSampleStyleSheet()
+    estudiante = documento.estudiante
+    emisor = documento.usuario_emite
+
+    emisor_nombre = (
+        f"{emisor.nombres_efectivos} {emisor.apellidos_efectivos}" if emisor else "N/D"
+    )
+    emisor_rol = emisor.rol.nombre if emisor and emisor.rol else ""
+    fecha_emision = documento.fecha_emision or datetime.now()
+
+    elementos = [
+        Paragraph("Universidad Nacional del Centro del Perú", styles["Title"]),
+        Paragraph(documento.tipo_documento.upper(), styles["Heading2"]),
+        Spacer(1, 16),
+        Paragraph("Se deja constancia que:", styles["Normal"]),
+        Paragraph(f"<b>{estudiante.nombres} {estudiante.apellidos}</b>", styles["Normal"]),
+        Paragraph(f"Código: {estudiante.codigo}", styles["Normal"]),
+        Spacer(1, 24),
+        Paragraph(f"Huancayo, {fecha_emision.strftime('%d/%m/%Y')}", styles["Normal"]),
+        Spacer(1, 32),
+    ]
+
+    firma_texto = Paragraph(
+        f"Firmado digitalmente por:<br/><b>{emisor_nombre}</b><br/>"
+        f"{emisor_rol} - UNCP<br/>"
+        f"{fecha_emision.strftime('%d/%m/%Y %H:%M')}",
+        styles["Normal"],
+    )
+    tabla_firma = Table([[firma_texto, _dibujo_qr(url_verificacion(documento.codigo_qr))]], colWidths=[340, 100])
+    elementos.append(tabla_firma)
+    elementos.append(Spacer(1, 10))
+    elementos.append(Paragraph(f"Código de verificación: {documento.codigo_qr}", styles["Normal"]))
+
+    doc_pdf.build(elementos)
+    return buffer.getvalue()

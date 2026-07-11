@@ -1,4 +1,5 @@
 import React from 'react';
+import { TrendingUp, TrendingDown, Minus, BarChart3, History } from 'lucide-react';
 
 export default function VistaPanel({ isDirection = false }) {
   const esDireccion = isDirection;
@@ -12,8 +13,8 @@ export default function VistaPanel({ isDirection = false }) {
             <span className="text-[0.85rem] font-bold text-text-muted uppercase tracking-wider leading-tight">
               {esDireccion ? 'Promedio Ponderado Acumulado' : 'Total Alumnos Matriculados'}
             </span>
-            <span className="text-[0.75rem] font-bold py-0.5 px-1.5 rounded bg-emerald-100 text-emerald-600">
-              {esDireccion ? '↑ 4.2%' : '↑ 8.5%'}
+            <span className="flex items-center gap-0.5 text-[0.75rem] font-bold py-0.5 px-1.5 rounded bg-emerald-100 text-emerald-600">
+              <TrendingUp size={12} /> {esDireccion ? '4.2%' : '8.5%'}
             </span>
           </div>
           <div className="font-heading text-[2.25rem] font-extrabold text-text-heading leading-none">
@@ -31,8 +32,8 @@ export default function VistaPanel({ isDirection = false }) {
             <span className="text-[0.85rem] font-bold text-text-muted uppercase tracking-wider leading-tight">
               {esDireccion ? 'Tasa de Aprobación General' : 'Validaciones Pendientes'}
             </span>
-            <span className="text-[0.75rem] font-bold py-0.5 px-1.5 rounded bg-emerald-100 text-emerald-600">
-              {esDireccion ? '↑ 1.8%' : '↓ 15%'}
+            <span className="flex items-center gap-0.5 text-[0.75rem] font-bold py-0.5 px-1.5 rounded bg-emerald-100 text-emerald-600">
+              {esDireccion ? <><TrendingUp size={12} /> 1.8%</> : <><TrendingDown size={12} /> 15%</>}
             </span>
           </div>
           <div className="font-heading text-[2.25rem] font-extrabold text-text-heading leading-none">
@@ -50,8 +51,8 @@ export default function VistaPanel({ isDirection = false }) {
             <span className="text-[0.85rem] font-bold text-text-muted uppercase tracking-wider leading-tight">
               {esDireccion ? 'Carga Horaria Docente' : 'Tasas de Pago Registradas'}
             </span>
-            <span className="text-[0.75rem] font-bold py-0.5 px-1.5 rounded bg-slate-100 text-slate-500">
-              {esDireccion ? '=' : '↑ 92%'}
+            <span className="flex items-center gap-0.5 text-[0.75rem] font-bold py-0.5 px-1.5 rounded bg-slate-100 text-slate-500">
+              {esDireccion ? <Minus size={12} /> : <><TrendingUp size={12} /> 92%</>}
             </span>
           </div>
           <div className="font-heading text-[2.25rem] font-extrabold text-text-heading leading-none">
@@ -69,8 +70,8 @@ export default function VistaPanel({ isDirection = false }) {
             <span className="text-[0.85rem] font-bold text-text-muted uppercase tracking-wider leading-tight">
               {esDireccion ? 'Certificados Emitidos' : 'Secciones Aperturadas'}
             </span>
-            <span className="text-[0.75rem] font-bold py-0.5 px-1.5 rounded bg-emerald-100 text-emerald-600">
-              {esDireccion ? '↑ 12%' : '↑ 4'}
+            <span className="flex items-center gap-0.5 text-[0.75rem] font-bold py-0.5 px-1.5 rounded bg-emerald-100 text-emerald-600">
+              <TrendingUp size={12} /> {esDireccion ? '12%' : '4'}
             </span>
           </div>
           <div className="font-heading text-[2.25rem] font-extrabold text-text-heading leading-none">
@@ -88,8 +89,8 @@ export default function VistaPanel({ isDirection = false }) {
       <div className="grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-6">
         {/* Gráfico Customizado en CSS */}
         <div className="bg-white rounded-xl border border-border p-6 md:p-8 shadow-md">
-          <h3 className="font-heading text-[1.25rem] font-extrabold text-text-heading mb-1">
-            {esDireccion ? '📈 Rendimiento Académico por Especialidad' : '📈 Estado de Trámites y Matrículas'}
+          <h3 className="flex items-center gap-2 font-heading text-[1.25rem] font-extrabold text-text-heading mb-1">
+            <BarChart3 size={20} /> {esDireccion ? 'Rendimiento Académico por Especialidad' : 'Estado de Trámites y Matrículas'}
           </h3>
           <p className="text-[0.88rem] text-text-muted mb-7">Resumen visual de los indicadores críticos del periodo lectivo.</p>
           
@@ -135,8 +136,8 @@ export default function VistaPanel({ isDirection = false }) {
 
         {/* Solicitudes / Bitácora Recientes */}
         <div className="bg-white rounded-xl border border-border p-6 md:p-8 shadow-md">
-          <h3 className="font-heading text-[1.25rem] font-extrabold text-text-heading mb-1">
-            ⏱️ {esDireccion ? 'Control de Auditoría y Bitácora' : 'Solicitudes Recientes'}
+          <h3 className="flex items-center gap-2 font-heading text-[1.25rem] font-extrabold text-text-heading mb-1">
+            <History size={20} /> {esDireccion ? 'Control de Auditoría y Bitácora' : 'Solicitudes Recientes'}
           </h3>
           <p className="text-[0.88rem] text-text-muted mb-7">Registro inmediato de operaciones críticas en el sistema.</p>
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { Shield } from 'lucide-react';
 import { obtenerRoles } from '../../services/servicioUsuarios';
 
 export default function Roles() {
@@ -27,7 +28,7 @@ export default function Roles() {
       <div className="flex flex-col gap-6 animate-slide-up">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start md:items-center gap-4">
           <div>
-            <h3 className="font-heading text-[1.25rem] font-extrabold text-text-heading mb-1">🛡️ Roles del Sistema</h3>
+            <h3 className="flex items-center gap-2 font-heading text-[1.25rem] font-extrabold text-text-heading mb-1"><Shield size={20} /> Roles del Sistema</h3>
             <p className="text-[0.88rem] text-text-muted">Gestión de privilegios y clasificaciones de acceso a la plataforma.</p>
           </div>
         </div>
@@ -44,22 +45,25 @@ export default function Roles() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[500px] border-collapse">
+              <table className="w-full min-w-[500px] border-collapse text-left text-xs text-text-main">
                 <thead>
-                  <tr className="bg-bg-alt border-b border-border">
-                    <th className="p-4 text-left text-[0.85rem] font-heading font-extrabold text-text-heading">ID</th>
-                    <th className="p-4 text-left text-[0.85rem] font-heading font-extrabold text-text-heading">Nombre del Rol</th>
-                    <th className="p-4 text-left text-[0.85rem] font-heading font-extrabold text-text-heading">Descripción</th>
+                  <tr className="bg-primary-light text-primary font-bold uppercase tracking-wide border-b border-border">
+                    <th className="p-2 border-r border-border/60 text-center w-16">ID</th>
+                    <th className="p-2 border-r border-border/60 text-left">Nombre del Rol</th>
+                    <th className="p-2 text-left">Descripción</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border">
-                  {roles.map((rol) => (
-                    <tr key={rol.id_rol} className="hover:bg-slate-50 transition-colors">
-                      <td className="p-4 text-[0.88rem] font-mono text-text-muted">{rol.id_rol}</td>
-                      <td className="p-4 text-[0.88rem] font-bold text-primary">{rol.nombre}</td>
-                      <td className="p-4 text-[0.88rem] font-semibold text-text-heading">{rol.descripcion || 'Sin descripción'}</td>
-                    </tr>
-                  ))}
+                <tbody>
+                  {roles.map((rol, idx) => {
+                    const isEven = idx % 2 === 0;
+                    return (
+                      <tr key={rol.id_rol} className={`border-b border-border ${isEven ? 'bg-white' : 'bg-[#F8FAFC]'}`}>
+                        <td className="p-2 border-r border-border/60 text-center font-mono text-text-muted">{rol.id_rol}</td>
+                        <td className="p-2 border-r border-border/60 font-bold text-primary">{rol.nombre}</td>
+                        <td className="p-2 font-semibold text-text-heading">{rol.descripcion || 'Sin descripción'}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

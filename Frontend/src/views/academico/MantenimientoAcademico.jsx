@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Building2, GraduationCap, BookOpen, Calendar } from 'lucide-react';
 import Facultades from './Facultades';
 import Especialidades from './Especialidades';
 import Cursos from './Cursos';
@@ -14,30 +15,30 @@ export default function MantenimientoAcademico() {
         <button
           type="button"
           onClick={() => setActivoTab('facultades')}
-          className={`py-2 px-5.5 text-[0.88rem] font-bold rounded-md transition-all duration-200 cursor-pointer shrink-0 ${activoTab === 'facultades' ? 'bg-white text-primary shadow-sm border border-border' : 'text-text-muted hover:text-primary hover:bg-white/50'}`}
+          className={`flex items-center gap-1.5 py-2 px-5.5 text-[0.88rem] font-bold rounded-md transition-all duration-200 cursor-pointer shrink-0 ${activoTab === 'facultades' ? 'bg-white text-primary shadow-sm border border-border' : 'text-text-muted hover:text-primary hover:bg-white/50'}`}
         >
-          🏫 Facultades
+          <Building2 size={16} /> Facultades
         </button>
         <button
           type="button"
           onClick={() => setActivoTab('especialidades')}
-          className={`py-2 px-5.5 text-[0.88rem] font-bold rounded-md transition-all duration-200 cursor-pointer shrink-0 ${activoTab === 'especialidades' ? 'bg-white text-primary shadow-sm border border-border' : 'text-text-muted hover:text-primary hover:bg-white/50'}`}
+          className={`flex items-center gap-1.5 py-2 px-5.5 text-[0.88rem] font-bold rounded-md transition-all duration-200 cursor-pointer shrink-0 ${activoTab === 'especialidades' ? 'bg-white text-primary shadow-sm border border-border' : 'text-text-muted hover:text-primary hover:bg-white/50'}`}
         >
-          🎓 Especialidades / Carreras
+          <GraduationCap size={16} /> Especialidades / Carreras
         </button>
         <button
           type="button"
           onClick={() => setActivoTab('cursos')}
-          className={`py-2 px-5.5 text-[0.88rem] font-bold rounded-md transition-all duration-200 cursor-pointer shrink-0 ${activoTab === 'cursos' ? 'bg-white text-primary shadow-sm border border-border' : 'text-text-muted hover:text-primary hover:bg-white/50'}`}
+          className={`flex items-center gap-1.5 py-2 px-5.5 text-[0.88rem] font-bold rounded-md transition-all duration-200 cursor-pointer shrink-0 ${activoTab === 'cursos' ? 'bg-white text-primary shadow-sm border border-border' : 'text-text-muted hover:text-primary hover:bg-white/50'}`}
         >
-          📚 Cursos
+          <BookOpen size={16} /> Cursos
         </button>
         <button
           type="button"
           onClick={() => setActivoTab('periodos')}
-          className={`py-2 px-5.5 text-[0.88rem] font-bold rounded-md transition-all duration-200 cursor-pointer shrink-0 ${activoTab === 'periodos' ? 'bg-white text-primary shadow-sm border border-border' : 'text-text-muted hover:text-primary hover:bg-white/50'}`}
+          className={`flex items-center gap-1.5 py-2 px-5.5 text-[0.88rem] font-bold rounded-md transition-all duration-200 cursor-pointer shrink-0 ${activoTab === 'periodos' ? 'bg-white text-primary shadow-sm border border-border' : 'text-text-muted hover:text-primary hover:bg-white/50'}`}
         >
-          📅 Periodos Académicos
+          <Calendar size={16} /> Periodos Académicos
         </button>
       </div>
 

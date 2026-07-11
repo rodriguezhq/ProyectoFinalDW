@@ -7,7 +7,7 @@ def login(body):
     """Autentica un usuario. Los tokens JWT van SOLO en cookies httpOnly,
     nunca en el body de la respuesta (si no, cualquier script/extension que
     lea la respuesta los puede robar igual, y de nada sirve httpOnly)."""
-    result = login_user(body.username, body.password, ip=request.remote_addr)
+    result = login_user(body.correo, body.password, ip=request.remote_addr)
     if not result:
         return jsonify({"msg": "Credenciales inválidas"}), 401
 

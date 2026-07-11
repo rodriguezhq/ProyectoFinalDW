@@ -3,6 +3,8 @@ from flask_jwt_extended import create_access_token, create_refresh_token, get_jw
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app.extensions import db
+from app.models.docente import Docente
+from app.models.estudiante import Estudiante
 from app.models.usuario import Usuario
 from app.services.audit_service import registrar_auditoria
 
@@ -18,11 +20,24 @@ def usuario_actual():
     return db.session.get(Usuario, id_usuario)
 
 
-def login_user(username, password, ip=None):
-    user = Usuario.query.filter_by(username=username).first()
+def login_user(correo, password, ip=None):
+    correo_norm = (correo or "").strip().lower()
+    user = (
+        Usuario.query
+        .outerjoin(Estudiante, Usuario.id_estudiante == Estudiante.id_estudiante)
+        .outerjoin(Docente, Usuario.id_docente == Docente.id_docente)
+        .filter(
+            db.or_(
+                db.func.lower(Usuario.correo) == correo_norm,
+                db.func.lower(Estudiante.correo) == correo_norm,
+                db.func.lower(Docente.correo) == correo_norm,
+            )
+        )
+        .first()
+    )
     if not user or not verify_password(password, user.password_hash):
         registrar_auditoria(
-            "login_fallido", "usuario", registro=username, id_usuario=user.id_usuario if user else None, ip=ip
+            "login_fallido", "usuario", registro=correo_norm, id_usuario=user.id_usuario if user else None, ip=ip
         )
         return None
     if user.estado != "activo":

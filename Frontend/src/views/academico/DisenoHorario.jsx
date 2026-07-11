@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
+import { Calendar, Save, BookOpen, Lightbulb, AlertTriangle, X, Pencil } from 'lucide-react';
 import { useDisenoHorario } from '../../hooks/academico/useDisenoHorario';
 
 export default function DisenoHorario() {
@@ -352,7 +353,7 @@ export default function DisenoHorario() {
         {/* Encabezado */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start md:items-center gap-4">
           <div>
-            <h3 className="font-heading text-[1.25rem] font-extrabold text-text-heading mb-1">🗓️ Diseñar Horario y Carga Académica</h3>
+            <h3 className="flex items-center gap-2 font-heading text-[1.25rem] font-extrabold text-text-heading mb-1"><Calendar size={20} /> Diseñar Horario y Carga Académica</h3>
             <p className="text-[0.88rem] text-text-muted">Diseño de horarios en grilla semanal (Kanban) y asignación de docentes obligatorios.</p>
           </div>
           {idPeriodo && idFacultad && idEspecialidad && filtroCiclo && esPeriodoActivo() && (
@@ -360,9 +361,9 @@ export default function DisenoHorario() {
               type="button"
               disabled={estaGuardando}
               onClick={guardarCambiosHorario}
-              className="bg-primary text-white py-2.5 px-6 text-[0.88rem] font-bold rounded-md transition-all hover:bg-primary-hover shadow-sm cursor-pointer disabled:bg-slate-300"
+              className="flex items-center gap-1.5 bg-primary text-white py-2.5 px-6 text-[0.88rem] font-bold rounded-md transition-all hover:bg-primary-hover shadow-sm cursor-pointer disabled:bg-slate-300"
             >
-              {estaGuardando ? 'Guardando...' : '💾 Guardar Horario'}
+              {estaGuardando ? 'Guardando...' : <><Save size={16} /> Guardar Horario</>}
             </button>
           )}
         </div>
@@ -450,8 +451,8 @@ export default function DisenoHorario() {
 
         {/* Panel del Diseñador */}
         {!idPeriodo || !idFacultad || !idEspecialidad || !filtroCiclo ? (
-          <div className="bg-white border border-border rounded-xl p-12 text-center text-text-muted italic shadow-sm">
-            💡 Por favor, selecciona un Periodo Académico, una Facultad, una Carrera y un Ciclo para cargar el diseñador de horarios.
+          <div className="flex items-center justify-center gap-2 bg-white border border-border rounded-xl p-12 text-center text-text-muted italic shadow-sm">
+            <Lightbulb size={18} /> Por favor, selecciona un Periodo Académico, una Facultad, una Carrera y un Ciclo para cargar el diseñador de horarios.
           </div>
         ) : (
           <div className="flex flex-col gap-6">
@@ -461,7 +462,7 @@ export default function DisenoHorario() {
               <div className="bg-white border border-border rounded-xl p-4 shadow-sm flex flex-col gap-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-heading font-extrabold text-[0.95rem] text-text-heading">📚 Cursos Disponibles</h4>
+                    <h4 className="flex items-center gap-1.5 font-heading font-extrabold text-[0.95rem] text-text-heading"><BookOpen size={16} /> Cursos Disponibles</h4>
                     <p className="text-[0.75rem] text-text-muted">Arrastra de forma horizontal o presiona para agregar a la grilla.</p>
                   </div>
                 </div>
@@ -510,7 +511,7 @@ export default function DisenoHorario() {
             <div className="bg-white border border-border rounded-xl p-4 shadow-sm flex flex-col overflow-x-auto">
               {!esPeriodoActivo() && (
                 <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-lg p-3 text-[0.82rem] font-medium mb-4 flex items-center gap-2">
-                  ⚠️ **Modo Lectura**: El periodo seleccionado se encuentra cerrado. No se permiten realizar modificaciones de horarios ni de docentes.
+                  <AlertTriangle size={16} className="shrink-0" /> <strong>Modo Lectura</strong>: El periodo seleccionado se encuentra cerrado. No se permiten realizar modificaciones de horarios ni de docentes.
                 </div>
               )}
 
@@ -640,15 +641,15 @@ export default function DisenoHorario() {
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setModalOpen(false)}>
           <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-[450px] w-full overflow-hidden animate-scale-in text-left" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 bg-primary-light border-b border-primary/10 flex justify-between items-center">
-              <h3 className="font-heading font-extrabold text-primary text-[1.1rem]">
-                🗓️ Programar: {cursoAProgramar.nombre}
+              <h3 className="flex items-center gap-2 font-heading font-extrabold text-primary text-[1.1rem]">
+                <Calendar size={18} /> Programar: {cursoAProgramar.nombre}
               </h3>
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="text-text-muted hover:text-primary transition-all text-2xl font-bold cursor-pointer focus:outline-none"
+                className="text-text-muted hover:text-primary transition-all cursor-pointer focus:outline-none"
               >
-                ×
+                <X size={22} />
               </button>
             </div>
             <form onSubmit={agregarSeccion}>
@@ -738,15 +739,15 @@ export default function DisenoHorario() {
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setEditModalOpen(false)}>
           <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-[450px] w-full overflow-hidden animate-scale-in text-left" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 bg-primary-light border-b border-primary/10 flex justify-between items-center">
-              <h3 className="font-heading font-extrabold text-primary text-[1.1rem]">
-                📝 Editar Bloque: {bloqueAEditar.curso_nombre}
+              <h3 className="flex items-center gap-2 font-heading font-extrabold text-primary text-[1.1rem]">
+                <Pencil size={18} /> Editar Bloque: {bloqueAEditar.curso_nombre}
               </h3>
               <button
                 type="button"
                 onClick={() => setEditModalOpen(false)}
-                className="text-text-muted hover:text-primary transition-all text-2xl font-bold cursor-pointer focus:outline-none"
+                className="text-text-muted hover:text-primary transition-all cursor-pointer focus:outline-none"
               >
-                ×
+                <X size={22} />
               </button>
             </div>
             <form onSubmit={guardarEdicionBloque}>

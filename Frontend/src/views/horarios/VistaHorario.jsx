@@ -1,4 +1,5 @@
 import React from 'react';
+import { AlertTriangle, Calendar, Coffee, GraduationCap, BookOpen } from 'lucide-react';
 import { useHorario } from '../../hooks/horarios/useHorario';
 import { diasSemana, franjasHorarias, clasesColor } from '../../constants/horarios';
 
@@ -34,7 +35,7 @@ export default function VistaHorario({ isTeacher = false }) {
   if (mensajeError) {
     return (
       <div className="bg-white rounded-2xl border border-border shadow-md p-8 text-center text-red-600 animate-slide-up">
-        <span className="text-3xl mb-2 block">⚠</span>
+        <span className="flex justify-center mb-2"><AlertTriangle size={28} /></span>
         <p className="font-semibold mb-2">{mensajeError}</p>
         <p className="text-[0.85rem] text-text-muted">Asegúrate de que el backend esté ejecutándose.</p>
       </div>
@@ -44,7 +45,7 @@ export default function VistaHorario({ isTeacher = false }) {
   return (
     <div className="bg-white rounded-2xl border border-border shadow-md p-6 md:p-8 mb-6 animate-slide-up">
       <div className="mb-7">
-        <h3 className="font-heading text-[1.35rem] font-extrabold text-text-heading mb-1.5">📅 Horario Académico — Periodo 2026-I</h3>
+        <h3 className="flex items-center gap-2 font-heading text-[1.35rem] font-extrabold text-text-heading mb-1.5"><Calendar size={22} /> Horario Académico — Periodo 2026-I</h3>
         <p className="text-[0.95rem] text-text-muted">
           {esDocente 
             ? 'Vista de dictado de clases asignadas y laboratorios programados.'
@@ -74,7 +75,7 @@ export default function VistaHorario({ isTeacher = false }) {
                     if (esReceso) {
                       return (
                         <td key={dia} className="bg-amber-50 text-amber-600 font-bold font-heading text-[0.85rem] tracking-wider p-3 border-b border-r border-border last:border-r-0 text-center align-middle">
-                          {dia === 'Lunes' ? '🍔 RECESO / ALMUERZO' : ''}
+                          {dia === 'Lunes' ? <span className="flex items-center justify-center gap-1"><Coffee size={14} /> RECESO / ALMUERZO</span> : ''}
                         </td>
                       );
                     }
@@ -94,8 +95,8 @@ export default function VistaHorario({ isTeacher = false }) {
                           >
                             <div className={`p-3 px-2.5 rounded-md flex flex-col gap-1 h-full shadow-[0_2px_6px_rgba(0,0,0,0.02)] text-left animate-fade-in ${clasesColor[cursoActivo.color] || ''}`}>
                               <span className="font-bold text-text-heading text-[0.88rem] leading-tight">{cursoActivo.curso}</span>
-                              <span className="text-[0.65rem] font-bold uppercase tracking-wider mt-1 self-start py-0.5 px-1.5 rounded bg-white/40">
-                                {esDocente ? '🎓 Docente Principal' : '📚 Teoría y Práctica'}
+                              <span className="flex items-center gap-1 text-[0.65rem] font-bold uppercase tracking-wider mt-1 self-start py-0.5 px-1.5 rounded bg-white/40">
+                                {esDocente ? <><GraduationCap size={11} /> Docente Principal</> : <><BookOpen size={11} /> Teoría y Práctica</>}
                               </span>
                             </div>
                           </td>

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ScrollText, Search, X } from 'lucide-react';
 import { useAuditoria } from '../../hooks/direccion/useAuditoria';
 
 export default function Auditoria() {
@@ -45,7 +46,7 @@ export default function Auditoria() {
       <div className="flex flex-col gap-6 animate-slide-up">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start md:items-center gap-4">
           <div>
-            <h3 className="font-heading text-[1.25rem] font-extrabold text-text-heading mb-1">📜 Bitácora de Auditoría</h3>
+            <h3 className="flex items-center gap-2 font-heading text-[1.25rem] font-extrabold text-text-heading mb-1"><ScrollText size={20} /> Bitácora de Auditoría</h3>
             <p className="text-[0.88rem] text-text-muted">Registro completo de operaciones, inicios de sesión y modificaciones del sistema.</p>
           </div>
           {(filtroAccion || filtroUsuario) && (
@@ -139,9 +140,9 @@ export default function Auditoria() {
                         <button
                           type="button"
                           onClick={() => abrirModalDetalle(audit)}
-                          className="bg-primary/5 hover:bg-primary-light text-primary py-1 px-3.5 rounded text-[0.82rem] font-bold transition-all cursor-pointer border border-primary/10"
+                          className="flex items-center gap-1 bg-primary/5 hover:bg-primary-light text-primary py-1 px-3.5 rounded text-[0.82rem] font-bold transition-all cursor-pointer border border-primary/10"
                         >
-                          🔎 Ver Detalle
+                          <Search size={14} /> Ver Detalle
                         </button>
                       </td>
                     </tr>
@@ -158,15 +159,15 @@ export default function Auditoria() {
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setModalDetalleOpen(false)}>
           <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-[500px] w-full overflow-hidden animate-scale-in text-left" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 bg-primary-light border-b border-primary/10 flex justify-between items-center">
-              <h3 className="font-heading font-extrabold text-primary text-[1.1rem]">
-                🔎 Detalle de Operación Auditada
+              <h3 className="flex items-center gap-2 font-heading font-extrabold text-primary text-[1.1rem]">
+                <Search size={18} /> Detalle de Operación Auditada
               </h3>
               <button
                 type="button"
                 onClick={() => setModalDetalleOpen(false)}
-                className="text-text-muted hover:text-primary transition-all text-2xl font-bold cursor-pointer focus:outline-none"
+                className="text-text-muted hover:text-primary transition-all cursor-pointer focus:outline-none"
               >
-                ×
+                <X size={22} />
               </button>
             </div>
             

@@ -7,6 +7,8 @@ from app.schemas.certificate_schema import (
     DocumentoResponse,
     SolicitarDocumentoBody,
     DocumentoPath,
+    VerificacionPath,
+    VerificacionResponse,
 )
 from app.schemas.common_schema import MessageResponse
 from app.utils.decorators import role_required
@@ -16,6 +18,16 @@ certificates_tag = Tag(
     description="Solicitud, autorización y emisión de certificados/constancias",
 )
 certificates_bp = APIBlueprint("certificates", __name__, abp_tags=[certificates_tag])
+
+
+@certificates_bp.get(
+    "/verificar/<string:codigo_qr>",
+    summary="Verificar autenticidad de un documento (endpoint público, sin login)",
+    responses={200: VerificacionResponse, 404: MessageResponse},
+)
+def verificar(path: VerificacionPath):
+    response, status = certificateController.verificar(path.codigo_qr)
+    return response, status
 
 
 @certificates_bp.post(
@@ -88,3 +100,14 @@ def detalle(path: DocumentoPath):
 def listar_todos():
     response, status = certificateController.listar_todos()
     return response, status
+
+
+@certificates_bp.get(
+    "/<int:id_documento>/pdf",
+    summary="Descargar el PDF del documento emitido",
+    responses={403: MessageResponse, 404: MessageResponse, 409: MessageResponse},
+    security=[{"jwt": []}],
+)
+@role_required("Estudiante", "Administrador", "Direccion")
+def descargar_pdf(path: DocumentoPath):
+    return certificateController.pdf(path.id_documento)

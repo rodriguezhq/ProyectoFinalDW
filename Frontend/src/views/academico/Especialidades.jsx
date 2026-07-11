@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { GraduationCap, Plus, Pencil, X, AlertTriangle, Map } from 'lucide-react';
 import { obtenerFacultades, obtenerEspecialidades, obtenerCursos, guardarEspecialidad, actualizarEspecialidad, eliminarEspecialidad } from '../../services/servicioAcademico';
 
 export default function Especialidades() {
@@ -114,15 +115,15 @@ export default function Especialidades() {
       <div className="flex flex-col gap-6 animate-slide-up">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start md:items-center gap-4">
           <div>
-            <h3 className="font-heading text-[1.25rem] font-extrabold text-text-heading mb-1">🎓 Especialidades y Carreras</h3>
+            <h3 className="flex items-center gap-2 font-heading text-[1.25rem] font-extrabold text-text-heading mb-1"><GraduationCap size={20} /> Especialidades y Carreras</h3>
             <p className="text-[0.88rem] text-text-muted">Gestión de las carreras profesionales adscritas a cada facultad.</p>
           </div>
           <button
             type="button"
             onClick={abrirModalAgregar}
-            className="bg-primary text-white py-2 px-4 text-[0.88rem] font-bold rounded-md transition-all duration-300 hover:bg-primary-hover shadow-sm self-start sm:self-auto cursor-pointer"
+            className="flex items-center gap-1.5 bg-primary text-white py-2 px-4 text-[0.88rem] font-bold rounded-md transition-all duration-300 hover:bg-primary-hover shadow-sm self-start sm:self-auto cursor-pointer"
           >
-            + Agregar Especialidad
+            <Plus size={16} /> Agregar Especialidad
           </button>
         </div>
 
@@ -164,9 +165,9 @@ export default function Especialidades() {
                           <button
                             type="button"
                             onClick={() => abrirMallaModal(esp)}
-                            className="bg-accent-light hover:bg-accent/15 text-accent-hover font-bold text-[0.88rem] px-3.5 py-1 rounded transition-all cursor-pointer"
+                            className="flex items-center gap-1 bg-accent-light hover:bg-accent/15 text-accent-hover font-bold text-[0.88rem] px-3.5 py-1 rounded transition-all cursor-pointer"
                           >
-                            🗺️ Ver Malla
+                            <Map size={14} /> Ver Malla
                           </button>
                           <button
                             type="button"
@@ -198,15 +199,15 @@ export default function Especialidades() {
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setModalOpen(false)}>
           <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-[450px] w-full overflow-hidden animate-scale-in text-left" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 bg-primary-light border-b border-primary/10 flex justify-between items-center">
-              <h3 className="font-heading font-extrabold text-primary text-[1.1rem]">
-                {editingId ? '📝 Editar Especialidad' : '🎓 Nueva Especialidad'}
+              <h3 className="flex items-center gap-2 font-heading font-extrabold text-primary text-[1.1rem]">
+                {editingId ? <><Pencil size={18} /> Editar Especialidad</> : <><GraduationCap size={18} /> Nueva Especialidad</>}
               </h3>
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="text-text-muted hover:text-primary transition-all text-2xl font-bold cursor-pointer focus:outline-none"
+                className="text-text-muted hover:text-primary transition-all cursor-pointer focus:outline-none"
               >
-                ×
+                <X size={22} />
               </button>
             </div>
             <form onSubmit={manejarEnvio}>
@@ -278,7 +279,7 @@ export default function Especialidades() {
             <div className="p-6 bg-primary-light border-b border-primary/10 flex justify-between items-center shrink-0">
               <div>
                 <h3 className="font-heading font-extrabold text-primary text-[1.2rem] flex items-center gap-2">
-                  🗺️ Malla Curricular: <span className="text-text-heading font-bold">{especialidadSeleccionada.nombre}</span>
+                  <Map size={20} /> Malla Curricular: <span className="text-text-heading font-bold">{especialidadSeleccionada.nombre}</span>
                 </h3>
                 <p className="text-[0.8rem] text-text-muted mt-1 uppercase font-semibold tracking-wider">
                   Facultad: {facultades.find(f => f.id_facultad === especialidadSeleccionada.id_facultad)?.nombre || ''}
@@ -287,9 +288,9 @@ export default function Especialidades() {
               <button
                 type="button"
                 onClick={() => setMallaModalOpen(false)}
-                className="text-text-muted hover:text-primary transition-all text-2xl font-bold cursor-pointer focus:outline-none"
+                className="text-text-muted hover:text-primary transition-all cursor-pointer focus:outline-none"
               >
-                ×
+                <X size={22} />
               </button>
             </div>
 
@@ -297,7 +298,7 @@ export default function Especialidades() {
             <div className="grow overflow-auto p-8 bg-slate-50 select-none">
               {cursosCarrera.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-text-muted italic gap-2">
-                  <span>⚠️ No hay cursos asociados a esta carrera académica.</span>
+                  <span className="flex items-center gap-1.5"><AlertTriangle size={16} /> No hay cursos asociados a esta carrera académica.</span>
                   <span className="text-[0.8rem]">Asocia asignaturas en el catálogo de Cursos para visualizarlas aquí.</span>
                 </div>
               ) : (
@@ -373,8 +374,8 @@ export default function Especialidades() {
       {deleteConfirmId && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setDeleteConfirmId(null)}>
           <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-[400px] w-full p-6 animate-scale-in text-center" onClick={(e) => e.stopPropagation()}>
-            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
-              ⚠️
+            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle size={28} />
             </div>
             <h3 className="font-heading font-extrabold text-[1.1rem] text-text-heading mb-2">
               ¿Confirmar eliminación?

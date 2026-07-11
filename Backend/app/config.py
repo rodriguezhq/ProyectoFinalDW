@@ -15,7 +15,9 @@ class Config:
         "DATABASE_URL", "mysql+pymysql://root:@localhost:3306/sistema_academico"
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    
+
+    FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+
     # JWT Cookie configuration
     JWT_TOKEN_LOCATION = ["headers", "cookies"]
     JWT_COOKIE_SECURE = False

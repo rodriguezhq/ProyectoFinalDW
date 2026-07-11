@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { GraduationCap, Presentation, Shield, Briefcase } from 'lucide-react';
 import Usuarios from './Usuarios';
 
 export default function UsuariosRoles() {
@@ -11,30 +12,30 @@ export default function UsuariosRoles() {
         <button
           type="button"
           onClick={() => setActivoTab('Estudiante')}
-          className={`py-2 px-5.5 text-[0.88rem] font-bold rounded-md transition-all duration-200 cursor-pointer shrink-0 ${activoTab === 'Estudiante' ? 'bg-white text-primary shadow-sm border border-border' : 'text-text-muted hover:text-primary hover:bg-white/50'}`}
+          className={`flex items-center gap-1.5 py-2 px-5.5 text-[0.88rem] font-bold rounded-md transition-all duration-200 cursor-pointer shrink-0 ${activoTab === 'Estudiante' ? 'bg-white text-primary shadow-sm border border-border' : 'text-text-muted hover:text-primary hover:bg-white/50'}`}
         >
-          🎓 Estudiantes
+          <GraduationCap size={16} /> Estudiantes
         </button>
         <button
           type="button"
           onClick={() => setActivoTab('Docente')}
-          className={`py-2 px-5.5 text-[0.88rem] font-bold rounded-md transition-all duration-200 cursor-pointer shrink-0 ${activoTab === 'Docente' ? 'bg-white text-primary shadow-sm border border-border' : 'text-text-muted hover:text-primary hover:bg-white/50'}`}
+          className={`flex items-center gap-1.5 py-2 px-5.5 text-[0.88rem] font-bold rounded-md transition-all duration-200 cursor-pointer shrink-0 ${activoTab === 'Docente' ? 'bg-white text-primary shadow-sm border border-border' : 'text-text-muted hover:text-primary hover:bg-white/50'}`}
         >
-          👨‍🏫 Docentes
+          <Presentation size={16} /> Docentes
         </button>
         <button
           type="button"
           onClick={() => setActivoTab('Administrador')}
-          className={`py-2 px-5.5 text-[0.88rem] font-bold rounded-md transition-all duration-200 cursor-pointer shrink-0 ${activoTab === 'Administrador' ? 'bg-white text-primary shadow-sm border border-border' : 'text-text-muted hover:text-primary hover:bg-white/50'}`}
+          className={`flex items-center gap-1.5 py-2 px-5.5 text-[0.88rem] font-bold rounded-md transition-all duration-200 cursor-pointer shrink-0 ${activoTab === 'Administrador' ? 'bg-white text-primary shadow-sm border border-border' : 'text-text-muted hover:text-primary hover:bg-white/50'}`}
         >
-          🛡️ Administradores
+          <Shield size={16} /> Administradores
         </button>
         <button
           type="button"
           onClick={() => setActivoTab('Direccion')}
-          className={`py-2 px-5.5 text-[0.88rem] font-bold rounded-md transition-all duration-200 cursor-pointer shrink-0 ${activoTab === 'Direccion' ? 'bg-white text-primary shadow-sm border border-border' : 'text-text-muted hover:text-primary hover:bg-white/50'}`}
+          className={`flex items-center gap-1.5 py-2 px-5.5 text-[0.88rem] font-bold rounded-md transition-all duration-200 cursor-pointer shrink-0 ${activoTab === 'Direccion' ? 'bg-white text-primary shadow-sm border border-border' : 'text-text-muted hover:text-primary hover:bg-white/50'}`}
         >
-          💼 Dirección
+          <Briefcase size={16} /> Dirección
         </button>
       </div>
 

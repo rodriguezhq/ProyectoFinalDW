@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { Calendar, Plus, X, Zap } from 'lucide-react';
 import { obtenerPeriodos, guardarPeriodo, activarPeriodo } from '../../services/servicioAcademico';
 
 export default function Periodos() {
@@ -82,15 +83,15 @@ export default function Periodos() {
       <div className="flex flex-col gap-6 animate-slide-up">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start md:items-center gap-4">
           <div>
-            <h3 className="font-heading text-[1.25rem] font-extrabold text-text-heading mb-1">📅 Periodos Académicos</h3>
+            <h3 className="flex items-center gap-2 font-heading text-[1.25rem] font-extrabold text-text-heading mb-1"><Calendar size={20} /> Periodos Académicos</h3>
             <p className="text-[0.88rem] text-text-muted">Administración y control de inicio/cierre de semestres académicos.</p>
           </div>
           <button
             type="button"
             onClick={abrirModalAgregar}
-            className="bg-primary text-white py-2 px-4 text-[0.88rem] font-bold rounded-md transition-all duration-300 hover:bg-primary-hover shadow-sm self-start sm:self-auto cursor-pointer"
+            className="flex items-center gap-1.5 bg-primary text-white py-2 px-4 text-[0.88rem] font-bold rounded-md transition-all duration-300 hover:bg-primary-hover shadow-sm self-start sm:self-auto cursor-pointer"
           >
-            + Crear Periodo
+            <Plus size={16} /> Crear Periodo
           </button>
         </div>
 
@@ -136,9 +137,9 @@ export default function Periodos() {
                           <button
                             type="button"
                             onClick={() => setConfirmActivarId(p.id_periodo)}
-                            className="bg-primary/5 hover:bg-primary-light text-primary py-1 px-3 rounded text-[0.82rem] font-bold border border-primary/10 transition-all cursor-pointer"
+                            className="flex items-center gap-1 bg-primary/5 hover:bg-primary-light text-primary py-1 px-3 rounded text-[0.82rem] font-bold border border-primary/10 transition-all cursor-pointer"
                           >
-                            ⚡ Reabrir
+                            <Zap size={14} /> Reabrir
                           </button>
                         ) : (
                           <span className="text-[0.82rem] text-emerald-600 font-bold">Vigente</span>
@@ -158,15 +159,15 @@ export default function Periodos() {
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setModalOpen(false)}>
           <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-[450px] w-full overflow-hidden animate-scale-in text-left" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 bg-primary-light border-b border-primary/10 flex justify-between items-center">
-              <h3 className="font-heading font-extrabold text-primary text-[1.1rem]">
-                📅 Nuevo Periodo Académico
+              <h3 className="flex items-center gap-2 font-heading font-extrabold text-primary text-[1.1rem]">
+                <Calendar size={18} /> Nuevo Periodo Académico
               </h3>
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="text-text-muted hover:text-primary transition-all text-2xl font-bold cursor-pointer focus:outline-none"
+                className="text-text-muted hover:text-primary transition-all cursor-pointer focus:outline-none"
               >
-                ×
+                <X size={22} />
               </button>
             </div>
             <form onSubmit={manejarEnvio}>
@@ -227,8 +228,8 @@ export default function Periodos() {
       {confirmActivarId && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setConfirmActivarId(null)}>
           <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-[400px] w-full p-6 animate-scale-in text-center" onClick={(e) => e.stopPropagation()}>
-            <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
-              ⚡
+            <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4">
+              <Zap size={28} />
             </div>
             <h3 className="font-heading font-extrabold text-[1.1rem] text-text-heading mb-2">
               ¿Confirmar reapertura del periodo?

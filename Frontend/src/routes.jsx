@@ -31,6 +31,11 @@ import UsuariosRoles from './views/usuarios/UsuariosRoles';
 import Auditoria from './views/direccion/Auditoria';
 import ProfileView from './views/compartidos/ProfileView';
 
+// Vistas de Certificados y Documentos
+import MisCertificados from './views/certificados/MisCertificados';
+import GestionCertificados from './views/certificados/GestionCertificados';
+import VerificarDocumento from './views/certificados/VerificarDocumento';
+
 const EnrollmentView = () => (
     <div className="p-6 bg-white border border-border rounded-xl shadow-sm">
         <h2 className="text-xl font-bold text-text-heading mb-2">Matrícula en Línea</h2>
@@ -82,6 +87,9 @@ export function AppRoutes() {
                 <Route path="/login" element={<Navigate to="/" replace />} />
             </Route>
 
+            {/* Verificación pública de documentos (accesible sin login, vía QR) */}
+            <Route path="/verificar/:codigoQr" element={<VerificarDocumento />} />
+
             {/* Rutas de Estudiante */}
             <Route element={<ProtectedRoute allowedRoles={[ROLES.ESTUDIANTE]} />}>
                 <Route path="/estudiante" element={<EstudianteDashboard />}>
@@ -89,6 +97,7 @@ export function AppRoutes() {
                     <Route path="matricula" element={<EnrollmentView />} />
                     <Route path="notas" element={<GradesView />} />
                     <Route path="record" element={<RecordView />} />
+                    <Route path="certificados" element={<MisCertificados />} />
                     <Route path="perfil" element={<ProfileView />} />
                 </Route>
             </Route>
@@ -110,6 +119,7 @@ export function AppRoutes() {
                     <Route path="horarios" element={<DisenoHorario />} />
                     <Route path="usuarios" element={<UsuariosRoles />} />
                     <Route path="actas-notas" element={<AdminActasNotas />} />
+                    <Route path="certificados" element={<GestionCertificados esDireccion={false} />} />
                     <Route path="perfil" element={<ProfileView />} />
                 </Route>
             </Route>
@@ -120,6 +130,7 @@ export function AppRoutes() {
                     <Route index element={<VistaPanel isDirection={true} />} />
                     <Route path="reportes" element={<DireccionReportes />} />
                     <Route path="auditoria" element={<Auditoria />} />
+                    <Route path="certificados" element={<GestionCertificados esDireccion={true} />} />
                     <Route path="perfil" element={<ProfileView />} />
                 </Route>
             </Route>
