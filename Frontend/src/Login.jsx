@@ -90,9 +90,9 @@ export default function Login() {
                                 </span>
                                 <input
                                     id="email"
-                                    type="email"
+                                    type="text"
                                     required
-                                    placeholder="ej. correo@uncp.edu.pe"
+                                    placeholder="ej. correo@uncp.edu.pe o usuario"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     disabled={isLoading}

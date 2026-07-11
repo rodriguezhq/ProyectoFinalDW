@@ -83,7 +83,7 @@ export default function ProfileView() {
     const userCode = profile?.codigo || `2026${1000 + (profile?.id_usuario || authUser?.id_usuario || 1)}`;
 
     return (
-        <div className="mx-auto py-2 px-4 sm:px-6 lg:px-8 animate-fade-in">
+        <div className="mx-auto py-1 px-0.5 animate-fade-in">
             {/* Header Badge/Title */}
             <div className="mb-3">
                 <p className="text-text-muted mt-1">

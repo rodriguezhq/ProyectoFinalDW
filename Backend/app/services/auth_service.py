@@ -21,6 +21,8 @@ def usuario_actual():
 
 
 def login_user(correo, password, ip=None):
+    """Autentica por correo institucional (case-insensitive, buscando en
+    Usuario/Estudiante/Docente) o, alternativamente, por username exacto."""
     correo_norm = (correo or "").strip().lower()
     user = (
         Usuario.query
@@ -28,6 +30,7 @@ def login_user(correo, password, ip=None):
         .outerjoin(Docente, Usuario.id_docente == Docente.id_docente)
         .filter(
             db.or_(
+                Usuario.username == correo,
                 db.func.lower(Usuario.correo) == correo_norm,
                 db.func.lower(Estudiante.correo) == correo_norm,
                 db.func.lower(Docente.correo) == correo_norm,
@@ -69,6 +72,8 @@ def login_user(correo, password, ip=None):
             "correo": user.correo_efectivo,
             "id_rol": user.id_rol,
             "rol": user.rol.nombre if user.rol else None,
+            "id_estudiante": user.id_estudiante,
+            "id_docente": user.id_docente,
         },
     }
 

@@ -30,6 +30,8 @@ import UsuariosRoles from './views/usuarios/UsuariosRoles';
 // Vistas de Dirección
 import Auditoria from './views/direccion/Auditoria';
 import ProfileView from './views/compartidos/ProfileView';
+import RegistrarNotasDocente from './views/academico/RegistrarNotasDocente';
+import GradesView from './views/academico/GradesView';
 
 // Vistas de Certificados y Documentos
 import MisCertificados from './views/certificados/MisCertificados';
@@ -43,13 +45,6 @@ const EnrollmentView = () => (
     </div>
 );
 
-const GradesView = () => (
-    <div className="p-6 bg-white border border-border rounded-xl shadow-sm">
-        <h2 className="text-xl font-bold text-text-heading mb-2">Hoja de Notas por Ciclo</h2>
-        <p className="text-text-muted">Consulta de calificaciones parciales y consolidadas del semestre actual.</p>
-    </div>
-);
-
 const RecordView = () => (
     <div className="p-6 bg-white border border-border rounded-xl shadow-sm">
         <h2 className="text-xl font-bold text-text-heading mb-2">Récord Académico Histórico</h2>
@@ -57,12 +52,7 @@ const RecordView = () => (
     </div>
 );
 
-const DocenteNotas = () => (
-    <div className="p-6 bg-white border border-border rounded-xl shadow-sm">
-        <h2 className="text-xl font-bold text-text-heading mb-2">Registro de Notas</h2>
-        <p className="text-text-muted">Panel para ingresar calificaciones parciales, finales y sustitutorios por sección.</p>
-    </div>
-);
+
 
 const AdminActasNotas = () => (
     <div className="p-6 bg-white border border-border rounded-xl shadow-sm">
@@ -106,7 +96,7 @@ export function AppRoutes() {
             <Route element={<ProtectedRoute allowedRoles={[ROLES.DOCENTE]} />}>
                 <Route path="/docente" element={<DocenteDashboard />}>
                     <Route index element={<VistaHorario isTeacher={true} />} />
-                    <Route path="notas" element={<DocenteNotas />} />
+                    <Route path="notas" element={<RegistrarNotasDocente />} />
                     <Route path="perfil" element={<ProfileView />} />
                 </Route>
             </Route>

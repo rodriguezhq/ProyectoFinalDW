@@ -29,4 +29,6 @@ class ProfileResponse(BaseModel):
     correo: str | None
     telefono: str | None
     rol: str | None
+    id_estudiante: int | None = None
+    id_docente: int | None = None
 

@@ -53,7 +53,9 @@ def obtener_perfil():
         "apellidos": user.apellidos_efectivos,
         "correo": user.correo_efectivo,
         "telefono": telefono,
-        "rol": user.rol.nombre if user.rol else None
+        "rol": user.rol.nombre if user.rol else None,
+        "id_estudiante": user.id_estudiante,
+        "id_docente": user.id_docente
     }, 200
 
 
@@ -97,6 +99,8 @@ def actualizar_perfil(body: ProfileUpdateBody):
         "apellidos": user.apellidos_efectivos,
         "correo": user.correo_efectivo,
         "telefono": telefono,
-        "rol": user.rol.nombre if user.rol else None
+        "rol": user.rol.nombre if user.rol else None,
+        "id_estudiante": user.id_estudiante,
+        "id_docente": user.id_docente
     }, 200
 
