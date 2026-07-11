@@ -6,7 +6,7 @@ function App() {
   return (
     <div className="min-h-screen flex flex-col bg-bg-base ">
       <AppRoutes />
-      <Toaster position="top-right" richColors closeButton />
+      <Toaster position="top-right" richColors closeButton duration={5000} />
     </div>
   );
 }

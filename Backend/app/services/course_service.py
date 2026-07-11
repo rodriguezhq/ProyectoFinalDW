@@ -10,11 +10,16 @@ from app.models.facultad import Facultad
 from app.models.periodo_academico import PeriodoAcademico
 from app.models.horario import Horario
 from app.models.silabo import Silabo
+from app.models.seccion import Seccion
 
 UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "uploads", "silabos")
 
 
 class FacultadNoEncontradaError(Exception):
+    pass
+
+
+class SeccionNoEncontradaError(Exception):
     pass
 
 
@@ -238,7 +243,61 @@ def obtener_horario_ciclo(id_periodo, id_facultad, id_especialidad, ciclo):
     ).first()
 
 
+def se_cruzan(dia1, inicio1, fin1, dia2, inicio2, fin2):
+    if dia1 != dia2:
+        return False
+    def a_minutos(h_str):
+        h, m = map(int, h_str.split(':'))
+        return h * 60 + m
+    try:
+        in1, f1 = a_minutos(inicio1), a_minutos(fin1)
+        in2, f2 = a_minutos(inicio2), a_minutos(fin2)
+        return in1 < f2 and f1 > in2
+    except Exception:
+        return False
+
+
 def guardar_horario_ciclo(id_periodo, id_facultad, id_especialidad, ciclo, detalles):
+    # 1. Validar colisiones internas del docente en el payload enviado
+    for i, b1 in enumerate(detalles):
+        doc1 = b1.get("id_docente")
+        if not doc1:
+            continue
+        dia1 = b1.get("dia")
+        ini1 = b1.get("horaInicio")
+        fin1 = b1.get("horaFin")
+        for j, b2 in enumerate(detalles):
+            if i == j:
+                continue
+            doc2 = b2.get("id_docente")
+            if str(doc1) == str(doc2):
+                if se_cruzan(dia1, ini1, fin1, b2.get("dia"), b2.get("horaInicio"), b2.get("horaFin")):
+                    raise ValueError(f"El docente ya tiene asignado un bloque el {dia1} de {ini1} a {fin1} en otra sección o curso.")
+
+    # 2. Validar contra los horarios de otros ciclos/especialidades ya guardados en el periodo
+    horarios_periodo = Horario.query.filter_by(id_periodo=id_periodo).all()
+    for h in horarios_periodo:
+        if h.id_facultad == id_facultad and h.id_especialidad == id_especialidad and h.ciclo == ciclo:
+            continue
+        for bloque_existente in h.detalles:
+            doc_existente = bloque_existente.get("id_docente")
+            if not doc_existente:
+                continue
+            for b_nuevo in detalles:
+                doc_nuevo = b_nuevo.get("id_docente")
+                if not doc_nuevo:
+                    continue
+                if str(doc_existente) == str(doc_nuevo):
+                    if se_cruzan(bloque_existente.get("dia"), bloque_existente.get("horaInicio"), bloque_existente.get("horaFin"),
+                                 b_nuevo.get("dia"), b_nuevo.get("horaInicio"), b_nuevo.get("horaFin")):
+                        from app.models.docente import Docente
+                        doc = Docente.query.get(doc_nuevo)
+                        nombre_docente = f"{doc.nombres} {doc.apellidos}" if doc else "Docente seleccionado"
+                        raise ValueError(
+                            f"El docente {nombre_docente} ya tiene clases programadas en otro ciclo/carrera el "
+                            f"{b_nuevo.get('dia')} de {b_nuevo.get('horaInicio')} a {b_nuevo.get('horaFin')}."
+                        )
+
     # Guarda o actualiza el horario correspondiente a un ciclo y carrera académica
     horario = obtener_horario_ciclo(id_periodo, id_facultad, id_especialidad, ciclo)
     if not horario:
@@ -356,5 +415,98 @@ def eliminar_curso(id_curso):
     if not curso:
         raise CursoNoEncontradoError()
     db.session.delete(curso)
+    db.session.commit()
+
+
+def crear_seccion(codigo, id_especialidad, ciclo, id_periodo):
+    # Validar que la especialidad exista en el sistema
+    especialidad = db.session.get(Especialidad, id_especialidad)
+    if not especialidad:
+        raise EspecialidadNoEncontradaError()
+
+    # Validar que el periodo académico exista
+    periodo = db.session.get(PeriodoAcademico, id_periodo)
+    if not periodo:
+        raise PeriodoNoEncontradoError()
+
+    # Validar duplicados
+    existe = Seccion.query.filter_by(
+        id_periodo=id_periodo,
+        id_especialidad=id_especialidad,
+        ciclo=ciclo,
+        codigo=codigo
+    ).first()
+    if existe:
+        raise CodigoDuplicadoError()
+
+    nueva_seccion = Seccion(
+        codigo=codigo,
+        id_especialidad=id_especialidad,
+        ciclo=ciclo,
+        id_periodo=id_periodo
+    )
+    db.session.add(nueva_seccion)
+    db.session.commit()
+    return nueva_seccion
+
+
+def listar_secciones(id_periodo=None, id_especialidad=None, ciclo=None):
+    consulta = Seccion.query
+    if id_periodo is not None:
+        consulta = consulta.filter_by(id_periodo=id_periodo)
+    if id_especialidad is not None:
+        consulta = consulta.filter_by(id_especialidad=id_especialidad)
+    if ciclo is not None:
+        consulta = consulta.filter_by(ciclo=ciclo)
+    return consulta.all()
+
+
+def actualizar_seccion(id_seccion, codigo=None, id_especialidad=None, ciclo=None):
+    seccion = db.session.get(Seccion, id_seccion)
+    if not seccion:
+        raise SeccionNoEncontradaError()
+
+    if id_especialidad is not None:
+        especialidad = db.session.get(Especialidad, id_especialidad)
+        if not especialidad:
+            raise EspecialidadNoEncontradaError()
+        seccion.id_especialidad = id_especialidad
+
+    if ciclo is not None:
+        seccion.ciclo = ciclo
+
+    if codigo is not None:
+        # Validar duplicado
+        cod = codigo.strip()
+        per_id = seccion.id_periodo
+        esp_id = seccion.id_especialidad
+        ciclo_val = seccion.ciclo
+        existe = Seccion.query.filter(
+            Seccion.id_seccion != id_seccion,
+            Seccion.id_periodo == per_id,
+            Seccion.id_especialidad == esp_id,
+            Seccion.ciclo == ciclo_val,
+            Seccion.codigo == cod
+        ).first()
+        if existe:
+            raise CodigoDuplicadoError()
+        seccion.codigo = cod
+
+    db.session.commit()
+    return seccion
+
+
+def eliminar_seccion(id_seccion):
+    seccion = db.session.get(Seccion, id_seccion)
+    if not seccion:
+        raise SeccionNoEncontradaError()
+    
+    # Verificar si existen detalles de matricula asignados a esta seccion
+    from app.models.matricula_detalle import MatriculaDetalle
+    tiene_matriculas = MatriculaDetalle.query.filter_by(id_seccion=id_seccion).first()
+    if tiene_matriculas:
+        raise EntidadConDependenciasError()
+
+    db.session.delete(seccion)
     db.session.commit()
 

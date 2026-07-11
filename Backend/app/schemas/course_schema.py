@@ -143,3 +143,24 @@ class CumplimientoPlanResponse(BaseModel):
 class HorarioListResponse(BaseModel):
     horarios: list[HorarioResponse]
 
+
+# ---------------- Seccion ----------------
+class SeccionBody(BaseModel):
+    codigo: str
+    id_especialidad: int
+    ciclo: int
+    id_periodo: int
+
+
+class SeccionResponse(BaseModel):
+    id_seccion: int
+    codigo: str
+    id_especialidad: int
+    especialidad_nombre: str | None = None
+    ciclo: int
+    id_periodo: int
+
+
+class SeccionListResponse(BaseModel):
+    secciones: list[SeccionResponse]
+

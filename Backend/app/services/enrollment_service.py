@@ -39,6 +39,13 @@ class CursoNoEncontradoError(Exception):
     pass
 
 
+class SeccionNoEncontradaError(Exception):
+    pass
+
+
+class SeccionLlenaError(Exception):
+    pass
+
 
 class EstadoInvalidoError(Exception):
     pass
@@ -52,7 +59,7 @@ class PagoNoEncontradoError(Exception):
     pass
 
 
-def solicitar_matricula(id_estudiante, id_periodo, cursos_ids):
+def solicitar_matricula(id_estudiante, id_periodo, secciones_data):
     estudiante = db.session.get(Estudiante, id_estudiante)
     if not estudiante or estudiante.estado != "activo":
         raise EstudianteInactivoError()
@@ -67,17 +74,39 @@ def solicitar_matricula(id_estudiante, id_periodo, cursos_ids):
     if ya_existe:
         raise MatriculaDuplicadaError()
 
-    cursos = Curso.query.filter(Curso.id_curso.in_(cursos_ids)).all()
-    if len(cursos) != len(set(cursos_ids)):
-        raise CursoNoEncontradoError()
+    from app.models.seccion import Seccion
+    from app.models.curso import Curso
+
+    # Validar cursos, secciones y capacidades
+    for item in secciones_data:
+        c_id = item.get("id_curso")
+        s_id = item.get("id_seccion")
+        
+        curso = db.session.get(Curso, c_id)
+        if not curso:
+            raise CursoNoEncontradoError()
+
+        seccion = db.session.get(Seccion, s_id)
+        if not seccion:
+            raise SeccionNoEncontradaError()
+
+        # Validar capacidad (por defecto 30 alumnos por curso-sección)
+        matriculados = MatriculaDetalle.query.filter_by(id_seccion=s_id, id_curso=c_id, estado="matriculado").count()
+        if matriculados >= 30:
+            raise SeccionLlenaError()
 
     matricula = Matricula(id_estudiante=id_estudiante, id_periodo=id_periodo, estado="pendiente")
     db.session.add(matricula)
     db.session.flush()
 
-    for curso in cursos:
+    for item in secciones_data:
+        c_id = item.get("id_curso")
+        s_id = item.get("id_seccion")
         detalle = MatriculaDetalle(
-            id_matricula=matricula.id_matricula, id_curso=curso.id_curso, estado="matriculado"
+            id_matricula=matricula.id_matricula,
+            id_seccion=s_id,
+            id_curso=c_id,
+            estado="matriculado"
         )
         db.session.add(detalle)
         db.session.flush()

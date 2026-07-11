@@ -14,6 +14,7 @@ from app.models.rol import Rol
 from app.models.horario import Horario
 from app.models.silabo import Silabo
 from app.models.usuario import Usuario
+from app.models.seccion import Seccion
 
 __all__ = [
     "Facultad",
@@ -32,4 +33,5 @@ __all__ = [
     "Nota",
     "Documento",
     "Auditoria",
+    "Seccion",
 ]

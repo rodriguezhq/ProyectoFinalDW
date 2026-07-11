@@ -7,6 +7,7 @@ from app.schemas.course_schema import (
     EspecialidadResponse,
     FacultadResponse,
     HorarioResponse,
+    SeccionResponse,
 )
 from app.services.course_service import (
     CodigoDuplicadoError,
@@ -17,6 +18,7 @@ from app.services.course_service import (
     PeriodoNoEncontradoError,
     HorarioNoEncontradoError,
     EntidadConDependenciasError,
+    SeccionNoEncontradaError,
     actualizar_curso,
     actualizar_especialidad,
     actualizar_facultad,
@@ -34,6 +36,10 @@ from app.services.course_service import (
     guardar_horario_ciclo,
     PrerrequisitoDiferenteFacultadError,
     CarreraDiferenteFacultadError,
+    crear_seccion,
+    listar_secciones,
+    actualizar_seccion,
+    eliminar_seccion,
 )
 
 
@@ -193,13 +199,17 @@ def obtener_horario_ciclo_ctrl(id_periodo, id_facultad, id_especialidad, ciclo):
 
 
 def guardar_horario_ciclo_ctrl(body):
-    h = guardar_horario_ciclo(
-        body.id_periodo,
-        body.id_facultad,
-        body.id_especialidad,
-        body.ciclo,
-        body.detalles
-    )
+    try:
+        h = guardar_horario_ciclo(
+            body.id_periodo,
+            body.id_facultad,
+            body.id_especialidad,
+            body.ciclo,
+            body.detalles
+        )
+    except ValueError as e:
+        return {"msg": str(e)}, 400
+
     actor = usuario_actual()
     registrar_auditoria(
         "guardar_horario_ciclo",
@@ -244,3 +254,63 @@ def eliminar_curso_ctrl(id_curso):
     except CursoNoEncontradoError:
         return {"msg": "Curso no encontrado"}, 404
     return {"msg": "Curso eliminado con éxito"}, 200
+
+
+def _serializar_seccion(sec):
+    return SeccionResponse(
+        id_seccion=sec.id_seccion,
+        codigo=sec.codigo,
+        id_especialidad=sec.id_especialidad,
+        especialidad_nombre=sec.especialidad.nombre if sec.especialidad else None,
+        ciclo=sec.ciclo,
+        id_periodo=sec.id_periodo
+    ).model_dump()
+
+
+def crear_seccion_ctrl(body):
+    try:
+        seccion = crear_seccion(
+            body.codigo,
+            body.id_especialidad,
+            body.ciclo,
+            body.id_periodo
+        )
+    except EspecialidadNoEncontradaError:
+        return {"msg": "La especialidad indicada no existe"}, 404
+    except PeriodoNoEncontradoError:
+        return {"msg": "El periodo académico indicado no existe"}, 404
+    except CodigoDuplicadoError:
+        return {"msg": "Ya existe una sección con este código en el mismo ciclo, carrera y periodo"}, 409
+    return _serializar_seccion(seccion), 201
+
+
+def listar_secciones_ctrl(id_periodo=None, id_especialidad=None, ciclo=None):
+    secciones = listar_secciones(id_periodo, id_especialidad, ciclo)
+    return {"secciones": [_serializar_seccion(s) for s in secciones]}, 200
+
+
+def actualizar_seccion_ctrl(id_seccion, body):
+    try:
+        seccion = actualizar_seccion(
+            id_seccion,
+            body.codigo,
+            body.id_especialidad,
+            body.ciclo
+        )
+    except SeccionNoEncontradaError:
+        return {"msg": "Sección no encontrada"}, 404
+    except EspecialidadNoEncontradaError:
+        return {"msg": "La especialidad indicada no existe"}, 404
+    except CodigoDuplicadoError:
+        return {"msg": "Ya existe una sección con este código en el mismo ciclo, carrera y periodo"}, 409
+    return _serializar_seccion(seccion), 200
+
+
+def eliminar_seccion_ctrl(id_seccion):
+    try:
+        eliminar_seccion(id_seccion)
+    except SeccionNoEncontradaError:
+        return {"msg": "Sección no encontrada"}, 404
+    except EntidadConDependenciasError:
+        return {"msg": "No se puede eliminar la sección porque tiene estudiantes matriculados"}, 409
+    return {"msg": "Sección eliminada con éxito"}, 200

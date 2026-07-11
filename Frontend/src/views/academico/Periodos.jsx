@@ -10,8 +10,6 @@ export default function Periodos() {
   // Estados del Formulario
   const [modalOpen, setModalOpen] = useState(false);
   const [nombre, setNombre] = useState('');
-  const [fechaInicio, setFechaInicio] = useState('');
-  const [fechaFin, setFechaFin] = useState('');
 
   // Confirmar activación
   const [confirmActivarId, setConfirmActivarId] = useState(null);
@@ -34,28 +32,19 @@ export default function Periodos() {
 
   const abrirModalAgregar = () => {
     setNombre('');
-    setFechaInicio('');
-    setFechaFin('');
     setModalOpen(true);
   };
 
   const manejarEnvio = async (e) => {
     e.preventDefault();
 
-    if (!nombre.trim() || !fechaInicio || !fechaFin) {
-      toast.error('Todos los campos son obligatorios.');
-      return;
-    }
-
-    if (new Date(fechaInicio) >= new Date(fechaFin)) {
-      toast.error('La fecha de inicio debe ser anterior a la fecha de fin.');
+    if (!nombre.trim()) {
+      toast.error('El nombre del periodo es obligatorio.');
       return;
     }
 
     const payload = {
-      nombre: nombre.trim().toUpperCase(),
-      fecha_inicio: fechaInicio,
-      fecha_fin: fechaFin
+      nombre: nombre.trim().toUpperCase()
     };
 
     try {
@@ -83,13 +72,15 @@ export default function Periodos() {
       <div className="flex flex-col gap-6 animate-slide-up">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start md:items-center gap-4">
           <div>
-            <h3 className="flex items-center gap-2 font-heading text-[1.25rem] font-extrabold text-text-heading mb-1"><Calendar size={20} /> Periodos Académicos</h3>
+            <h3 className="flex items-center gap-2 font-heading text-[1.25rem] font-extrabold text-text-heading mb-1">
+              <Calendar size={20} className="text-primary" /> Periodos Académicos
+            </h3>
             <p className="text-[0.88rem] text-text-muted">Administración y control de inicio/cierre de semestres académicos.</p>
           </div>
           <button
             type="button"
             onClick={abrirModalAgregar}
-            className="flex items-center gap-1.5 bg-primary text-white py-2 px-4 text-[0.88rem] font-bold rounded-md transition-all duration-300 hover:bg-primary-hover shadow-sm self-start sm:self-auto cursor-pointer"
+            className="flex items-center gap-1.5 bg-primary text-white py-2.5 px-5 text-[0.88rem] font-bold rounded-md transition-all duration-300 hover:bg-primary-hover shadow-sm self-start sm:self-auto cursor-pointer"
           >
             <Plus size={16} /> Crear Periodo
           </button>
@@ -107,12 +98,10 @@ export default function Periodos() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[700px] border-collapse">
+              <table className="w-full min-w-[500px] border-collapse">
                 <thead>
                   <tr className="bg-bg-alt border-b border-border">
                     <th className="p-4 text-left text-[0.85rem] font-heading font-extrabold text-text-heading">Nombre del Periodo</th>
-                    <th className="p-4 text-left text-[0.85rem] font-heading font-extrabold text-text-heading">Fecha de Inicio</th>
-                    <th className="p-4 text-left text-[0.85rem] font-heading font-extrabold text-text-heading">Fecha de Término</th>
                     <th className="p-4 text-center text-[0.85rem] font-heading font-extrabold text-text-heading">Estado</th>
                     <th className="p-4 text-center text-[0.85rem] font-heading font-extrabold text-text-heading">Acciones</th>
                   </tr>
@@ -121,8 +110,6 @@ export default function Periodos() {
                   {periodos.map((p) => (
                     <tr key={p.id_periodo} className="hover:bg-slate-50 transition-colors">
                       <td className="p-4 text-[0.88rem] font-bold text-text-heading">{p.nombre}</td>
-                      <td className="p-4 text-[0.88rem] font-medium text-text-muted">{p.fecha_inicio}</td>
-                      <td className="p-4 text-[0.88rem] font-medium text-text-muted">{p.fecha_fin}</td>
                       <td className="p-4 text-center">
                         <span className={`inline-block py-1 px-3.5 rounded-full text-[0.78rem] font-bold border ${
                           p.estado === 'activo' 
@@ -132,12 +119,12 @@ export default function Periodos() {
                           {p.estado === 'activo' ? 'Activo' : 'Cerrado'}
                         </span>
                       </td>
-                      <td className="p-4 text-center">
+                      <td className="p-4 text-center flex justify-center items-center">
                         {p.estado === 'cerrado' ? (
                           <button
                             type="button"
                             onClick={() => setConfirmActivarId(p.id_periodo)}
-                            className="flex items-center gap-1 bg-primary/5 hover:bg-primary-light text-primary py-1 px-3 rounded text-[0.82rem] font-bold border border-primary/10 transition-all cursor-pointer"
+                            className="flex items-center gap-1 bg-primary/5 hover:bg-primary-light text-primary py-1.5 px-3.5 rounded text-[0.82rem] font-bold border border-primary/10 transition-all cursor-pointer"
                           >
                             <Zap size={14} /> Reabrir
                           </button>
@@ -156,16 +143,16 @@ export default function Periodos() {
 
       {/* Modal de Crear Periodo */}
       {modalOpen && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setModalOpen(false)}>
-          <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-[450px] w-full overflow-hidden animate-scale-in text-left" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6 bg-primary-light border-b border-primary/10 flex justify-between items-center">
-              <h3 className="flex items-center gap-2 font-heading font-extrabold text-primary text-[1.1rem]">
-                <Calendar size={18} /> Nuevo Periodo Académico
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => setModalOpen(false)}>
+          <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-[400px] w-full overflow-hidden animate-scale-in text-left" onClick={(e) => e.stopPropagation()}>
+            <div className="p-6 bg-bg-alt border-b border-border flex justify-between items-center">
+              <h3 className="flex items-center gap-2 font-heading font-extrabold text-text-heading text-[1.1rem]">
+                <Calendar size={18} className="text-primary" /> Nuevo Periodo Académico
               </h3>
               <button
                 type="button"
                 onClick={() => setModalOpen(false)}
-                className="text-text-muted hover:text-primary transition-all cursor-pointer focus:outline-none"
+                className="text-text-muted hover:text-text-heading transition-all cursor-pointer focus:outline-none"
               >
                 <X size={22} />
               </button>
@@ -173,34 +160,15 @@ export default function Periodos() {
             <form onSubmit={manejarEnvio}>
               <div className="p-6 flex flex-col gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label htmlFor="nombre-periodo" className="text-[0.82rem] font-bold text-text-muted uppercase">Nombre del Periodo</label>
+                  <label htmlFor="nombre-periodo" className="text-[0.82rem] font-bold text-text-muted uppercase">Nombre del Periodo *</label>
                   <input
                     id="nombre-periodo"
                     type="text"
                     value={nombre}
                     onChange={(e) => setNombre(e.target.value)}
                     placeholder="Ej. 2026-I"
-                    className="p-2.5 border border-border rounded-md focus:outline-none focus:border-primary text-[0.88rem] uppercase"
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="fecha-inicio" className="text-[0.82rem] font-bold text-text-muted uppercase">Fecha de Inicio</label>
-                  <input
-                    id="fecha-inicio"
-                    type="date"
-                    value={fechaInicio}
-                    onChange={(e) => setFechaInicio(e.target.value)}
-                    className="p-2.5 border border-border rounded-md focus:outline-none focus:border-primary text-[0.88rem]"
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="fecha-fin" className="text-[0.82rem] font-bold text-text-muted uppercase">Fecha de Término</label>
-                  <input
-                    id="fecha-fin"
-                    type="date"
-                    value={fechaFin}
-                    onChange={(e) => setFechaFin(e.target.value)}
-                    className="p-2.5 border border-border rounded-md focus:outline-none focus:border-primary text-[0.88rem]"
+                    className="p-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-[0.88rem] uppercase"
+                    required
                   />
                 </div>
               </div>
@@ -208,13 +176,13 @@ export default function Periodos() {
                 <button
                   type="button"
                   onClick={() => setModalOpen(false)}
-                  className="py-2 px-4 text-[0.88rem] font-semibold border border-border rounded-md hover:bg-slate-100 transition-colors cursor-pointer"
+                  className="py-2.5 px-4 text-[0.88rem] font-semibold border border-border rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="bg-primary text-white py-2 px-5 font-bold text-[0.88rem] rounded-md hover:bg-primary-hover transition-colors shadow-sm cursor-pointer"
+                  className="bg-primary text-white py-2.5 px-6 font-bold text-[0.88rem] rounded-lg hover:bg-primary-hover transition-colors shadow-sm cursor-pointer"
                 >
                   Guardar y Activar
                 </button>
@@ -226,7 +194,7 @@ export default function Periodos() {
 
       {/* Confirmar Activación Modal */}
       {confirmActivarId && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in" onClick={() => setConfirmActivarId(null)}>
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => setConfirmActivarId(null)}>
           <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-[400px] w-full p-6 animate-scale-in text-center" onClick={(e) => e.stopPropagation()}>
             <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4">
               <Zap size={28} />
@@ -241,7 +209,7 @@ export default function Periodos() {
               <button
                 type="button"
                 onClick={() => setConfirmActivarId(null)}
-                className="py-2 px-4 text-[0.88rem] font-semibold border border-border rounded-md hover:bg-slate-100 transition-colors cursor-pointer"
+                className="py-2.5 px-4 text-[0.88rem] font-semibold border border-border rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
               >
                 Cancelar
               </button>
@@ -251,7 +219,7 @@ export default function Periodos() {
                   manejarActivar(confirmActivarId);
                   setConfirmActivarId(null);
                 }}
-                className="bg-primary text-white py-2 px-5 font-bold text-[0.88rem] rounded-md hover:bg-primary-hover transition-colors shadow-sm cursor-pointer"
+                className="bg-primary text-white py-2.5 px-6 font-bold text-[0.88rem] rounded-lg hover:bg-primary-hover transition-colors shadow-sm cursor-pointer"
               >
                 Confirmar y Reabrir
               </button>
