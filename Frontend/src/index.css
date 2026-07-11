@@ -133,3 +133,11 @@ h6 {
   font-weight: 700;
   line-height: 1.25;
 }
+
+/* Ajustes para el boton de cerrar de los Toasts (Sonner) */
+[data-close-button] {
+  left: auto !important;
+  right: 8px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+}

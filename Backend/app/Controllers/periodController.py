@@ -10,8 +10,6 @@ def _serializar_periodo(p):
     return PeriodoResponse(
         id_periodo=p.id_periodo,
         nombre=p.nombre,
-        fecha_inicio=p.fecha_inicio,
-        fecha_fin=p.fecha_fin,
         estado=p.estado,
     ).model_dump(mode="json")
 
@@ -29,8 +27,6 @@ def crear_periodo_ctrl(body):
 
     periodo = PeriodoAcademico(
         nombre=body.nombre,
-        fecha_inicio=body.fecha_inicio,
-        fecha_fin=body.fecha_fin,
         estado="activo",  # Se crea activo por defecto
     )
     db.session.add(periodo)
@@ -49,7 +45,7 @@ def crear_periodo_ctrl(body):
 
 
 def listar_periodos_ctrl():
-    periodos = PeriodoAcademico.query.order_by(PeriodoAcademico.fecha_inicio.desc()).all()
+    periodos = PeriodoAcademico.query.order_by(PeriodoAcademico.id_periodo.desc()).all()
     return {"periodos": [_serializar_periodo(p) for p in periodos]}, 200
 
 

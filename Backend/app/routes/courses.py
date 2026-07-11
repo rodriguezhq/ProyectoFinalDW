@@ -23,6 +23,9 @@ from app.schemas.course_schema import (
     HorarioListResponse,
     SilaboForm,
     SilaboResponse,
+    SeccionBody,
+    SeccionResponse,
+    SeccionListResponse,
 )
 from app.utils.decorators import role_required
 
@@ -196,6 +199,62 @@ def subir_silabo(path: IdCursoPath, form: SilaboForm):
 @role_required("Direccion")
 def carga_docente(query: PeriodoQuery):
     response, status = courseController.carga_docente_ctrl(query.id_periodo)
+    return response, status
+
+
+class SeccionQuery(BaseModel):
+    id_periodo: int | None = Field(None, description="Filtrar por periodo académico")
+    id_especialidad: int | None = Field(None, description="Filtrar por carrera/especialidad")
+    ciclo: int | None = Field(None, description="Filtrar por ciclo")
+
+
+class IdSeccionPath(BaseModel):
+    id: int = Field(..., description="ID de la sección")
+
+
+# ---------------- Seccion ----------------
+
+@courses_bp.post(
+    "/secciones",
+    responses={201: SeccionResponse, 404: MessageResponse, 409: MessageResponse},
+    security=[{"jwt": []}]
+)
+@role_required("Administrador")
+def crear_seccion(body: SeccionBody):
+    response, status = courseController.crear_seccion_ctrl(body)
+    return response, status
+
+
+@courses_bp.get(
+    "/secciones",
+    responses={200: SeccionListResponse},
+    security=[{"jwt": []}]
+)
+@jwt_required()
+def listar_secciones(query: SeccionQuery):
+    response, status = courseController.listar_secciones_ctrl(query.id_periodo, query.id_especialidad, query.ciclo)
+    return response, status
+
+
+@courses_bp.put(
+    "/secciones/<int:id>",
+    responses={200: SeccionResponse, 404: MessageResponse},
+    security=[{"jwt": []}]
+)
+@role_required("Administrador")
+def actualizar_seccion(path: IdSeccionPath, body: SeccionBody):
+    response, status = courseController.actualizar_seccion_ctrl(path.id, body)
+    return response, status
+
+
+@courses_bp.delete(
+    "/secciones/<int:id>",
+    responses={200: MessageResponse, 404: MessageResponse, 400: MessageResponse},
+    security=[{"jwt": []}]
+)
+@role_required("Administrador")
+def eliminar_seccion(path: IdSeccionPath):
+    response, status = courseController.eliminar_seccion_ctrl(path.id)
     return response, status
 
 

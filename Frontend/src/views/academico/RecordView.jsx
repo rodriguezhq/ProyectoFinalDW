@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { obtenerRecordEstudiante } from '../../services/servicioRecords';
 import { AlertCircle, Loader2 } from 'lucide-react';
-import { AuthContext } from '../../Context/authContext';
+import { AuthContext } from '../../Context/AuthContext';
 import RecordKpis from '../../components/estudiante/RecordKpis';
 import PeriodoBlock from '../../components/estudiante/PeriodoBlock';
 

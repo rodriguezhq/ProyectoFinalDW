@@ -16,6 +16,8 @@ export default function Cursos() {
   const [codigo, setCodigo] = useState('');
   const [creditos, setCreditos] = useState('');
   const [ciclo, setCiclo] = useState('1');
+  const [horasTeoria, setHorasTeoria] = useState('0'); // Estados en español para las horas de teoría
+  const [horasPractica, setHorasPractica] = useState('0'); // Estados en español para las horas de práctica
   const [idFacultad, setIdFacultad] = useState('');
   const [prerrequisitosSeleccionados, setPrerrequisitosSeleccionados] = useState([]);
   const [especialidadesSeleccionadas, setEspecialidadesSeleccionadas] = useState([]);
@@ -49,6 +51,8 @@ export default function Cursos() {
     setCodigo('');
     setCreditos('');
     setCiclo('1');
+    setHorasTeoria('0'); // Limpiar horas al agregar
+    setHorasPractica('0'); // Limpiar horas al agregar
     setIdFacultad('');
     setPrerrequisitosSeleccionados([]);
     setEspecialidadesSeleccionadas([]);
@@ -61,6 +65,8 @@ export default function Cursos() {
     setCodigo(cur.codigo);
     setCreditos(cur.creditos);
     setCiclo(String(cur.ciclo || 1));
+    setHorasTeoria(String(cur.horas_teoria !== undefined ? cur.horas_teoria : 0)); // Cargar horas teóricas
+    setHorasPractica(String(cur.horas_practica !== undefined ? cur.horas_practica : 0)); // Cargar horas prácticas
     setIdFacultad(String(cur.id_facultad || ''));
     setPrerrequisitosSeleccionados(cur.id_prerrequisitos || []);
     setEspecialidadesSeleccionadas(cur.id_especialidades || []);
@@ -92,9 +98,19 @@ export default function Cursos() {
     const creditosNum = parseInt(creditos);
     const cicloNum = parseInt(ciclo);
     const facIdNum = parseInt(idFacultad);
+    const horasTeoriaNum = parseInt(horasTeoria);
+    const horasPracticaNum = parseInt(horasPractica);
     
-    if (!nombre.trim() || !codigo.trim() || isNaN(creditosNum) || creditosNum <= 0 || isNaN(cicloNum) || cicloNum <= 0 || isNaN(facIdNum) || facIdNum <= 0) {
-      toast.error('Todos los campos son obligatorios. Créditos, Ciclo y Facultad deben ser válidos.');
+    if (
+      !nombre.trim() || 
+      !codigo.trim() || 
+      isNaN(creditosNum) || creditosNum <= 0 || 
+      isNaN(cicloNum) || cicloNum <= 0 || 
+      isNaN(facIdNum) || facIdNum <= 0 ||
+      isNaN(horasTeoriaNum) || horasTeoriaNum < 0 ||
+      isNaN(horasPracticaNum) || horasPracticaNum < 0
+    ) {
+      toast.error('Todos los campos son obligatorios. Las horas teóricas y prácticas no pueden ser negativas.');
       return;
     }
 
@@ -103,6 +119,8 @@ export default function Cursos() {
       codigo: codigo.trim().toUpperCase(),
       creditos: creditosNum,
       ciclo: cicloNum,
+      horas_teoria: horasTeoriaNum,
+      horas_practica: horasPracticaNum,
       id_facultad: facIdNum,
       id_prerrequisitos: prerrequisitosSeleccionados,
       id_especialidades: especialidadesSeleccionadas,
@@ -181,6 +199,7 @@ export default function Cursos() {
                     <th className="p-4 text-left text-[0.85rem] font-heading font-extrabold text-text-heading">Carreras / Especialidades</th>
                     <th className="p-4 text-center text-[0.85rem] font-heading font-extrabold text-text-heading">Ciclo</th>
                     <th className="p-4 text-center text-[0.85rem] font-heading font-extrabold text-text-heading">Créditos</th>
+                    <th className="p-4 text-center text-[0.85rem] font-heading font-extrabold text-text-heading">Horas (T/P)</th>
                     <th className="p-4 text-left text-[0.85rem] font-heading font-extrabold text-text-heading">Prerrequisitos</th>
                     <th className="p-4 text-center text-[0.85rem] font-heading font-extrabold text-text-heading">Acciones</th>
                   </tr>
@@ -215,6 +234,11 @@ export default function Cursos() {
                         <td className="p-4 text-center text-[0.88rem] font-bold text-text-heading">
                           <span className="inline-block bg-primary-light text-primary py-0.5 px-2.5 rounded font-mono">
                             {cur.creditos} CR
+                          </span>
+                        </td>
+                        <td className="p-4 text-center text-[0.88rem] font-bold text-text-heading">
+                          <span className="inline-block bg-slate-100 text-slate-700 py-0.5 px-2 rounded font-mono">
+                            {cur.horas_teoria}h / {cur.horas_practica}h
                           </span>
                         </td>
                         <td className="p-4 text-[0.82rem] font-medium text-text-muted max-w-[150px] truncate" title={nombresPrerrequisitos}>
@@ -304,6 +328,33 @@ export default function Cursos() {
                     min="1"
                     className="p-2.5 border border-border rounded-md focus:outline-none focus:border-primary text-[0.88rem]"
                   />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label htmlFor="horas-teoria" className="text-[0.82rem] font-bold text-text-muted uppercase">Horas Teoría</label>
+                    <input
+                      id="horas-teoria"
+                      type="number"
+                      value={horasTeoria}
+                      onChange={(e) => setHorasTeoria(e.target.value)}
+                      placeholder="Ej. 2"
+                      min="0"
+                      className="p-2.5 border border-border rounded-md focus:outline-none focus:border-primary text-[0.88rem]"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label htmlFor="horas-practica" className="text-[0.82rem] font-bold text-text-muted uppercase">Horas Práctica</label>
+                    <input
+                      id="horas-practica"
+                      type="number"
+                      value={horasPractica}
+                      onChange={(e) => setHorasPractica(e.target.value)}
+                      placeholder="Ej. 2"
+                      min="0"
+                      className="p-2.5 border border-border rounded-md focus:outline-none focus:border-primary text-[0.88rem]"
+                    />
+                  </div>
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="facultad-curso" className="text-[0.82rem] font-bold text-text-muted uppercase">Facultad</label>

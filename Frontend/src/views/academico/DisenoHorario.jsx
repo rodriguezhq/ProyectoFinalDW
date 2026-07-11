@@ -9,6 +9,7 @@ export default function DisenoHorario() {
   const [idFacultad, setIdFacultad] = useState('');
   const [idEspecialidad, setIdEspecialidad] = useState('');
   const [filtroCiclo, setFiltroCiclo] = useState(''); // Filtro por ciclo académico (1 al 10)
+  const [filtroSeccion, setFiltroSeccion] = useState('A');
 
   // Obtener estados y funciones del hook personalizado de diseño
   const {
@@ -92,6 +93,7 @@ export default function DisenoHorario() {
     }
 
     const colision = secciones.some(sec => {
+      if ((sec.seccion || 'A') !== filtroSeccion) return false;
       if (sec.dia !== diaSeleccionado) return false;
       const inicioA = hInicioIndex;
       const finA = hFinIndex;
@@ -111,6 +113,7 @@ export default function DisenoHorario() {
     const nuevaSec = {
       id_seccion: null,
       codigo: codigoGenerado,
+      seccion: filtroSeccion,
       dia: diaSeleccionado,
       horaInicio,
       horaFin,
@@ -144,6 +147,7 @@ export default function DisenoHorario() {
 
     // Validar cruces de horarios en el rango calculado
     const colision = secciones.some(sec => {
+      if ((sec.seccion || 'A') !== filtroSeccion) return false;
       if (sec.dia !== dia) return false;
       const inicioA = hInicioIndex;
       const finA = hFinIndex;
@@ -163,6 +167,7 @@ export default function DisenoHorario() {
     const nuevaSec = {
       id_seccion: null,
       codigo: codigoGenerado,
+      seccion: filtroSeccion,
       dia: dia,
       horaInicio,
       horaFin,
@@ -198,6 +203,7 @@ export default function DisenoHorario() {
         // Validar si la expansión se cruza con otra asignatura de ese día
         const colision = secciones.some((otraSec, otroIndex) => {
           if (otroIndex === index) return false;
+          if ((otraSec.seccion || 'A') !== (sec.seccion || 'A')) return false;
           if (otraSec.dia !== sec.dia) return false;
           
           const inicioA = hInicioIndex;
@@ -244,6 +250,7 @@ export default function DisenoHorario() {
         // Validar si la expansión se cruza con otra asignatura de ese día
         const colision = secciones.some((otraSec, otroIndex) => {
           if (otroIndex === index) return false;
+          if ((otraSec.seccion || 'A') !== (sec.seccion || 'A')) return false;
           if (otraSec.dia !== sec.dia) return false;
           
           const inicioA = nuevoInicioIndex;
@@ -305,6 +312,7 @@ export default function DisenoHorario() {
     // Validar cruces de horarios con otros bloques programados
     const colision = secciones.some((sec, idx) => {
       if (idx === bloqueAEditar.index) return false;
+      if ((sec.seccion || 'A') !== (bloqueAEditar.seccion || 'A')) return false;
       if (sec.dia !== bloqueAEditar.dia) return false;
       const inicioA = hInicioIndex;
       const finA = hFinIndex;
@@ -369,7 +377,7 @@ export default function DisenoHorario() {
         </div>
 
         {/* Selectores */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 bg-white border border-border rounded-xl p-4 shadow-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4 bg-white border border-border rounded-xl p-4 shadow-sm">
           <div className="flex flex-col gap-1.5">
             <label htmlFor="select-periodo" className="text-[0.78rem] font-bold text-text-muted uppercase">Periodo Académico</label>
             <select
@@ -447,12 +455,26 @@ export default function DisenoHorario() {
               ))}
             </select>
           </div>
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="select-seccion" className="text-[0.78rem] font-bold text-text-muted uppercase">Sección</label>
+            <select
+              id="select-seccion"
+              value={filtroSeccion}
+              disabled={!filtroCiclo}
+              onChange={(e) => setFiltroSeccion(e.target.value)}
+              className="p-2.5 border border-border rounded-md focus:outline-none focus:border-primary text-[0.85rem] bg-white cursor-pointer disabled:bg-slate-50 disabled:text-slate-400"
+            >
+              <option value="A">Sección A</option>
+              <option value="B">Sección B</option>
+              <option value="C">Sección C</option>
+            </select>
+          </div>
         </div>
 
         {/* Panel del Diseñador */}
-        {!idPeriodo || !idFacultad || !idEspecialidad || !filtroCiclo ? (
+        {!idPeriodo || !idFacultad || !idEspecialidad || !filtroCiclo || !filtroSeccion ? (
           <div className="flex items-center justify-center gap-2 bg-white border border-border rounded-xl p-12 text-center text-text-muted italic shadow-sm">
-            <Lightbulb size={18} /> Por favor, selecciona un Periodo Académico, una Facultad, una Carrera y un Ciclo para cargar el diseñador de horarios.
+            <Lightbulb size={18} /> Por favor, selecciona un Periodo Académico, una Facultad, una Carrera, un Ciclo y una Sección para cargar el diseñador de horarios.
           </div>
         ) : (
           <div className="flex flex-col gap-6">
@@ -538,9 +560,12 @@ export default function DisenoHorario() {
                       <React.Fragment key={hora}>
                         <div 
                           style={{ gridColumn: 1, gridRowStart: idx + 2 }}
-                          className="text-center text-[0.78rem] font-bold font-mono text-slate-500 flex items-center justify-center border-r border-slate-200"
+                          className="text-right pr-2 text-[0.78rem] font-bold font-mono text-slate-400 flex flex-col items-end justify-between h-full border-r border-slate-200 select-none"
                         >
-                          {hora}
+                          <span className="-mt-1.5">{hora}</span>
+                          {idx === horasDisponibles.length - 2 && (
+                            <span className="-mb-1.5">{horasDisponibles[idx + 1]}</span>
+                          )}
                         </div>
                         {diasSemana.map((dia, dIdx) => (
                           <div
@@ -560,6 +585,7 @@ export default function DisenoHorario() {
 
                     {/* Renderizar las secciones activas */}
                     {secciones.map((sec, index) => {
+                      if ((sec.seccion || 'A') !== filtroSeccion) return null;
                       const gridPos = obtenerGridRowSpan(sec.horaInicio, sec.horaFin);
                       const col = obtenerGridCol(sec.dia);
 

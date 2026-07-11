@@ -140,13 +140,13 @@ export async function eliminarCurso(id) {
 // ==========================================
 
 export async function obtenerPeriodos() {
-  const respuesta = await consultarApi('/api/admin/periodos', { method: 'GET' });
+  const respuesta = await consultarApi('/api/admin/periodos/', { method: 'GET' });
   if (!respuesta.ok) throw new Error('Error al cargar los periodos académicos');
   return respuesta.json();
 }
 
 export async function guardarPeriodo(datos) {
-  const respuesta = await consultarApi('/api/admin/periodos', {
+  const respuesta = await consultarApi('/api/admin/periodos/', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(datos)
@@ -163,6 +163,59 @@ export async function activarPeriodo(id) {
   if (!respuesta.ok) {
     const error = await respuesta.json();
     throw new Error(error.msg || 'Error al activar el periodo académico.');
+  }
+  return respuesta.json();
+}
+
+// ==========================================
+// SERVICIOS DE SECCIONES
+// ==========================================
+
+export async function obtenerSecciones(idEspecialidad = '', ciclo = '', idPeriodo = '') {
+  let url = '/api/courses/secciones';
+  const queryParams = [];
+  if (idEspecialidad) queryParams.push(`id_especialidad=${idEspecialidad}`);
+  if (ciclo) queryParams.push(`ciclo=${ciclo}`);
+  if (idPeriodo) queryParams.push(`id_periodo=${idPeriodo}`);
+  if (queryParams.length > 0) {
+    url += '?' + queryParams.join('&');
+  }
+  const respuesta = await consultarApi(url, { method: 'GET' });
+  if (!respuesta.ok) throw new Error('Error al cargar las secciones');
+  return respuesta.json();
+}
+
+export async function guardarSeccion(datos) {
+  const respuesta = await consultarApi('/api/courses/secciones', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(datos)
+  });
+  if (!respuesta.ok) {
+    const error = await respuesta.json();
+    throw new Error(error.msg || 'Error al guardar la sección.');
+  }
+  return respuesta.json();
+}
+
+export async function actualizarSeccion(id, datos) {
+  const respuesta = await consultarApi(`/api/courses/secciones/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(datos)
+  });
+  if (!respuesta.ok) {
+    const error = await respuesta.json();
+    throw new Error(error.msg || 'Error al actualizar la sección.');
+  }
+  return respuesta.json();
+}
+
+export async function eliminarSeccion(id) {
+  const respuesta = await consultarApi(`/api/courses/secciones/${id}`, { method: 'DELETE' });
+  if (!respuesta.ok) {
+    const error = await respuesta.json();
+    throw new Error(error.msg || 'Error al eliminar la sección.');
   }
   return respuesta.json();
 }

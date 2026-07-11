@@ -3,9 +3,14 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
+class AsignaturaMatriculaInput(BaseModel):
+    id_curso: int
+    id_seccion: int
+
+
 class SolicitarMatriculaBody(BaseModel):
     id_periodo: int
-    cursos: list[int]
+    secciones: list[AsignaturaMatriculaInput]
 
 
 class MatriculaDetalleResponse(BaseModel):
@@ -13,6 +18,8 @@ class MatriculaDetalleResponse(BaseModel):
     id_curso: int
     curso: str
     codigo_curso: str
+    id_seccion: int
+    seccion_codigo: str | None = None
     estado: str
     horario: str | None = None
 

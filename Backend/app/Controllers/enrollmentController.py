@@ -12,6 +12,9 @@ from app.services.enrollment_service import (
     PeriodoNoEncontradoError,
     CursoFueraDePlanError,
     PagoNoEncontradoError,
+    SeccionNoEncontradaError,
+    SeccionLlenaError,
+    CursoNoEncontradoError,
     estadisticas_periodo,
     generar_ficha_pdf,
     listar_todas_matriculas,
@@ -23,54 +26,41 @@ from app.services.enrollment_service import (
     validar_pago,
     rechazar_matricula,
 )
-from app.services.course_service import CursoNoEncontradoError
 from app.models.horario import Horario
 
 
 def _serializar_matricula(matricula):
     estudiante = matricula.estudiante
-    horarios = Horario.query.filter_by(id_periodo=matricula.id_periodo, id_especialidad=estudiante.id_especialidad).all()
-    
     detalles_serialized = []
+    
     for d in matricula.detalles:
-        bloques_curso = []
-        for h in horarios:
-            for bloque in h.detalles:
-                if bloque.get("id_curso") and int(bloque.get("id_curso")) == d.id_curso:
-                    bloques_curso.append(bloque)
-        
-        if not bloques_curso:
-            detalles_serialized.append(
-                MatriculaDetalleResponse(
-                    id_matricula_detalle=d.id_matricula_detalle,
-                    id_curso=d.id_curso,
-                    curso=d.curso.nombre,
-                    codigo_curso=d.curso.codigo,
-                    estado=d.estado,
-                    horario=None
-                )
+        # Recuperar dinámicamente el horario del curso y sección del estudiante
+        bloque_horario = ""
+        h_obj = Horario.query.filter_by(
+            id_periodo=matricula.id_periodo,
+            id_especialidad=estudiante.id_especialidad,
+            ciclo=d.curso.ciclo
+        ).first()
+        if h_obj:
+            bloques = [
+                b for b in h_obj.detalles 
+                if b.get("id_curso") == d.id_curso and (b.get("seccion") or 'A') == d.seccion.codigo
+            ]
+            if bloques:
+                bloque_horario = ", ".join([f"{b.get('dia')} {b.get('horaInicio')}-{b.get('horaFin')}" for b in bloques])
+
+        detalles_serialized.append(
+            MatriculaDetalleResponse(
+                id_matricula_detalle=d.id_matricula_detalle,
+                id_curso=d.id_curso,
+                curso=d.curso.nombre,
+                codigo_curso=d.curso.codigo,
+                id_seccion=d.id_seccion,
+                seccion_codigo=d.seccion.codigo,
+                estado=d.estado,
+                horario=bloque_horario or None
             )
-        else:
-            for bloque in bloques_curso:
-                dia_corto = {
-                    "LUNES": "Lun",
-                    "MARTES": "Mar",
-                    "MIERCOLES": "Mie",
-                    "JUEVES": "Jue",
-                    "VIERNES": "Vie",
-                    "SABADO": "Sab"
-                }.get(bloque.get("dia").upper(), "Lun")
-                
-                detalles_serialized.append(
-                    MatriculaDetalleResponse(
-                        id_matricula_detalle=d.id_matricula_detalle,
-                        id_curso=d.id_curso,
-                        curso=d.curso.nombre,
-                        codigo_curso=d.curso.codigo,
-                        estado=d.estado,
-                        horario=f"{dia_corto} {bloque.get('horaInicio')}-{bloque.get('horaFin')}"
-                    )
-                )
+        )
 
     return MatriculaResponse(
         id_matricula=matricula.id_matricula,
@@ -89,7 +79,8 @@ def solicitar(body):
         return {"msg": "Solo un estudiante puede solicitar matrícula"}, 403
 
     try:
-        matricula = solicitar_matricula(usuario.estudiante.id_estudiante, body.id_periodo, body.cursos)
+        secciones_data = [{"id_curso": s.id_curso, "id_seccion": s.id_seccion} for s in body.secciones]
+        matricula = solicitar_matricula(usuario.estudiante.id_estudiante, body.id_periodo, secciones_data)
     except EstudianteInactivoError:
         return {"msg": "El estudiante no está activo"}, 403
     except PeriodoNoEncontradoError:
@@ -98,10 +89,14 @@ def solicitar(body):
         return {"msg": "El periodo académico no está activo para matrícula"}, 409
     except MatriculaDuplicadaError:
         return {"msg": "Ya existe una matrícula para este periodo"}, 409
-    except CursoNoEncontradoError:
-        return {"msg": "Uno o más cursos no existen"}, 404
+    except SeccionNoEncontradaError:
+        return {"msg": "Una o más secciones no existen"}, 404
+    except SeccionLlenaError:
+        return {"msg": "Una o más secciones no tienen vacantes disponibles"}, 409
     except CursoFueraDePlanError:
         return {"msg": "El estudiante solo puede matricularse en cursos de su plan de estudios (malla curricular)"}, 400
+    except CursoNoEncontradoError:
+        return {"msg": "Uno o más cursos indicados no existen"}, 404
 
     return _serializar_matricula(matricula), 201
 

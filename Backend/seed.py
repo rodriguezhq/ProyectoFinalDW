@@ -26,11 +26,11 @@ from app.models import (
     Nota,
     Pago,
     PeriodoAcademico,
-
     Rol,
     Horario,
     Silabo,
     Usuario,
+    Seccion,
 )
 
 DEMO_PASSWORD = "Password123!"
@@ -45,6 +45,7 @@ def clear_data():
     Pago.query.delete()
     Documento.query.delete()
     MatriculaDetalle.query.delete()
+    Seccion.query.delete()
     Matricula.query.delete()
     Horario.query.delete()
     Usuario.query.delete()
@@ -73,10 +74,10 @@ def seed():
     # ---------- Periodos academicos ----------
     print("Creando periodos academicos...")
     periodo_pasado = PeriodoAcademico(
-        nombre="2025-II", fecha_inicio=date(2025, 8, 1), fecha_fin=date(2025, 12, 20), estado="cerrado"
+        nombre="2025-II", estado="cerrado"
     )
     periodo_actual = PeriodoAcademico(
-        nombre="2026-I", fecha_inicio=date(2026, 3, 1), fecha_fin=date(2026, 7, 18), estado="activo"
+        nombre="2026-I", estado="activo"
     )
     db.session.add_all([periodo_pasado, periodo_actual])
     db.session.commit()
@@ -151,6 +152,17 @@ def seed():
     db.session.add_all([curso_ed, curso_bd, curso_daw, curso_isw, curso_ms, curso_ca])
     db.session.commit()
 
+    # ---------- Secciones (por carrera y ciclo en periodos) ----------
+    print("Creando secciones...")
+    global sec_is_c3_pasado, sec_is_c5_pasado, sec_is_c9_actual, sec_is_c7_actual, sec_ic_c4_actual
+    sec_is_c3_pasado = Seccion(codigo="A", id_especialidad=esp_is.id_especialidad, ciclo=3, id_periodo=periodo_pasado.id_periodo)
+    sec_is_c5_pasado = Seccion(codigo="A", id_especialidad=esp_is.id_especialidad, ciclo=5, id_periodo=periodo_pasado.id_periodo)
+    sec_is_c7_actual = Seccion(codigo="A", id_especialidad=esp_is.id_especialidad, ciclo=7, id_periodo=periodo_actual.id_periodo)
+    sec_is_c9_actual = Seccion(codigo="A", id_especialidad=esp_is.id_especialidad, ciclo=9, id_periodo=periodo_actual.id_periodo)
+    sec_ic_c4_actual = Seccion(codigo="A", id_especialidad=esp_ic.id_especialidad, ciclo=4, id_periodo=periodo_actual.id_periodo)
+    db.session.add_all([sec_is_c3_pasado, sec_is_c5_pasado, sec_is_c7_actual, sec_is_c9_actual, sec_ic_c4_actual])
+    db.session.commit()
+
     # ---------- Estudiantes ----------
     print("Creando estudiantes...")
     est_cristhian = Estudiante(
@@ -187,6 +199,7 @@ def seed():
         estado="activo",
         detalles=[{
             "codigo": "A",
+            "seccion": "A",
             "dia": "LUNES",
             "horaInicio": "08:00",
             "horaFin": "10:00",
@@ -203,6 +216,7 @@ def seed():
         estado="activo",
         detalles=[{
             "codigo": "A",
+            "seccion": "A",
             "dia": "MARTES",
             "horaInicio": "10:00",
             "horaFin": "12:00",
@@ -221,6 +235,7 @@ def seed():
         estado="activo",
         detalles=[{
             "codigo": "A",
+            "seccion": "A",
             "dia": "LUNES",
             "horaInicio": "14:00",
             "horaFin": "18:00",
@@ -237,6 +252,7 @@ def seed():
         estado="activo",
         detalles=[{
             "codigo": "A",
+            "seccion": "A",
             "dia": "VIERNES",
             "horaInicio": "08:00",
             "horaFin": "12:00",
@@ -253,6 +269,7 @@ def seed():
         estado="activo",
         detalles=[{
             "codigo": "A",
+            "seccion": "A",
             "dia": "MARTES",
             "horaInicio": "08:00",
             "horaFin": "10:00",
@@ -320,13 +337,13 @@ def seed():
 
     # ---------- Matricula_Detalle ----------
     print("Creando matricula_detalle...")
-    det_cristhian_ed = MatriculaDetalle(id_matricula=mat_cristhian_pasado.id_matricula, id_curso=curso_ed.id_curso, estado="matriculado")
-    det_cristhian_bd = MatriculaDetalle(id_matricula=mat_cristhian_pasado.id_matricula, id_curso=curso_bd.id_curso, estado="matriculado")
-    det_cristhian_daw = MatriculaDetalle(id_matricula=mat_cristhian_actual.id_matricula, id_curso=curso_daw.id_curso, estado="matriculado")
-    det_cristhian_isw = MatriculaDetalle(id_matricula=mat_cristhian_actual.id_matricula, id_curso=curso_isw.id_curso, estado="matriculado")
-    det_scoot_daw = MatriculaDetalle(id_matricula=mat_scoot_actual.id_matricula, id_curso=curso_daw.id_curso, estado="matriculado")
-    det_maria_isw = MatriculaDetalle(id_matricula=mat_maria_actual.id_matricula, id_curso=curso_isw.id_curso, estado="matriculado")
-    det_pedro_ms = MatriculaDetalle(id_matricula=mat_pedro_actual.id_matricula, id_curso=curso_ms.id_curso, estado="matriculado")
+    det_cristhian_ed = MatriculaDetalle(id_matricula=mat_cristhian_pasado.id_matricula, id_seccion=sec_is_c3_pasado.id_seccion, id_curso=curso_ed.id_curso, estado="matriculado")
+    det_cristhian_bd = MatriculaDetalle(id_matricula=mat_cristhian_pasado.id_matricula, id_seccion=sec_is_c5_pasado.id_seccion, id_curso=curso_bd.id_curso, estado="matriculado")
+    det_cristhian_daw = MatriculaDetalle(id_matricula=mat_cristhian_actual.id_matricula, id_seccion=sec_is_c9_actual.id_seccion, id_curso=curso_daw.id_curso, estado="matriculado")
+    det_cristhian_isw = MatriculaDetalle(id_matricula=mat_cristhian_actual.id_matricula, id_seccion=sec_is_c7_actual.id_seccion, id_curso=curso_isw.id_curso, estado="matriculado")
+    det_scoot_daw = MatriculaDetalle(id_matricula=mat_scoot_actual.id_matricula, id_seccion=sec_is_c9_actual.id_seccion, id_curso=curso_daw.id_curso, estado="matriculado")
+    det_maria_isw = MatriculaDetalle(id_matricula=mat_maria_actual.id_matricula, id_seccion=sec_is_c7_actual.id_seccion, id_curso=curso_isw.id_curso, estado="matriculado")
+    det_pedro_ms = MatriculaDetalle(id_matricula=mat_pedro_actual.id_matricula, id_seccion=sec_ic_c4_actual.id_seccion, id_curso=curso_ms.id_curso, estado="matriculado")
     db.session.add_all([
         det_cristhian_ed, det_cristhian_bd, det_cristhian_daw, det_cristhian_isw,
         det_scoot_daw, det_maria_isw, det_pedro_ms,

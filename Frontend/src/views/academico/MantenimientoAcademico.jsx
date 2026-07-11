@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
-import { Building2, GraduationCap, BookOpen, Calendar } from 'lucide-react';
+import { Building2, GraduationCap, BookOpen, Calendar, Layers } from 'lucide-react';
 import Facultades from './Facultades';
 import Especialidades from './Especialidades';
 import Cursos from './Cursos';
 import Periodos from './Periodos';
+import Secciones from './Secciones';
 
 export default function MantenimientoAcademico() {
   const [activoTab, setActivoTab] = useState('facultades');
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 w-full max-w-full overflow-hidden">
       {/* Fila de navegación por pestañas */}
       <div className="flex overflow-x-auto max-w-full whitespace-nowrap bg-bg-alt/50 p-1.5 rounded-lg gap-1 border border-border scrollbar-none">
         <button
@@ -40,14 +41,22 @@ export default function MantenimientoAcademico() {
         >
           <Calendar size={16} /> Periodos Académicos
         </button>
+        <button
+          type="button"
+          onClick={() => setActivoTab('secciones')}
+          className={`flex items-center gap-1.5 py-2 px-5.5 text-[0.88rem] font-bold rounded-md transition-all duration-200 cursor-pointer shrink-0 ${activoTab === 'secciones' ? 'bg-white text-primary shadow-sm border border-border' : 'text-text-muted hover:text-primary hover:bg-white/50'}`}
+        >
+          <Layers size={16} /> Secciones
+        </button>
       </div>
 
       {/* Contenido activo de la pestaña */}
-      <div className="mt-2">
+      <div className="mt-2 w-full max-w-full overflow-hidden">
         {activoTab === 'facultades' && <Facultades />}
         {activoTab === 'especialidades' && <Especialidades />}
         {activoTab === 'cursos' && <Cursos />}
         {activoTab === 'periodos' && <Periodos />}
+        {activoTab === 'secciones' && <Secciones />}
       </div>
     </div>
   );

@@ -89,6 +89,7 @@ export function useDisenoHorario(idPeriodo, idFacultad, idEspecialidad, filtroCi
         ciclo: parseInt(filtroCiclo),
         detalles: secciones.map(sec => ({
           codigo: sec.codigo,
+          seccion: sec.seccion || 'A',
           dia: sec.dia,
           horaInicio: sec.horaInicio,
           horaFin: sec.horaFin,
