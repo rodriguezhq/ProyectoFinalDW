@@ -5,8 +5,8 @@ export default function RecordKpis({ ppa = 0, creditosMatriculados = 0, creditos
     return (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {/* KPI 1: Promedio Ponderado Acumulado */}
-            <div className="bg-white border border-border p-5 rounded-xl shadow-xs flex items-center gap-4 border-t-4 border-t-primary">
-                <div className="p-3 bg-primary-light text-primary rounded-lg">
+            <div className="bg-white border border-border p-5 rounded-none shadow-xs flex items-center gap-4 border-t-4 border-t-primary">
+                <div className="p-3 bg-primary-light text-primary rounded-none">
                     <Award size={24} />
                 </div>
                 <div>
@@ -18,8 +18,8 @@ export default function RecordKpis({ ppa = 0, creditosMatriculados = 0, creditos
             </div>
 
             {/* KPI 2: Créditos Matriculados */}
-            <div className="bg-white border border-border p-5 rounded-xl shadow-xs flex items-center gap-4 border-t-4 border-t-blue-500">
-                <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
+            <div className="bg-white border border-border p-5 rounded-none shadow-xs flex items-center gap-4 border-t-4 border-t-blue-500">
+                <div className="p-3 bg-blue-50 text-blue-600 rounded-none">
                     <BookOpen size={24} />
                 </div>
                 <div>
@@ -31,8 +31,8 @@ export default function RecordKpis({ ppa = 0, creditosMatriculados = 0, creditos
             </div>
 
             {/* KPI 3: Créditos Aprobados */}
-            <div className="bg-white border border-border p-5 rounded-xl shadow-xs flex items-center gap-4 border-t-4 border-t-emerald-500">
-                <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
+            <div className="bg-white border border-border p-5 rounded-none shadow-xs flex items-center gap-4 border-t-4 border-t-emerald-500">
+                <div className="p-3 bg-emerald-50 text-emerald-600 rounded-none">
                     <CheckCircle size={24} />
                 </div>
                 <div>

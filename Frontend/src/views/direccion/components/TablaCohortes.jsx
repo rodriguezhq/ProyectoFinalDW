@@ -4,7 +4,7 @@ import { GraduationCap, Users, Percent, Award } from 'lucide-react';
 export default function TablaCohortes({ datos = [] }) {
     if (datos.length === 0) {
         return (
-            <div className="w-full bg-slate-50 border border-border p-6 text-center text-sm text-text-muted rounded-xl">
+            <div className="w-full bg-slate-50 border border-border p-6 text-center text-sm text-text-muted rounded-none">
                 No se encontraron registros de desempeño por cohorte para esta especialidad.
             </div>
         );
@@ -28,8 +28,8 @@ export default function TablaCohortes({ datos = [] }) {
             {/* Tarjetas KPI de Indicadores Académicos */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {/* KPI 1: Promedio General */}
-                <div className="bg-white border border-border p-5 rounded-xl shadow-xs flex items-center gap-4 border-t-4 border-t-primary">
-                    <div className="p-3 bg-primary-light text-primary rounded-lg">
+                <div className="bg-white border border-border p-5 rounded-none shadow-xs flex items-center gap-4 border-t-4 border-t-primary">
+                    <div className="p-3 bg-primary-light text-primary rounded-none">
                         <GraduationCap size={24} />
                     </div>
                     <div>
@@ -39,8 +39,8 @@ export default function TablaCohortes({ datos = [] }) {
                 </div>
 
                 {/* KPI 2: Tasa de Aprobación */}
-                <div className="bg-white border border-border p-5 rounded-xl shadow-xs flex items-center gap-4 border-t-4 border-t-emerald-500">
-                    <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
+                <div className="bg-white border border-border p-5 rounded-none shadow-xs flex items-center gap-4 border-t-4 border-t-emerald-500">
+                    <div className="p-3 bg-emerald-50 text-emerald-600 rounded-none">
                         <Percent size={24} />
                     </div>
                     <div>
@@ -52,8 +52,8 @@ export default function TablaCohortes({ datos = [] }) {
                 </div>
 
                 {/* KPI 3: Total Estudiantes */}
-                <div className="bg-white border border-border p-5 rounded-xl shadow-xs flex items-center gap-4 border-t-4 border-t-blue-500">
-                    <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
+                <div className="bg-white border border-border p-5 rounded-none shadow-xs flex items-center gap-4 border-t-4 border-t-blue-500">
+                    <div className="p-3 bg-blue-50 text-blue-600 rounded-none">
                         <Users size={24} />
                     </div>
                     <div>
@@ -64,7 +64,7 @@ export default function TablaCohortes({ datos = [] }) {
             </div>
 
             {/* Tabla con scroll horizontal responsivo aislado */}
-            <div className="w-full max-w-full overflow-x-auto border border-border bg-white rounded-xl shadow-xs min-w-0">
+            <div className="w-full max-w-full overflow-x-auto border border-border bg-white rounded-none shadow-xs min-w-0 overflow-hidden">
                 <table className="w-full border-collapse text-left text-xs text-text-main min-w-[750px]">
                     <thead>
                         <tr className="bg-primary-light text-primary font-bold uppercase tracking-wide border-b border-border">

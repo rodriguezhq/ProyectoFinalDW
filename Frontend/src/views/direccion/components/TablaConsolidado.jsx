@@ -3,7 +3,7 @@ import React from 'react';
 export default function TablaConsolidado({ alumnos = [] }) {
     if (alumnos.length === 0) {
         return (
-            <div className="w-full bg-slate-50 border border-border p-6 text-center text-sm text-text-muted rounded-xl">
+            <div className="w-full bg-slate-50 border border-border p-6 text-center text-sm text-text-muted rounded-none">
                 No se encontraron estudiantes matriculados en esta especialidad.
             </div>
         );
@@ -16,7 +16,7 @@ export default function TablaConsolidado({ alumnos = [] }) {
             </h3>
 
             {/* Tabla con scroll horizontal responsivo aislado */}
-            <div className="w-full max-w-full overflow-x-auto border border-border bg-white rounded-xl shadow-xs min-w-0">
+            <div className="w-full max-w-full overflow-x-auto border border-border bg-white shadow-xs min-w-0 overflow-hidden">
                 <table className="w-full border-collapse text-left text-xs text-text-main min-w-[750px]">
                     <thead>
                         <tr className="bg-primary-light text-primary font-bold uppercase tracking-wide border-b border-border">
@@ -35,8 +35,8 @@ export default function TablaConsolidado({ alumnos = [] }) {
                             const hasPpa = row.promedio_ponderado_acumulado !== null && row.promedio_ponderado_acumulado !== undefined;
 
                             return (
-                                <tr 
-                                    key={row.id_estudiante} 
+                                <tr
+                                    key={row.id_estudiante}
                                     className={`border-b border-border hover:bg-slate-50 transition-colors ${isEven ? 'bg-white' : 'bg-[#F8FAFC]'}`}
                                 >
                                     <td className="p-3 border-r border-border/60 text-center font-mono font-extrabold text-text-heading text-sm">

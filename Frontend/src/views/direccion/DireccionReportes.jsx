@@ -72,7 +72,7 @@ export default function DireccionReportes() {
             {/* Cabecera */}
             <div className="border-b border-border pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-primary-light text-primary uppercase tracking-wider mb-1.5">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-none text-[10px] font-bold bg-primary-light text-primary uppercase tracking-wider mb-1.5">
                         Monitoreo Académico
                     </span>
                     <h1 className="text-3xl font-extrabold text-text-heading tracking-tight font-heading">
@@ -86,7 +86,7 @@ export default function DireccionReportes() {
                     type="button"
                     onClick={cargarDatosReporte}
                     disabled={loading}
-                    className="flex items-center gap-2 py-2 px-4 bg-bg-alt hover:bg-slate-100 border border-border text-text-heading font-bold text-xs uppercase tracking-wider transition-colors rounded-lg cursor-pointer"
+                    className="flex items-center gap-2 py-2 px-4 bg-bg-alt hover:bg-slate-100 border border-border text-text-heading font-bold text-xs uppercase tracking-wider transition-colors rounded-none cursor-pointer"
                 >
                     <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
                     Actualizar
@@ -95,14 +95,14 @@ export default function DireccionReportes() {
 
             {/* Banner de error */}
             {error && (
-                <div className="p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl text-red-700 text-sm font-medium flex items-center gap-2 shadow-xs">
+                <div className="p-4 bg-red-50 border-l-4 border-red-500 rounded-none text-red-700 text-sm font-medium flex items-center gap-2 shadow-xs">
                     <AlertCircle size={18} />
                     <span>{error}</span>
                 </div>
             )}
 
             {/* Panel de Filtros */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-bg-alt border border-border p-4 rounded-xl shadow-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-bg-alt border border-border p-4 rounded-none shadow-xs">
                 <div className="flex flex-col gap-1.5">
                     <label htmlFor="especialidad-select" className="text-xs font-bold uppercase tracking-wider text-text-muted flex items-center gap-1">
                         <Award size={14} className="text-primary" />
@@ -112,7 +112,7 @@ export default function DireccionReportes() {
                         id="especialidad-select"
                         value={selectedEspecialidad}
                         onChange={(e) => setSelectedEspecialidad(e.target.value)}
-                        className="w-full bg-white border border-border text-sm p-2.5 rounded-lg outline-none focus:border-primary focus:ring-1 focus:ring-primary font-medium"
+                        className="w-full bg-white border border-border text-sm p-2.5 rounded-none outline-none focus:border-primary focus:ring-1 focus:ring-primary font-medium"
                     >
                         {especialidades.map(esp => (
                             <option key={esp.id_especialidad} value={esp.id_especialidad}>
@@ -130,12 +130,12 @@ export default function DireccionReportes() {
             </div>
 
             {/* Pestañas de Navegación */}
-            <div className="flex gap-2 border-b border-border bg-slate-50/50 p-1 rounded-t-lg">
+            <div className="flex gap-2 border-b border-border bg-slate-50/50 p-1 rounded-none">
                 <button
                     type="button"
                     className={`py-2.5 px-4 font-heading text-xs font-extrabold border-b-2 transition-all duration-150 flex items-center gap-2 cursor-pointer ${
                         activeTab === 'cohortes' 
-                            ? 'border-primary text-primary bg-white shadow-xs rounded-t-md font-black' 
+                            ? 'border-primary text-primary bg-white shadow-xs rounded-none font-black' 
                             : 'border-transparent text-text-muted hover:text-text-heading'
                     }`}
                     onClick={() => setActiveTab('cohortes')}
@@ -147,7 +147,7 @@ export default function DireccionReportes() {
                     type="button"
                     className={`py-2.5 px-4 font-heading text-xs font-extrabold border-b-2 transition-all duration-150 flex items-center gap-2 cursor-pointer ${
                         activeTab === 'consolidado' 
-                            ? 'border-primary text-primary bg-white shadow-xs rounded-t-md font-black' 
+                            ? 'border-primary text-primary bg-white shadow-xs rounded-none font-black' 
                             : 'border-transparent text-text-muted hover:text-text-heading'
                     }`}
                     onClick={() => setActiveTab('consolidado')}

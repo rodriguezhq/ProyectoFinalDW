@@ -35,6 +35,8 @@ import ProfileView from './views/compartidos/ProfileView';
 import RegistrarNotasDocente from './views/academico/RegistrarNotasDocente';
 import GradesView from './views/academico/GradesView';
 import RecordView from './views/academico/RecordView';
+import AdminActasNotas from './views/academico/AdminActasNotas';
+
 
 
 // Vistas de Certificados y Documentos
@@ -54,12 +56,8 @@ const EnrollmentView = () => (
 
 
 
-const AdminActasNotas = () => (
-    <div className="p-6 bg-white border border-border rounded-xl shadow-sm">
-        <h2 className="text-xl font-bold text-text-heading mb-2">Validación y Consolidación de Notas</h2>
-        <p className="text-text-muted">Validación oficial de actas de cursos y cierre de ciclo académico.</p>
-    </div>
-);
+
+
 
 
 

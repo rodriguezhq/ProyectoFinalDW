@@ -52,7 +52,7 @@ export default function SidebarShell({ menuOptions = [], children }) {
             )}
 
             {/* Sidebar */}
-            <aside className={`fixed lg:static inset-y-0 left-0 h-screen bg-primary-light text-text-main flex flex-col overflow-y-auto border-r border-primary/10 transition-all duration-300 z-[99] shrink-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} ${isCollapsed ? 'lg:w-[90px]' : 'w-[250px]'}`}>
+            <aside className={`fixed lg:static inset-y-0 left-0 h-screen bg-primary-light text-text-main flex flex-col overflow-y-auto border-r border-primary/10 transition-all duration-300 z-[99] shrink-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} ${isCollapsed ? 'lg:w-[80px]' : 'w-[250px]'}`}>
                 <div className={`flex items-center gap-3 p-4.5 border-b border-primary/10 ${isCollapsed ? 'lg:justify-center lg:p-5' : ''}`}>
                     <img src={uncpImagen} alt="UNCP logo" className="h-10 w-auto drop-shadow-sm" />
                     <div className={`flex flex-col ${isCollapsed ? 'lg:hidden' : ''}`}>

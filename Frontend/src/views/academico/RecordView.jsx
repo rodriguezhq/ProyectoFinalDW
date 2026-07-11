@@ -47,7 +47,7 @@ export default function RecordView() {
 
     if (error) {
         return (
-            <div className="p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl text-red-700 text-sm font-medium flex items-center gap-2">
+            <div className="p-4 bg-red-50 border-l-4 border-red-500 rounded-none text-red-700 text-sm font-medium flex items-center gap-2">
                 <AlertCircle size={20} />
                 <span>{error}</span>
             </div>
@@ -62,7 +62,7 @@ export default function RecordView() {
     return (
         <div className="w-full flex flex-col gap-6 animate-slide-up">
             {/* Cabecera del Récord */}
-            <div className="bg-white border border-border rounded-xl p-5 md:p-6 shadow-sm flex flex-col md:flex-row justify-between gap-4">
+            <div className="bg-white border border-border rounded-none p-5 md:p-6 shadow-sm flex flex-col md:flex-row justify-between gap-4">
                 <div className="space-y-1">
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-primary-light text-primary uppercase tracking-wider mb-1">
                         Historial Académico
@@ -99,7 +99,7 @@ export default function RecordView() {
                 </h2>
 
                 {periodos.length === 0 ? (
-                    <div className="bg-slate-50 border border-border rounded-xl p-8 text-center text-sm text-text-muted">
+                    <div className="bg-slate-50 border border-border rounded-none p-8 text-center text-sm text-text-muted">
                         No hay matrículas registradas en tu historial académico.
                     </div>
                 ) : (

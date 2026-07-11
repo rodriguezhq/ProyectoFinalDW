@@ -6,7 +6,7 @@ export default function PeriodoBlock({ periodo }) {
     const semAvg = periodo.promedio_ponderado_periodo;
 
     return (
-        <div className="bg-white border border-border rounded-xl p-4 md:p-5 shadow-xs space-y-4">
+        <div className="bg-white border border-border rounded-none p-4 md:p-5 shadow-xs space-y-4">
             {/* Cabecera del Semestre */}
             <div className="flex flex-col sm:flex-row justify-between sm:items-center border-b border-border pb-3 gap-2">
                 <div>
@@ -28,7 +28,7 @@ export default function PeriodoBlock({ periodo }) {
             </div>
 
             {/* Tabla de Asignaturas del Semestre (Scroll horizontal responsivo aislado) */}
-            <div className="w-full max-w-full overflow-x-auto border border-border bg-white rounded-lg min-w-0">
+            <div className="w-full max-w-full overflow-x-auto border border-border bg-white rounded-none min-w-0 overflow-hidden">
                 <table className="w-full border-collapse text-left text-xs min-w-[650px]">
                     <thead>
                         <tr className="bg-slate-50 text-text-muted font-bold border-b border-border">
