@@ -200,3 +200,66 @@ def obtener_notas_curso(id_curso):
         resultado.append(nota_dict)
 
     return resultado
+
+
+def obtener_notas_curso_periodo(id_curso, id_periodo):
+    # Obtiene las notas de los estudiantes matriculados en un curso para un periodo especifico
+    detalles_matricula = MatriculaDetalle.query.join(Matricula).filter(
+        Matricula.id_periodo == id_periodo,
+        MatriculaDetalle.id_curso == id_curso
+    ).all()
+
+    resultado_notas = []
+    for detalle in detalles_matricula:
+        nota_estudiante = detalle.nota
+        if nota_estudiante:
+            diccionario_nota = _nota_a_dict(nota_estudiante)
+        else:
+            objeto_curso = detalle.curso
+            objeto_periodo = detalle.matricula.periodo if detalle.matricula else None
+            
+            # Buscar el docente en el Horario programado
+            objeto_docente = None
+            if detalle and detalle.matricula:
+                from app.models.horario import Horario
+                lista_horarios = Horario.query.filter_by(
+                    id_periodo=detalle.matricula.id_periodo,
+                    id_especialidad=detalle.matricula.estudiante.id_especialidad
+                ).all()
+                for item_horario in lista_horarios:
+                    for item_bloque in item_horario.detalles:
+                        if item_bloque.get("id_curso") and int(item_bloque.get("id_curso")) == detalle.id_curso:
+                            id_docente_bloque = item_bloque.get("id_docente")
+                            if id_docente_bloque:
+                                objeto_docente = db.session.get(Docente, int(id_docente_bloque))
+                                break
+                    if objeto_docente:
+                        break
+
+            diccionario_nota = {
+                "id_nota": None,
+                "parcial1": None,
+                "parcial2": None,
+                "final": None,
+                "sustitutorio": None,
+                "promedio": None,
+                "estado": "sin_nota",
+                "id_matricula_detalle": detalle.id_matricula_detalle,
+                "curso_nombre": objeto_curso.nombre if objeto_curso else None,
+                "curso_codigo": objeto_curso.codigo if objeto_curso else None,
+                "seccion_codigo": "A",
+                "periodo_nombre": objeto_periodo.nombre if objeto_periodo else None,
+                "docente_nombre": (
+                    f"{objeto_docente.nombres} {objeto_docente.apellidos}" if objeto_docente else None
+                ),
+            }
+
+        # Agregar informacion del estudiante
+        objeto_estudiante = detalle.matricula.estudiante
+        diccionario_nota["estudiante_nombre"] = f"{objeto_estudiante.nombres} {objeto_estudiante.apellidos}"
+        diccionario_nota["estudiante_codigo"] = objeto_estudiante.codigo
+
+        resultado_notas.append(diccionario_nota)
+
+    return resultado_notas
+

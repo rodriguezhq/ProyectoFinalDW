@@ -12,7 +12,7 @@ from app.models.horario import Horario
 from app.models.silabo import Silabo
 from app.models.seccion import Seccion
 
-UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "uploads", "silabos")
+UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static", "uploads", "silabos")
 
 
 class FacultadNoEncontradaError(Exception):
@@ -339,12 +339,15 @@ def subir_silabo(curso, archivo_storage):
     nombre_archivo = f"curso_{curso.id_curso}_{secure_filename(archivo_storage.filename)}"
     ruta_absoluta = os.path.join(UPLOAD_DIR, nombre_archivo)
     archivo_storage.save(ruta_absoluta)
-    ruta_relativa = os.path.join("uploads", "silabos", nombre_archivo)
+    ruta_relativa = os.path.join("static", "uploads", "silabos", nombre_archivo)
 
-    if curso.silabo:
-        curso.silabo.archivo = ruta_relativa
-        curso.silabo.estado = "pendiente"
-        silabo = curso.silabo
+    from app.models.silabo import Silabo
+    silabo_existente = Silabo.query.filter_by(id_curso=curso.id_curso).first()
+
+    if silabo_existente:
+        silabo_existente.archivo = ruta_relativa
+        silabo_existente.estado = "pendiente"
+        silabo = silabo_existente
     else:
         silabo = Silabo(archivo=ruta_relativa, estado="pendiente", id_curso=curso.id_curso)
         db.session.add(silabo)

@@ -164,3 +164,66 @@ class SeccionResponse(BaseModel):
 class SeccionListResponse(BaseModel):
     secciones: list[SeccionResponse]
 
+
+# ---------------- Respuestas Docente (Nuevas) ----------------
+
+class PeriodoItemSchema(BaseModel):
+    id_periodo: int
+    nombre: str
+    estado: str
+
+
+class MisPeriodosResponse(BaseModel):
+    periodos: list[PeriodoItemSchema]
+
+
+class CursoDetalleInfoSchema(BaseModel):
+    id_curso: int
+    codigo: str
+    nombre: str
+    creditos: int
+    ciclo: int
+    especialidad_nombre: str
+
+
+class PeriodoDetalleInfoSchema(BaseModel):
+    id_periodo: int
+    nombre: str
+    activo: bool
+
+
+class SilaboDetalleInfoSchema(BaseModel):
+    id_silabo: int
+    archivo: str
+    estado: str
+
+
+class CursoDetalleDocenteResponse(BaseModel):
+    curso: CursoDetalleInfoSchema
+    periodo: PeriodoDetalleInfoSchema
+    silabo: SilaboDetalleInfoSchema | None = None
+
+
+class EstudianteCalificacionItemSchema(BaseModel):
+    id_nota: int | None = None
+    parcial1: float | None = None
+    parcial2: float | None = None
+    final: float | None = None
+    sustitutorio: float | None = None
+    promedio: float | None = None
+    estado: str
+    id_matricula_detalle: int
+    curso_nombre: str | None = None
+    curso_codigo: str | None = None
+    seccion_codigo: str | None = None
+    periodo_nombre: str | None = None
+    docente_nombre: str | None = None
+    estudiante_nombre: str
+    estudiante_codigo: str
+
+
+class CursoEstudiantesDocenteResponse(BaseModel):
+    notas: list[EstudianteCalificacionItemSchema]
+    activo: bool
+
+

@@ -31,6 +31,7 @@ const MENU_OPTIONS = {
     ],
     [ROLES.DOCENTE]: [
         { icon: <Calendar size={18} />, label: 'Horario de Clases', path: '/docente' },
+        { icon: <BookOpen size={18} />, label: 'Cursos Asignados', path: '/docente/cursos' },
         { icon: <Edit3 size={18} />, label: 'Registrar Notas', path: '/docente/notas' },
         { icon: <User size={18} />, label: 'Ver Perfil', path: '/docente/perfil' }
     ],

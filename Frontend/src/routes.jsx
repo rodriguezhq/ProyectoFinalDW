@@ -37,6 +37,12 @@ import GradesView from './views/academico/GradesView';
 import RecordView from './views/academico/RecordView';
 import AdminActasNotas from './views/academico/AdminActasNotas';
 
+// Vistas de Docentes (Cursos y Notas)
+import CursosAsignadosDocente from './views/academico/CursosAsignadosDocente';
+import DetalleCursoDocente from './views/academico/DetalleCursoDocente';
+import IngresarCalificacionesDocente from './views/academico/IngresarCalificacionesDocente';
+
+
 
 
 // Vistas de Certificados y Documentos
@@ -90,6 +96,9 @@ export function AppRoutes() {
             <Route element={<ProtectedRoute allowedRoles={[ROLES.DOCENTE]} />}>
                 <Route path="/docente" element={<DocenteDashboard />}>
                     <Route index element={<VistaHorario isTeacher={true} />} />
+                    <Route path="cursos" element={<CursosAsignadosDocente />} />
+                    <Route path="cursos/:id_curso" element={<DetalleCursoDocente />} />
+                    <Route path="cursos/:id_curso/calificaciones" element={<IngresarCalificacionesDocente />} />
                     <Route path="notas" element={<RegistrarNotasDocente />} />
                     <Route path="perfil" element={<ProfileView />} />
                 </Route>

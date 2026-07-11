@@ -26,6 +26,9 @@ from app.schemas.course_schema import (
     SeccionBody,
     SeccionResponse,
     SeccionListResponse,
+    MisPeriodosResponse,
+    CursoDetalleDocenteResponse,
+    CursoEstudiantesDocenteResponse,
 )
 from app.utils.decorators import role_required
 
@@ -171,14 +174,33 @@ def guardar_horario(body: HorarioBody):
 
 # ---------------- Docente ----------------
 
+class MisSeccionesQuery(BaseModel):
+    id_periodo: int | None = Field(None, description="ID del periodo academico")
+
+
+class CursoDetalleQuery(BaseModel):
+    id_periodo: int = Field(..., description="ID del periodo academico")
+
+
+@courses_bp.get(
+    "/mis-periodos",
+    responses={200: MisPeriodosResponse, 403: MessageResponse},
+    security=[{"jwt": []}]
+)
+@role_required("Docente")
+def mis_periodos():
+    response, status = teacherController.mis_periodos_ctrl()
+    return response, status
+
+
 @courses_bp.get(
     "/mis-secciones",
     responses={200: HorarioListResponse, 403: MessageResponse},
     security=[{"jwt": []}]
 )
 @role_required("Docente")
-def mis_secciones():
-    response, status = teacherController.mis_secciones()
+def mis_secciones(query: MisSeccionesQuery):
+    response, status = teacherController.mis_secciones(query.id_periodo)
     return response, status
 
 
@@ -191,6 +213,30 @@ def mis_secciones():
 def subir_silabo(path: IdCursoPath, form: SilaboForm):
     response, status = teacherController.subir_silabo_ctrl(path.id_curso, form)
     return response, status
+
+
+@courses_bp.get(
+    "/cursos/<int:id_curso>/detalle",
+    responses={200: CursoDetalleDocenteResponse, 403: MessageResponse, 404: MessageResponse},
+    security=[{"jwt": []}]
+)
+@role_required("Docente")
+def curso_detalle_docente(path: IdCursoPath, query: CursoDetalleQuery):
+    response, status = teacherController.curso_detalle_docente_ctrl(path.id_curso, query.id_periodo)
+    return response, status
+
+
+@courses_bp.get(
+    "/cursos/<int:id_curso>/estudiantes",
+    responses={200: CursoEstudiantesDocenteResponse, 403: MessageResponse, 404: MessageResponse},
+    security=[{"jwt": []}]
+)
+@role_required("Docente")
+def curso_estudiantes_docente(path: IdCursoPath, query: CursoDetalleQuery):
+    response, status = teacherController.curso_estudiantes_ctrl(path.id_curso, query.id_periodo)
+    return response, status
+
+
 
 
 # ---------------- Direccion ----------------

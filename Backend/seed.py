@@ -135,11 +135,25 @@ def seed():
     curso_ms = Curso(codigo="MSU101", nombre="Mecanica de Suelos", creditos=4, horas_teoria=3, horas_practica=2, ciclo=4, id_facultad=facultad_fic.id_facultad)
     curso_ca = Curso(codigo="CAR201", nombre="Concreto Armado", creditos=4, horas_teoria=3, horas_practica=2, ciclo=6, id_facultad=facultad_fic.id_facultad)
     
+    # Nuevos cursos por ciclo academico
+    curso_intro = Curso(codigo="ED102", nombre="Introduccion a la Ingenieria de Sistemas", creditos=3, horas_teoria=2, horas_practica=2, ciclo=1, id_facultad=facultad_fis.id_facultad)
+    curso_mate1 = Curso(codigo="MAT101", nombre="Matematica I", creditos=4, horas_teoria=3, horas_practica=2, ciclo=1, id_facultad=facultad_fis.id_facultad)
+    curso_mate2 = Curso(codigo="MAT201", nombre="Matematica II", creditos=4, horas_teoria=3, horas_practica=2, ciclo=2, id_facultad=facultad_fis.id_facultad)
+    curso_alg = Curso(codigo="ALG201", nombre="Algoritmos y Programacion", creditos=4, horas_teoria=3, horas_practica=2, ciclo=2, id_facultad=facultad_fis.id_facultad)
+    curso_fis1 = Curso(codigo="FIS101", nombre="Fisica I", creditos=4, horas_teoria=3, horas_practica=2, ciclo=3, id_facultad=facultad_fis.id_facultad)
+    curso_redes = Curso(codigo="RED201", nombre="Redes de Computadoras I", creditos=4, horas_teoria=3, horas_practica=2, ciclo=5, id_facultad=facultad_fis.id_facultad)
+    curso_so = Curso(codigo="SO101", nombre="Sistemas Operativos", creditos=4, horas_teoria=3, horas_practica=2, ciclo=7, id_facultad=facultad_fis.id_facultad)
+    curso_ia = Curso(codigo="IA301", nombre="Inteligencia Artificial", creditos=4, horas_teoria=3, horas_practica=2, ciclo=9, id_facultad=facultad_fis.id_facultad)
+    curso_gp = Curso(codigo="GP301", nombre="Gerencia de Proyectos de TI", creditos=3, horas_teoria=2, horas_practica=2, ciclo=9, id_facultad=facultad_fis.id_facultad)
+
     # Asignar prerrequisitos (un ciclo superior requiere de ciclos inferiores)
     curso_bd.prerrequisitos.append(curso_ed)
     curso_daw.prerrequisitos.extend([curso_ed, curso_bd])
     curso_isw.prerrequisitos.append(curso_ed)
     curso_ca.prerrequisitos.append(curso_ms)
+    curso_mate2.prerrequisitos.append(curso_mate1)
+    curso_alg.prerrequisitos.append(curso_intro)
+    curso_ia.prerrequisitos.append(curso_alg)
 
     # Asignar especialidades (carreras) de la misma facultad
     curso_ed.especialidades.append(esp_is)
@@ -148,19 +162,41 @@ def seed():
     curso_isw.especialidades.append(esp_is)
     curso_ms.especialidades.append(esp_ic)
     curso_ca.especialidades.append(esp_ic)
+    curso_intro.especialidades.append(esp_is)
+    curso_mate1.especialidades.append(esp_is)
+    curso_mate2.especialidades.append(esp_is)
+    curso_alg.especialidades.append(esp_is)
+    curso_fis1.especialidades.append(esp_is)
+    curso_redes.especialidades.append(esp_is)
+    curso_so.especialidades.append(esp_is)
+    curso_ia.especialidades.append(esp_is)
+    curso_gp.especialidades.append(esp_is)
 
-    db.session.add_all([curso_ed, curso_bd, curso_daw, curso_isw, curso_ms, curso_ca])
+    db.session.add_all([
+        curso_ed, curso_bd, curso_daw, curso_isw, curso_ms, curso_ca,
+        curso_intro, curso_mate1, curso_mate2, curso_alg, curso_fis1,
+        curso_redes, curso_so, curso_ia, curso_gp
+    ])
     db.session.commit()
 
     # ---------- Secciones (por carrera y ciclo en periodos) ----------
     print("Creando secciones...")
     global sec_is_c3_pasado, sec_is_c5_pasado, sec_is_c9_actual, sec_is_c7_actual, sec_ic_c4_actual
+    global sec_is_c1_actual, sec_is_c2_actual, sec_is_c3_actual, sec_is_c5_actual
     sec_is_c3_pasado = Seccion(codigo="A", id_especialidad=esp_is.id_especialidad, ciclo=3, id_periodo=periodo_pasado.id_periodo)
     sec_is_c5_pasado = Seccion(codigo="A", id_especialidad=esp_is.id_especialidad, ciclo=5, id_periodo=periodo_pasado.id_periodo)
+    
+    sec_is_c1_actual = Seccion(codigo="A", id_especialidad=esp_is.id_especialidad, ciclo=1, id_periodo=periodo_actual.id_periodo)
+    sec_is_c2_actual = Seccion(codigo="A", id_especialidad=esp_is.id_especialidad, ciclo=2, id_periodo=periodo_actual.id_periodo)
+    sec_is_c3_actual = Seccion(codigo="A", id_especialidad=esp_is.id_especialidad, ciclo=3, id_periodo=periodo_actual.id_periodo)
+    sec_is_c5_actual = Seccion(codigo="A", id_especialidad=esp_is.id_especialidad, ciclo=5, id_periodo=periodo_actual.id_periodo)
     sec_is_c7_actual = Seccion(codigo="A", id_especialidad=esp_is.id_especialidad, ciclo=7, id_periodo=periodo_actual.id_periodo)
     sec_is_c9_actual = Seccion(codigo="A", id_especialidad=esp_is.id_especialidad, ciclo=9, id_periodo=periodo_actual.id_periodo)
     sec_ic_c4_actual = Seccion(codigo="A", id_especialidad=esp_ic.id_especialidad, ciclo=4, id_periodo=periodo_actual.id_periodo)
-    db.session.add_all([sec_is_c3_pasado, sec_is_c5_pasado, sec_is_c7_actual, sec_is_c9_actual, sec_ic_c4_actual])
+    db.session.add_all([
+        sec_is_c3_pasado, sec_is_c5_pasado, sec_is_c7_actual, sec_is_c9_actual, sec_ic_c4_actual,
+        sec_is_c1_actual, sec_is_c2_actual, sec_is_c3_actual, sec_is_c5_actual
+    ])
     db.session.commit()
 
     # ---------- Estudiantes ----------
@@ -226,24 +262,157 @@ def seed():
         }]
     )
     
-    # Periodo actual (2026-I):
+    # Periodo actual (2026-I) con multiples cursos asignados a docente_ana:
+    horario_is_c1_actual = Horario(
+        id_periodo=periodo_actual.id_periodo,
+        id_facultad=facultad_fis.id_facultad,
+        id_especialidad=esp_is.id_especialidad,
+        ciclo=1,
+        estado="activo",
+        detalles=[
+            {
+                "codigo": "A",
+                "seccion": "A",
+                "dia": "VIERNES",
+                "horaInicio": "14:00",
+                "horaFin": "16:00",
+                "id_curso": curso_intro.id_curso,
+                "curso_nombre": curso_intro.nombre,
+                "id_docente": docente_jaime.id_docente
+            },
+            {
+                "codigo": "A",
+                "seccion": "A",
+                "dia": "JUEVES",
+                "horaInicio": "08:00",
+                "horaFin": "10:00",
+                "id_curso": curso_mate1.id_curso,
+                "curso_nombre": curso_mate1.nombre,
+                "id_docente": docente_luis.id_docente
+            }
+        ]
+    )
+    
+    horario_is_c2_actual = Horario(
+        id_periodo=periodo_actual.id_periodo,
+        id_facultad=facultad_fis.id_facultad,
+        id_especialidad=esp_is.id_especialidad,
+        ciclo=2,
+        estado="activo",
+        detalles=[
+            {
+                "codigo": "A",
+                "seccion": "A",
+                "dia": "MARTES",
+                "horaInicio": "08:00",
+                "horaFin": "10:00",
+                "id_curso": curso_mate2.id_curso,
+                "curso_nombre": curso_mate2.nombre,
+                "id_docente": docente_luis.id_docente
+            },
+            {
+                "codigo": "A",
+                "seccion": "A",
+                "dia": "JUEVES",
+                "horaInicio": "10:00",
+                "horaFin": "12:00",
+                "id_curso": curso_alg.id_curso,
+                "curso_nombre": curso_alg.nombre,
+                "id_docente": docente_carlos.id_docente
+            }
+        ]
+    )
+
+    horario_is_c3_actual = Horario(
+        id_periodo=periodo_actual.id_periodo,
+        id_facultad=facultad_fis.id_facultad,
+        id_especialidad=esp_is.id_especialidad,
+        ciclo=3,
+        estado="activo",
+        detalles=[
+            {
+                "codigo": "A",
+                "seccion": "A",
+                "dia": "LUNES",
+                "horaInicio": "10:00",
+                "horaFin": "12:00",
+                "id_curso": curso_ed.id_curso,
+                "curso_nombre": curso_ed.nombre,
+                "id_docente": docente_ana.id_docente
+            },
+            {
+                "codigo": "A",
+                "seccion": "A",
+                "dia": "MIERCOLES",
+                "horaInicio": "10:00",
+                "horaFin": "12:00",
+                "id_curso": curso_fis1.id_curso,
+                "curso_nombre": curso_fis1.nombre,
+                "id_docente": docente_luis.id_docente
+            }
+        ]
+    )
+
+    horario_is_c5_actual = Horario(
+        id_periodo=periodo_actual.id_periodo,
+        id_facultad=facultad_fis.id_facultad,
+        id_especialidad=esp_is.id_especialidad,
+        ciclo=5,
+        estado="activo",
+        detalles=[
+            {
+                "codigo": "A",
+                "seccion": "A",
+                "dia": "JUEVES",
+                "horaInicio": "14:00",
+                "horaFin": "17:00",
+                "id_curso": curso_bd.id_curso,
+                "curso_nombre": curso_bd.nombre,
+                "id_docente": docente_ana.id_docente
+            },
+            {
+                "codigo": "A",
+                "seccion": "A",
+                "dia": "MARTES",
+                "horaInicio": "14:00",
+                "horaFin": "17:00",
+                "id_curso": curso_redes.id_curso,
+                "curso_nombre": curso_redes.nombre,
+                "id_docente": docente_jaime.id_docente
+            }
+        ]
+    )
+
     horario_is_c9_actual = Horario(
         id_periodo=periodo_actual.id_periodo,
         id_facultad=facultad_fis.id_facultad,
         id_especialidad=esp_is.id_especialidad,
         ciclo=9,
         estado="activo",
-        detalles=[{
-            "codigo": "A",
-            "seccion": "A",
-            "dia": "LUNES",
-            "horaInicio": "14:00",
-            "horaFin": "18:00",
-            "id_curso": curso_daw.id_curso,
-            "curso_nombre": curso_daw.nombre,
-            "id_docente": docente_ana.id_docente
-        }]
+        detalles=[
+            {
+                "codigo": "A",
+                "seccion": "A",
+                "dia": "LUNES",
+                "horaInicio": "14:00",
+                "horaFin": "18:00",
+                "id_curso": curso_daw.id_curso,
+                "curso_nombre": curso_daw.nombre,
+                "id_docente": docente_ana.id_docente
+            },
+            {
+                "codigo": "A",
+                "seccion": "A",
+                "dia": "MIERCOLES",
+                "horaInicio": "08:00",
+                "horaFin": "12:00",
+                "id_curso": curso_ia.id_curso,
+                "curso_nombre": curso_ia.nombre,
+                "id_docente": docente_ana.id_docente
+            }
+        ]
     )
+    
     horario_is_c7_actual = Horario(
         id_periodo=periodo_actual.id_periodo,
         id_facultad=facultad_fis.id_facultad,
@@ -261,6 +430,7 @@ def seed():
             "id_docente": docente_luis.id_docente
         }]
     )
+    
     horario_ic_c4_actual = Horario(
         id_periodo=periodo_actual.id_periodo,
         id_facultad=facultad_fic.id_facultad,
@@ -278,7 +448,11 @@ def seed():
             "id_docente": docente_carlos.id_docente
         }]
     )
-    db.session.add_all([horario_is_c3_pasado, horario_is_c5_pasado, horario_is_c9_actual, horario_is_c7_actual, horario_ic_c4_actual])
+    
+    db.session.add_all([
+        horario_is_c3_pasado, horario_is_c5_pasado, horario_is_c7_actual, horario_ic_c4_actual,
+        horario_is_c1_actual, horario_is_c2_actual, horario_is_c3_actual, horario_is_c5_actual, horario_is_c9_actual
+    ])
     db.session.commit()
 
     # ---------- Usuarios (login) ----------
@@ -341,12 +515,26 @@ def seed():
     det_cristhian_bd = MatriculaDetalle(id_matricula=mat_cristhian_pasado.id_matricula, id_seccion=sec_is_c5_pasado.id_seccion, id_curso=curso_bd.id_curso, estado="matriculado")
     det_cristhian_daw = MatriculaDetalle(id_matricula=mat_cristhian_actual.id_matricula, id_seccion=sec_is_c9_actual.id_seccion, id_curso=curso_daw.id_curso, estado="matriculado")
     det_cristhian_isw = MatriculaDetalle(id_matricula=mat_cristhian_actual.id_matricula, id_seccion=sec_is_c7_actual.id_seccion, id_curso=curso_isw.id_curso, estado="matriculado")
+    
+    # Nuevas matriculas para los cursos de docente_ana en el periodo actual
+    det_cristhian_ia = MatriculaDetalle(id_matricula=mat_cristhian_actual.id_matricula, id_seccion=sec_is_c9_actual.id_seccion, id_curso=curso_ia.id_curso, estado="matriculado")
+    det_cristhian_bd_actual = MatriculaDetalle(id_matricula=mat_cristhian_actual.id_matricula, id_seccion=sec_is_c5_actual.id_seccion, id_curso=curso_bd.id_curso, estado="matriculado")
+    
     det_scoot_daw = MatriculaDetalle(id_matricula=mat_scoot_actual.id_matricula, id_seccion=sec_is_c9_actual.id_seccion, id_curso=curso_daw.id_curso, estado="matriculado")
+    det_scoot_ia = MatriculaDetalle(id_matricula=mat_scoot_actual.id_matricula, id_seccion=sec_is_c9_actual.id_seccion, id_curso=curso_ia.id_curso, estado="matriculado")
+    
     det_maria_isw = MatriculaDetalle(id_matricula=mat_maria_actual.id_matricula, id_seccion=sec_is_c7_actual.id_seccion, id_curso=curso_isw.id_curso, estado="matriculado")
+    det_maria_ed = MatriculaDetalle(id_matricula=mat_maria_actual.id_matricula, id_seccion=sec_is_c3_actual.id_seccion, id_curso=curso_ed.id_curso, estado="matriculado")
+    
     det_pedro_ms = MatriculaDetalle(id_matricula=mat_pedro_actual.id_matricula, id_seccion=sec_ic_c4_actual.id_seccion, id_curso=curso_ms.id_curso, estado="matriculado")
+    det_pedro_intro = MatriculaDetalle(id_matricula=mat_pedro_actual.id_matricula, id_seccion=sec_is_c1_actual.id_seccion, id_curso=curso_intro.id_curso, estado="matriculado")
+    
     db.session.add_all([
         det_cristhian_ed, det_cristhian_bd, det_cristhian_daw, det_cristhian_isw,
-        det_scoot_daw, det_maria_isw, det_pedro_ms,
+        det_cristhian_ia, det_cristhian_bd_actual,
+        det_scoot_daw, det_scoot_ia,
+        det_maria_isw, det_maria_ed,
+        det_pedro_ms, det_pedro_intro
     ])
     db.session.commit()
 
@@ -372,7 +560,8 @@ def seed():
              estado="consolidada", id_matricula_detalle=det_cristhian_ed.id_matricula_detalle),
         Nota(parcial1=12, parcial2=10, final=11, sustitutorio=13, promedio=13.00,
              estado="consolidada", id_matricula_detalle=det_cristhian_bd.id_matricula_detalle),
-        # Periodo activo: solo parcial1 registrado, curso en curso
+        
+        # Periodo activo: parcial1 registrado o pendiente
         Nota(parcial1=14, parcial2=None, final=None, sustitutorio=None, promedio=None,
              estado="registrada", id_matricula_detalle=det_cristhian_daw.id_matricula_detalle),
         Nota(parcial1=16, parcial2=None, final=None, sustitutorio=None, promedio=None,
@@ -383,6 +572,18 @@ def seed():
              estado="pendiente", id_matricula_detalle=det_maria_isw.id_matricula_detalle),
         Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
              estado="pendiente", id_matricula_detalle=det_pedro_ms.id_matricula_detalle),
+        
+        # Notas para los nuevos cursos asignados a docente_ana (en estado pendiente para registrar)
+        Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
+             estado="pendiente", id_matricula_detalle=det_cristhian_ia.id_matricula_detalle),
+        Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
+             estado="pendiente", id_matricula_detalle=det_cristhian_bd_actual.id_matricula_detalle),
+        Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
+             estado="pendiente", id_matricula_detalle=det_scoot_ia.id_matricula_detalle),
+        Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
+             estado="pendiente", id_matricula_detalle=det_maria_ed.id_matricula_detalle),
+        Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
+             estado="pendiente", id_matricula_detalle=det_pedro_intro.id_matricula_detalle),
     ])
     db.session.commit()
 
