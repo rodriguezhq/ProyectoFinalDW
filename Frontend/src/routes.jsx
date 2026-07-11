@@ -34,6 +34,8 @@ import DireccionReportes from './views/direccion/DireccionReportes';
 import ProfileView from './views/compartidos/ProfileView';
 import RegistrarNotasDocente from './views/academico/RegistrarNotasDocente';
 import GradesView from './views/academico/GradesView';
+import RecordView from './views/academico/RecordView';
+
 
 // Vistas de Certificados y Documentos
 import MisCertificados from './views/certificados/MisCertificados';
@@ -47,12 +49,8 @@ const EnrollmentView = () => (
     </div>
 );
 
-const RecordView = () => (
-    <div className="p-6 bg-white border border-border rounded-xl shadow-sm">
-        <h2 className="text-xl font-bold text-text-heading mb-2">Récord Académico Histórico</h2>
-        <p className="text-text-muted">Historial completo de asignaturas cursadas, créditos y promedios ponderados.</p>
-    </div>
-);
+
+
 
 
 
