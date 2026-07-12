@@ -61,6 +61,10 @@ class UsuarioResponse(BaseModel):
 
 class UsuarioListResponse(BaseModel):
     usuarios: list[UsuarioResponse]
+    total: int
+    page: int
+    per_page: int
+    hay_mas: bool
 
 
 # ---------------- Rol ----------------
@@ -95,6 +99,10 @@ class AuditoriaItem(BaseModel):
 
 class AuditoriaListResponse(BaseModel):
     auditorias: list[AuditoriaItem]
+    total: int
+    page: int
+    per_page: int
+    hay_mas: bool
 
 
 # ---------------- Docente ----------------

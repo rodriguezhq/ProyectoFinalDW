@@ -1,10 +1,18 @@
 import { consultarApi } from './clienteApi';
 
-// Obtiene la lista de usuarios del sistema
-export async function obtenerUsuarios() {
-  const respuesta = await consultarApi('/api/admin/usuarios', { method: 'GET' });
+// Obtiene una página de usuarios del sistema, opcionalmente filtrada por rol
+export async function obtenerUsuarios(page = 1, perPage = 10, rol = '') {
+  let url = `/api/admin/usuarios?page=${page}&per_page=${perPage}`;
+  if (rol) url += `&rol=${encodeURIComponent(rol)}`;
+  const respuesta = await consultarApi(url, { method: 'GET' });
   if (!respuesta.ok) throw new Error('Error al cargar los usuarios');
   return respuesta.json();
+}
+
+// Catálogo completo de usuarios (para selects/combobox que necesitan verlos
+// todos, no una página) — usa un per_page grande en vez de "sin límite"
+export async function obtenerCatalogoUsuarios() {
+  return obtenerUsuarios(1, 2000);
 }
 
 // Crea un nuevo usuario en el sistema

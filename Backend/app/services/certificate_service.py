@@ -11,6 +11,7 @@ from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table
 from app.extensions import db
 from app.models.documento import Documento
 from app.models.estudiante import Estudiante
+from app.utils.pagination import paginar_query
 
 
 class EstudianteNoEncontradoError(Exception):
@@ -101,13 +102,10 @@ def verificar_documento(codigo_qr):
     return documento
 
 
-def obtener_documentos_estudiante(id_estudiante):
-    """Todos los documentos de un estudiante."""
-    return (
-        Documento.query.filter_by(id_estudiante=id_estudiante)
-        .order_by(Documento.fecha_solicitud.desc())
-        .all()
-    )
+def obtener_documentos_estudiante(id_estudiante, page=1, per_page=10):
+    """Documentos de un estudiante, paginados."""
+    query = Documento.query.filter_by(id_estudiante=id_estudiante).order_by(Documento.fecha_solicitud.desc())
+    return paginar_query(query, page, per_page)
 
 
 def obtener_documento(id_documento):
@@ -118,9 +116,10 @@ def obtener_documento(id_documento):
     return documento
 
 
-def obtener_todos_documentos():
-    """Todos los documentos."""
-    return Documento.query.order_by(Documento.fecha_solicitud.desc()).all()
+def obtener_todos_documentos(page=1, per_page=10):
+    """Todos los documentos, paginados."""
+    query = Documento.query.order_by(Documento.fecha_solicitud.desc())
+    return paginar_query(query, page, per_page)
 
 
 def _dibujo_qr(contenido, tamano=90):

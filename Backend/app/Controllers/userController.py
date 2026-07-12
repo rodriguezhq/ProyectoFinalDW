@@ -120,9 +120,15 @@ def crear_usuario_ctrl(body):
     ).model_dump(), 201
 
 
-def listar_usuarios_ctrl():
-    usuarios = listar_usuarios()
-    return {"usuarios": [_serializar_usuario(u) for u in usuarios]}, 200
+def listar_usuarios_ctrl(page=1, per_page=10, rol=None):
+    usuarios, total = listar_usuarios(page, per_page, rol)
+    return {
+        "usuarios": [_serializar_usuario(u) for u in usuarios],
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "hay_mas": (page * per_page) < total,
+    }, 200
 
 
 def actualizar_usuario_ctrl(id_usuario, body):

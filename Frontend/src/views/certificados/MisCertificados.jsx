@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { FileText, Send, QrCode, Download } from 'lucide-react';
 import { solicitarDocumento, obtenerMisDocumentos, urlPdfDocumento } from '../../services/servicioCertificados';
+import Paginacion from '../../components/Paginacion';
+
+const POR_PAGINA = 10;
 
 const TIPOS_DOCUMENTO = [
   'Constancia de Matrícula',
@@ -27,22 +30,27 @@ export default function MisCertificados() {
   const [estaCargando, setEstaCargando] = useState(false);
   const [tipoDocumento, setTipoDocumento] = useState(TIPOS_DOCUMENTO[0]);
   const [enviando, setEnviando] = useState(false);
+  const [pagina, setPagina] = useState(1);
+  const [total, setTotal] = useState(0);
+  const totalPaginas = Math.max(1, Math.ceil(total / POR_PAGINA));
 
-  const cargarDocumentos = async () => {
+  const cargarDocumentos = useCallback(async (numeroPagina = 1) => {
     setEstaCargando(true);
     try {
-      const datos = await obtenerMisDocumentos();
+      const datos = await obtenerMisDocumentos(numeroPagina, POR_PAGINA);
       setDocumentos(datos.documentos || []);
+      setPagina(numeroPagina);
+      setTotal(datos.total || 0);
     } catch (err) {
       toast.error(err.message);
     } finally {
       setEstaCargando(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    cargarDocumentos();
-  }, []);
+    cargarDocumentos(1);
+  }, [cargarDocumentos]);
 
   const manejarSolicitar = async (e) => {
     e.preventDefault();
@@ -50,7 +58,7 @@ export default function MisCertificados() {
     try {
       await solicitarDocumento(tipoDocumento);
       toast.success('Solicitud registrada. El área de Dirección debe autorizarla.');
-      cargarDocumentos();
+      cargarDocumentos(1);
     } catch (err) {
       toast.error(err.message);
     } finally {
@@ -154,6 +162,13 @@ export default function MisCertificados() {
                 })}
               </tbody>
             </table>
+            <Paginacion
+              cantidadMostrada={documentos.length}
+              total={total}
+              pagina={pagina}
+              totalPaginas={totalPaginas}
+              irAPagina={cargarDocumentos}
+            />
           </div>
         )}
       </div>

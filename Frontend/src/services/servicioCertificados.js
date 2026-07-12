@@ -19,14 +19,14 @@ export async function solicitarDocumento(tipoDocumento) {
   return respuesta.json();
 }
 
-export async function obtenerMisDocumentos() {
-  const respuesta = await consultarApi('/api/certificates/mis-documentos', { method: 'GET' });
+export async function obtenerMisDocumentos(page = 1, perPage = 10) {
+  const respuesta = await consultarApi(`/api/certificates/mis-documentos?page=${page}&per_page=${perPage}`, { method: 'GET' });
   if (!respuesta.ok) throw new Error('Error al cargar tus documentos.');
   return respuesta.json();
 }
 
-export async function obtenerTodosLosDocumentos() {
-  const respuesta = await consultarApi('/api/certificates/', { method: 'GET' });
+export async function obtenerTodosLosDocumentos(page = 1, perPage = 10) {
+  const respuesta = await consultarApi(`/api/certificates/?page=${page}&per_page=${perPage}`, { method: 'GET' });
   if (!respuesta.ok) throw new Error('Error al cargar los documentos.');
   return respuesta.json();
 }

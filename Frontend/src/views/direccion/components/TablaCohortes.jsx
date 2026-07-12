@@ -1,7 +1,8 @@
 import React from 'react';
 import { GraduationCap, Users, Percent, Award } from 'lucide-react';
+import Paginacion from '../../../components/Paginacion';
 
-export default function TablaCohortes({ datos = [] }) {
+export default function TablaCohortes({ datos = [], total = 0, pagina = 1, totalPaginas = 1, irAPagina = () => {}, resumen = null }) {
     if (datos.length === 0) {
         return (
             <div className="w-full bg-slate-50 border border-border p-6 text-center text-sm text-text-muted rounded-none">
@@ -10,18 +11,11 @@ export default function TablaCohortes({ datos = [] }) {
         );
     }
 
-    // --- CÁLCULOS DE KPI GLOBALES ---
-    const totalEstudiantes = datos.reduce((acc, curr) => acc + (curr.total_estudiantes || 0), 0);
-    
-    const promediosValidos = datos.map(d => d.promedio_ponderado_promedio).filter(p => p !== null && p !== undefined);
-    const promedioGlobal = promediosValidos.length > 0
-        ? (promediosValidos.reduce((acc, curr) => acc + curr, 0) / promediosValidos.length).toFixed(2)
-        : '-';
-
-    const tasasValidas = datos.map(d => d.tasa_aprobacion).filter(t => t !== null && t !== undefined);
-    const tasaAprobacionGlobal = tasasValidas.length > 0
-        ? (tasasValidas.reduce((acc, curr) => acc + curr, 0) / tasasValidas.length).toFixed(1)
-        : '-';
+    // --- KPI GLOBALES: vienen del backend, calculados sobre TODAS las cohortes
+    // (no solo la pagina visible), para que no cambien al pasar de pagina ---
+    const totalEstudiantes = resumen?.total_alumnos ?? 0;
+    const promedioGlobal = resumen?.promedio_ppa_global != null ? resumen.promedio_ppa_global.toFixed(2) : '-';
+    const tasaAprobacionGlobal = resumen?.tasa_aprobacion_global != null ? resumen.tasa_aprobacion_global.toFixed(1) : '-';
 
     return (
         <div className="w-full flex flex-col gap-5">
@@ -135,6 +129,13 @@ export default function TablaCohortes({ datos = [] }) {
                         })}
                     </tbody>
                 </table>
+                <Paginacion
+                    cantidadMostrada={datos.length}
+                    total={total}
+                    pagina={pagina}
+                    totalPaginas={totalPaginas}
+                    irAPagina={irAPagina}
+                />
             </div>
         </div>
     );

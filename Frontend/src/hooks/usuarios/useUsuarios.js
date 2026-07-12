@@ -3,47 +3,61 @@ import { toast } from 'sonner';
 import { obtenerUsuarios, obtenerRoles, guardarUsuario, actualizarUsuario } from '../../services/servicioUsuarios';
 import { obtenerFacultades, obtenerEspecialidades } from '../../services/servicioAcademico';
 
-export function useUsuarios() {
+const POR_PAGINA = 10;
+
+export function useUsuarios(rolFiltrado = '') {
   const [usuarios, setUsuarios] = useState([]);
   const [roles, setRoles] = useState([]);
   const [facultades, setFacultades] = useState([]);
   const [especialidades, setEspecialidades] = useState([]);
   const [estaCargando, setEstaCargando] = useState(false);
+  const [pagina, setPagina] = useState(1);
+  const [total, setTotal] = useState(0);
+  const totalPaginas = Math.max(1, Math.ceil(total / POR_PAGINA));
 
-  const cargarDatos = useCallback(async () => {
+  const cargarUsuarios = useCallback(async (numeroPagina = 1) => {
     setEstaCargando(true);
     try {
-      // Cargar lista de usuarios
-      const datosUsuarios = await obtenerUsuarios();
+      const datosUsuarios = await obtenerUsuarios(numeroPagina, POR_PAGINA, rolFiltrado);
       setUsuarios(datosUsuarios.usuarios || []);
+      setPagina(numeroPagina);
+      setTotal(datosUsuarios.total || 0);
+    } catch (error) {
+      toast.error(error.message || 'Error al cargar los usuarios.');
+    } finally {
+      setEstaCargando(false);
+    }
+  }, [rolFiltrado]);
 
-      // Cargar roles
+  const cargarCatalogos = useCallback(async () => {
+    try {
       const datosRoles = await obtenerRoles();
       setRoles(datosRoles.roles || []);
 
-      // Cargar facultades
       const datosFacultades = await obtenerFacultades();
       setFacultades(datosFacultades.facultades || []);
 
-      // Cargar especialidades
       const datosEspecialidades = await obtenerEspecialidades();
       setEspecialidades(datosEspecialidades.especialidades || []);
     } catch (error) {
-      toast.error(error.message || 'Error al cargar los datos de usuarios.');
-    } finally {
-      setEstaCargando(false);
+      toast.error(error.message || 'Error al cargar los catálogos.');
     }
   }, []);
 
   useEffect(() => {
-    cargarDatos();
-  }, [cargarDatos]);
+    cargarCatalogos();
+  }, [cargarCatalogos]);
+
+  // Al cambiar de pestaña de rol, siempre se vuelve a la página 1
+  useEffect(() => {
+    cargarUsuarios(1);
+  }, [cargarUsuarios]);
 
   const registrarUsuario = async (datos) => {
     try {
       const respuesta = await guardarUsuario(datos);
       toast.success('Usuario registrado con éxito.');
-      await cargarDatos();
+      await cargarUsuarios(1);
       return respuesta;
     } catch (error) {
       toast.error(error.message);
@@ -55,7 +69,7 @@ export function useUsuarios() {
     try {
       const respuesta = await actualizarUsuario(id, datos);
       toast.success('Usuario actualizado con éxito.');
-      await cargarDatos();
+      await cargarUsuarios(pagina);
       return respuesta;
     } catch (error) {
       toast.error(error.message);
@@ -69,7 +83,11 @@ export function useUsuarios() {
     facultades,
     especialidades,
     estaCargando,
-    recargarDatos: cargarDatos,
+    pagina,
+    totalPaginas,
+    total,
+    irAPagina: cargarUsuarios,
+    recargarDatos: () => cargarUsuarios(pagina),
     registrarUsuario,
     modificarUsuarioExistente
   };

@@ -20,6 +20,11 @@ certificates_tag = Tag(
 certificates_bp = APIBlueprint("certificates", __name__, abp_tags=[certificates_tag])
 
 
+class DocumentosQuery(BaseModel):
+    page: int = 1
+    per_page: int = 10
+
+
 @certificates_bp.get(
     "/verificar/<string:codigo_qr>",
     summary="Verificar autenticidad de un documento (endpoint público, sin login)",
@@ -73,8 +78,8 @@ def emitir(path: DocumentoPath):
     security=[{"jwt": []}],
 )
 @role_required("Estudiante")
-def mis_documentos():
-    response, status = certificateController.mis_documentos()
+def mis_documentos(query: DocumentosQuery):
+    response, status = certificateController.mis_documentos(query.page, query.per_page)
     return response, status
 
 
@@ -97,8 +102,8 @@ def detalle(path: DocumentoPath):
     security=[{"jwt": []}],
 )
 @role_required("Administrador", "Direccion")
-def listar_todos():
-    response, status = certificateController.listar_todos()
+def listar_todos(query: DocumentosQuery):
+    response, status = certificateController.listar_todos(query.page, query.per_page)
     return response, status
 
 

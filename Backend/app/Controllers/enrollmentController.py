@@ -611,6 +611,21 @@ def _serializar_matricula_admin(matricula):
     }
 
 
+def mis_matriculas():
+    """Devuelve las matrículas del estudiante autenticado."""
+    actor = usuario_actual()
+    if not actor or not actor.estudiante:
+        return {"msg": "No autorizado"}, 403
+
+    matriculas = (
+        Matricula.query
+        .filter_by(id_estudiante=actor.estudiante.id_estudiante)
+        .order_by(Matricula.fecha_matricula.desc())
+        .all()
+    )
+    return {"matriculas": [_serializar_matricula_admin(m) for m in matriculas]}, 200
+
+
 def listar_todas_matriculas_ctrl():
     actor = usuario_actual()
     if not actor or actor.rol.nombre != "Administrador":

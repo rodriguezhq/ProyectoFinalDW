@@ -25,6 +25,10 @@ class DocumentoResponse(BaseModel):
 
 class DocumentoListResponse(BaseModel):
     documentos: list[DocumentoResponse]
+    total: int
+    page: int
+    per_page: int
+    hay_mas: bool
 
 
 class DocumentoPath(BaseModel):

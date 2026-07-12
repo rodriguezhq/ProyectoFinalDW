@@ -1,4 +1,5 @@
 import React from 'react';
+import ComboboxUsuario from './ComboboxUsuario';
 
 export default function FiltrosAuditoria({
   filtroAccion,
@@ -27,20 +28,12 @@ export default function FiltrosAuditoria({
         </select>
       </div>
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="filtro-usuario" className="text-[0.78rem] font-bold text-text-muted uppercase">Filtrar por Usuario</label>
-        <select
-          id="filtro-usuario"
-          value={filtroUsuario}
-          onChange={(e) => cambiarFiltroUsuario(e.target.value)}
-          className="p-2.5 border border-border rounded-none focus:outline-none focus:border-primary text-[0.85rem] bg-white cursor-pointer font-medium"
-        >
-          <option value="">-- Todos los Usuarios --</option>
-          {usuariosDisponibles.map(user => (
-            <option key={user.id_usuario} value={user.id_usuario}>
-              {user.nombre}
-            </option>
-          ))}
-        </select>
+        <label className="text-[0.78rem] font-bold text-text-muted uppercase">Filtrar por Usuario</label>
+        <ComboboxUsuario
+          usuarios={usuariosDisponibles}
+          valor={filtroUsuario}
+          onChange={cambiarFiltroUsuario}
+        />
       </div>
     </div>
   );

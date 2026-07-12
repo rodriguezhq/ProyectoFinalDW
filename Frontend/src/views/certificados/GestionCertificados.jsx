@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { ShieldCheck, Stamp, QrCode, Download } from 'lucide-react';
 import { obtenerTodosLosDocumentos, autorizarDocumento, emitirDocumento, urlPdfDocumento } from '../../services/servicioCertificados';
+import Paginacion from '../../components/Paginacion';
+
+const POR_PAGINA = 10;
 
 const ESTADO_ESTILOS = {
   solicitado: 'bg-amber-50 text-amber-700 border-amber-200/50',
@@ -20,26 +23,31 @@ export default function GestionCertificados({ esDireccion = false }) {
   const [estaCargando, setEstaCargando] = useState(false);
   const [documentoParaAccion, setDocumentoParaAccion] = useState(null);
   const [procesando, setProcesando] = useState(false);
+  const [pagina, setPagina] = useState(1);
+  const [total, setTotal] = useState(0);
+  const totalPaginas = Math.max(1, Math.ceil(total / POR_PAGINA));
 
   const estadoAccionable = esDireccion ? 'solicitado' : 'autorizado';
   const etiquetaAccion = esDireccion ? 'Autorizar' : 'Emitir';
   const IconoAccion = esDireccion ? ShieldCheck : Stamp;
 
-  const cargarDocumentos = async () => {
+  const cargarDocumentos = useCallback(async (numeroPagina = 1) => {
     setEstaCargando(true);
     try {
-      const datos = await obtenerTodosLosDocumentos();
+      const datos = await obtenerTodosLosDocumentos(numeroPagina, POR_PAGINA);
       setDocumentos(datos.documentos || []);
+      setPagina(numeroPagina);
+      setTotal(datos.total || 0);
     } catch (err) {
       toast.error(err.message);
     } finally {
       setEstaCargando(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    cargarDocumentos();
-  }, []);
+    cargarDocumentos(1);
+  }, [cargarDocumentos]);
 
   const confirmarAccion = async () => {
     if (!documentoParaAccion) return;
@@ -53,7 +61,7 @@ export default function GestionCertificados({ esDireccion = false }) {
         toast.success('Documento emitido con código QR.');
       }
       setDocumentoParaAccion(null);
-      cargarDocumentos();
+      cargarDocumentos(pagina);
     } catch (err) {
       toast.error(err.message);
     } finally {
@@ -155,6 +163,13 @@ export default function GestionCertificados({ esDireccion = false }) {
                   })}
                 </tbody>
               </table>
+              <Paginacion
+                cantidadMostrada={documentos.length}
+                total={total}
+                pagina={pagina}
+                totalPaginas={totalPaginas}
+                irAPagina={cargarDocumentos}
+              />
             </div>
           )}
         </div>

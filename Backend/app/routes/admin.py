@@ -31,6 +31,14 @@ class UsuarioPath(BaseModel):
 class AuditoriaQuery(BaseModel):
     id_usuario: int | None = None
     accion: str | None = None
+    page: int = 1
+    per_page: int = 50
+
+
+class UsuariosQuery(BaseModel):
+    page: int = 1
+    per_page: int = 10
+    rol: str | None = None
 
 
 @admin_bp.post(
@@ -45,9 +53,9 @@ def crear_usuario(body: UsuarioCreateBody):
 
 
 @admin_bp.get("/usuarios", responses={200: UsuarioListResponse}, security=[{"jwt": []}])
-@role_required("Administrador")
-def listar_usuarios():
-    response, status = userController.listar_usuarios_ctrl()
+@role_required("Administrador", "Direccion")
+def listar_usuarios(query: UsuariosQuery):
+    response, status = userController.listar_usuarios_ctrl(query.page, query.per_page, query.rol)
     return response, status
 
 
@@ -77,7 +85,9 @@ def listar_roles():
 @admin_bp.get("/auditoria", responses={200: AuditoriaListResponse}, security=[{"jwt": []}])
 @role_required("Direccion")
 def listar_auditoria(query: AuditoriaQuery):
-    response, status = auditController.listar_auditoria_ctrl(query.id_usuario, query.accion)
+    response, status = auditController.listar_auditoria_ctrl(
+        query.id_usuario, query.accion, query.page, query.per_page
+    )
     return response, status
 
 

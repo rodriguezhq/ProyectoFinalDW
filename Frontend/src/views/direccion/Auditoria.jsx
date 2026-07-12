@@ -9,13 +9,17 @@ export default function Auditoria() {
   const {
     auditorias,
     estaCargando,
+    pagina,
+    totalPaginas,
+    total,
     accionesDisponibles,
     usuariosDisponibles,
     filtroAccion,
     filtroUsuario,
     cambiarFiltroAccion,
     cambiarFiltroUsuario,
-    limpiarFiltros
+    limpiarFiltros,
+    irAPagina
   } = useAuditoria();
 
   // Modal para ver detalles
@@ -82,6 +86,10 @@ export default function Auditoria() {
           estaCargando={estaCargando}
           abrirModalDetalle={abrirModalDetalle}
           obtenerColorInsignia={obtenerColorInsignia}
+          total={total}
+          pagina={pagina}
+          totalPaginas={totalPaginas}
+          irAPagina={irAPagina}
         />
       </div>
 

@@ -1,6 +1,7 @@
 import React from 'react';
+import Paginacion from '../../../components/Paginacion';
 
-export default function TablaConsolidado({ alumnos = [] }) {
+export default function TablaConsolidado({ alumnos = [], total = 0, pagina = 1, totalPaginas = 1, irAPagina = () => {} }) {
     if (alumnos.length === 0) {
         return (
             <div className="w-full bg-slate-50 border border-border p-6 text-center text-sm text-text-muted rounded-none">
@@ -12,7 +13,7 @@ export default function TablaConsolidado({ alumnos = [] }) {
     return (
         <div className="w-full flex flex-col gap-4">
             <h3 className="font-heading font-extrabold text-sm text-text-heading uppercase tracking-wider">
-                Consolidado de Calificaciones por Estudiante (Total: {alumnos.length} Alumnos)
+                Consolidado de Calificaciones por Estudiante (Total: {total} Alumnos)
             </h3>
 
             {/* Tabla con scroll horizontal responsivo aislado */}
@@ -65,6 +66,13 @@ export default function TablaConsolidado({ alumnos = [] }) {
                         })}
                     </tbody>
                 </table>
+                <Paginacion
+                    cantidadMostrada={alumnos.length}
+                    total={total}
+                    pagina={pagina}
+                    totalPaginas={totalPaginas}
+                    irAPagina={irAPagina}
+                />
             </div>
         </div>
     );

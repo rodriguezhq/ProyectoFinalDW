@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { User, Plus, Pencil, X, KeyRound, AlertTriangle } from 'lucide-react';
 import { useUsuarios } from '../../hooks/usuarios/useUsuarios';
+import Paginacion from '../../components/Paginacion';
 
 export default function Usuarios({ rolFiltrado }) {
   // Consumir estados y funciones del gancho personalizado
@@ -11,9 +12,13 @@ export default function Usuarios({ rolFiltrado }) {
     facultades,
     especialidades,
     estaCargando,
+    pagina,
+    totalPaginas,
+    total,
+    irAPagina,
     registrarUsuario,
     modificarUsuarioExistente
-  } = useUsuarios();
+  } = useUsuarios(rolFiltrado);
 
   // Estados del Formulario (Creación y Edición)
   const [modalOpen, setModalOpen] = useState(false);
@@ -159,7 +164,6 @@ export default function Usuarios({ rolFiltrado }) {
   };
 
   const nombreRolSeleccionado = obtenerNombreRolSeleccionado();
-  const usuariosFiltrados = usuarios.filter(usuario => !rolFiltrado || usuario.rol === rolFiltrado);
 
   const especialidadesFiltradas = especialidades.filter(
     esp => esp.id_facultad === parseInt(idFacultad)
@@ -192,7 +196,7 @@ export default function Usuarios({ rolFiltrado }) {
               <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-3"></div>
               <p className="text-[0.88rem] text-text-muted">Cargando usuarios...</p>
             </div>
-          ) : usuariosFiltrados.length === 0 ? (
+          ) : usuarios.length === 0 ? (
             <div className="p-12 text-center text-text-muted">
               No hay usuarios registrados con el rol de {rolFiltrado || 'usuario'} en el sistema.
             </div>
@@ -221,7 +225,7 @@ export default function Usuarios({ rolFiltrado }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {usuariosFiltrados.map((usuario, idx) => {
+                  {usuarios.map((usuario, idx) => {
                     const isEven = idx % 2 === 0;
                     return (
                       <tr key={usuario.id_usuario} className={`border-b border-border ${isEven ? 'bg-white' : 'bg-[#F8FAFC]'}`}>
@@ -265,6 +269,13 @@ export default function Usuarios({ rolFiltrado }) {
                   })}
                 </tbody>
               </table>
+              <Paginacion
+                cantidadMostrada={usuarios.length}
+                total={total}
+                pagina={pagina}
+                totalPaginas={totalPaginas}
+                irAPagina={irAPagina}
+              />
             </div>
           )}
         </div>

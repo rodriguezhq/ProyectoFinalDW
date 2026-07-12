@@ -77,13 +77,19 @@ def emitir(id_documento):
     return _serializar_documento(doc), 200
 
 
-def mis_documentos():
+def mis_documentos(page=1, per_page=10):
     """Lista los documentos del estudiante autenticado."""
     usuario = usuario_actual()
     if not usuario.estudiante:
         return {"msg": "Solo un estudiante tiene documentos propios"}, 403
-    docs = obtener_documentos_estudiante(usuario.estudiante.id_estudiante)
-    return {"documentos": [_serializar_documento(d) for d in docs]}, 200
+    docs, total = obtener_documentos_estudiante(usuario.estudiante.id_estudiante, page, per_page)
+    return {
+        "documentos": [_serializar_documento(d) for d in docs],
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "hay_mas": (page * per_page) < total,
+    }, 200
 
 
 def detalle(id_documento):
@@ -102,10 +108,16 @@ def detalle(id_documento):
     return _serializar_documento(doc), 200
 
 
-def listar_todos():
+def listar_todos(page=1, per_page=10):
     """Admin/Dirección: lista todos los documentos."""
-    docs = obtener_todos_documentos()
-    return {"documentos": [_serializar_documento(d) for d in docs]}, 200
+    docs, total = obtener_todos_documentos(page, per_page)
+    return {
+        "documentos": [_serializar_documento(d) for d in docs],
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "hay_mas": (page * per_page) < total,
+    }, 200
 
 
 def pdf(id_documento):

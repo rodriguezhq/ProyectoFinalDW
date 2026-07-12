@@ -1,11 +1,16 @@
 import React from 'react';
 import { Search } from 'lucide-react';
+import Paginacion from '../../../components/Paginacion';
 
 export default function TablaAuditoria({
   auditorias = [],
   estaCargando,
   abrirModalDetalle,
-  obtenerColorInsignia
+  obtenerColorInsignia,
+  total = 0,
+  pagina = 1,
+  totalPaginas = 1,
+  irAPagina = () => {}
 }) {
   if (estaCargando) {
     return (
@@ -77,6 +82,14 @@ export default function TablaAuditoria({
           </tbody>
         </table>
       </div>
+
+      <Paginacion
+        cantidadMostrada={auditorias.length}
+        total={total}
+        pagina={pagina}
+        totalPaginas={totalPaginas}
+        irAPagina={irAPagina}
+      />
     </div>
   );
 }

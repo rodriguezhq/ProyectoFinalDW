@@ -2,52 +2,63 @@ import { useState, useEffect, useCallback } from 'react';
 import { obtenerMatriculasPropias, obtenerMisSeccionesDocente } from '../../services/servicioHorarios';
 import { listaColores } from '../../constants/horarios';
 
-// Convierte la cadena del horario del backend (ej: "Lun/Mie 08:00-10:00") en slots independientes
-const parsearHorarioServidor = (seccionesServidor) => {
-  const resultado = [];
-  const mapaDias = {
-    'Lun': 'Lunes',
-    'Mar': 'Martes',
-    'Mie': 'Miércoles',
-    'Jue': 'Jueves',
-    'Vie': 'Viernes',
-    'Sab': 'Sábado'
-  };
+const mapaDias = {
+  'LUN': 'Lunes', 'LUNES': 'Lunes',
+  'MAR': 'Martes', 'MARTES': 'Martes',
+  'MIE': 'Miércoles', 'MIERCOLES': 'Miércoles',
+  'JUE': 'Jueves', 'JUEVES': 'Jueves',
+  'VIE': 'Viernes', 'VIERNES': 'Viernes',
+  'SAB': 'Sábado', 'SABADO': 'Sábado'
+};
 
+// Docente: cada bloque ya viene aplanado, con "horario" como texto "Lun 08:00-10:00"
+const parsearHorarioDocente = (secciones) => {
+  const resultado = [];
   let indiceColor = 0;
 
-  seccionesServidor.forEach(seccion => {
+  secciones.forEach(seccion => {
     const horarioStr = seccion.horario;
     if (!horarioStr) return;
 
     const partes = horarioStr.split(' ');
     if (partes.length < 2) return;
 
-    const parteDias = partes[0];
-    const parteHoras = partes[1];
-
-    const rangoHoras = parteHoras.split('-');
+    const rangoHoras = partes[1].split('-');
     if (rangoHoras.length < 2) return;
 
-    const horaInicio = rangoHoras[0];
-    const horaFin = rangoHoras[1];
+    const nombreDiaCompleto = mapaDias[partes[0].trim().toUpperCase()];
+    if (!nombreDiaCompleto) return;
 
-    const diasIndividuales = parteDias.split('/');
+    resultado.push({
+      dia: nombreDiaCompleto,
+      horaInicio: rangoHoras[0],
+      horaFin: rangoHoras[1],
+      curso: seccion.curso_nombre || seccion.curso || 'Asignatura',
+      color: listaColores[indiceColor++ % listaColores.length]
+    });
+  });
 
-    const color = listaColores[indiceColor % listaColores.length];
-    indiceColor++;
+  return resultado;
+};
 
-    diasIndividuales.forEach(dia => {
-      const nombreDiaCompleto = mapaDias[dia.trim()];
-      if (nombreDiaCompleto) {
-        resultado.push({
-          dia: nombreDiaCompleto,
-          horaInicio: horaInicio,
-          horaFin: horaFin,
-          curso: seccion.curso_nombre || seccion.curso || 'Asignatura',
-          color: color
-        });
-      }
+// Estudiante: cada matricula trae "cursos", y cada curso trae "horarios" (lista de bloques)
+const parsearHorarioEstudiante = (cursos) => {
+  const resultado = [];
+  let indiceColor = 0;
+
+  cursos.forEach(curso => {
+    const color = listaColores[indiceColor++ % listaColores.length];
+    (curso.horarios || []).forEach(bloque => {
+      const nombreDiaCompleto = mapaDias[(bloque.dia || '').trim().toUpperCase()];
+      if (!nombreDiaCompleto || !bloque.horaInicio || !bloque.horaFin) return;
+
+      resultado.push({
+        dia: nombreDiaCompleto,
+        horaInicio: bloque.horaInicio,
+        horaFin: bloque.horaFin,
+        curso: curso.nombre || 'Asignatura',
+        color: color
+      });
     });
   });
 
@@ -64,17 +75,19 @@ export function useHorario(esDocente = false) {
     setMensajeError(null);
 
     try {
-      let secciones = [];
+      let parseado = [];
       if (esDocente) {
         const datos = await obtenerMisSeccionesDocente();
-        secciones = datos.secciones || [];
+        parseado = parsearHorarioDocente(datos.secciones || []);
       } else {
         const datos = await obtenerMatriculasPropias();
         const matriculas = datos.matriculas || [];
-        secciones = matriculas.flatMap(m => m.detalles || []);
+        // Solo la matricula mas reciente (viene ordenada por fecha desc.),
+        // para no mezclar cursos de periodos academicos ya cerrados
+        const cursos = matriculas.length > 0 ? (matriculas[0].cursos || []) : [];
+        parseado = parsearHorarioEstudiante(cursos);
       }
 
-      const parseado = parsearHorarioServidor(secciones);
       setDatosHorario(parseado);
     } catch (error) {
       console.error(error);

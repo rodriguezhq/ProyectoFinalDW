@@ -4,6 +4,8 @@ from typing import Optional, List
 
 class RecordQuery(BaseModel):
     id_especialidad: Optional[int] = Field(None, description="ID de la especialidad para filtrar")
+    page: int = 1
+    per_page: int = 10
 
 
 class StudentSummary(BaseModel):
@@ -65,9 +67,20 @@ class ConsolidatedReportItem(BaseModel):
     periodos_matriculados: int
 
 
+class ConsolidatedResumenGlobal(BaseModel):
+    total_alumnos: int
+    promedio_ppa_global: Optional[float] = None
+    promedio_creditos_aprobados: Optional[float] = None
+
+
 class ConsolidatedReportResponse(BaseModel):
     msg: str
     reporte: List[ConsolidatedReportItem]
+    resumen_global: ConsolidatedResumenGlobal
+    total: int
+    page: int
+    per_page: int
+    hay_mas: bool
 
 
 class CohortPerformanceItem(BaseModel):
@@ -79,6 +92,17 @@ class CohortPerformanceItem(BaseModel):
     tasa_aprobacion: Optional[float] = None
 
 
+class CohortResumenGlobal(BaseModel):
+    total_alumnos: int
+    promedio_ppa_global: Optional[float] = None
+    tasa_aprobacion_global: Optional[float] = None
+
+
 class CohortPerformanceResponse(BaseModel):
     msg: str
     desempeno: List[CohortPerformanceItem]
+    resumen_global: CohortResumenGlobal
+    total: int
+    page: int
+    per_page: int
+    hay_mas: bool

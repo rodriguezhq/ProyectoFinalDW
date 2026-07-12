@@ -59,8 +59,16 @@ def consultar_record_estudiante(path: EstudiantePath):
 @role_required("Administrador", "Direccion")
 def consultar_reporte_consolidado(query: RecordQuery):
     """Consulta el reporte consolidado de estudiantes."""
-    reporte = record_service.obtener_reporte_consolidado(query.id_especialidad)
-    return {"msg": "Reporte consolidado obtenido exitosamente", "reporte": reporte}, 200
+    reporte, total, resumen_global = record_service.obtener_reporte_consolidado(query.id_especialidad, query.page, query.per_page)
+    return {
+        "msg": "Reporte consolidado obtenido exitosamente",
+        "reporte": reporte,
+        "resumen_global": resumen_global,
+        "total": total,
+        "page": query.page,
+        "per_page": query.per_page,
+        "hay_mas": (query.page * query.per_page) < total,
+    }, 200
 
 
 @records_bp.get(
@@ -73,5 +81,13 @@ def consultar_reporte_consolidado(query: RecordQuery):
 @role_required("Direccion")
 def consultar_desempeno_cohortes(query: RecordQuery):
     """Consulta el desempeño académico por cohorte."""
-    desempeno = record_service.obtener_desempeno_cohortes(query.id_especialidad)
-    return {"msg": "Reporte de desempeño por cohorte obtenido exitosamente", "desempeno": desempeno}, 200
+    desempeno, total, resumen_global = record_service.obtener_desempeno_cohortes(query.id_especialidad, query.page, query.per_page)
+    return {
+        "msg": "Reporte de desempeño por cohorte obtenido exitosamente",
+        "desempeno": desempeno,
+        "resumen_global": resumen_global,
+        "total": total,
+        "page": query.page,
+        "per_page": query.per_page,
+        "hay_mas": (query.page * query.per_page) < total,
+    }, 200

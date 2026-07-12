@@ -8,6 +8,7 @@ from app.models.facultad import Facultad
 from app.models.rol import Rol
 from app.models.usuario import Usuario
 from app.services.auth_service import hash_password
+from app.utils.pagination import paginar_query
 
 
 class UsernameDuplicadoError(Exception):
@@ -164,8 +165,12 @@ def crear_usuario(username, id_rol, id_estudiante=None, id_docente=None, nombres
     return usuario, password_temporal
 
 
-def listar_usuarios():
-    return Usuario.query.all()
+def listar_usuarios(page=1, per_page=10, rol=None):
+    query = Usuario.query
+    if rol:
+        query = query.join(Rol).filter(Rol.nombre == rol)
+    query = query.order_by(Usuario.id_usuario.desc())
+    return paginar_query(query, page, per_page)
 
 
 def actualizar_usuario(id_usuario, estado=None, id_rol=None, nombres=None, apellidos=None, correo=None):

@@ -7,17 +7,28 @@ import { RefreshCw, BarChart3, Users, Award, AlertCircle, Loader2, FileSpreadshe
 import { exportarConsolidadoCSV, exportarConsolidadoPDF, exportarCohortesCSV, exportarCohortesPDF } from '../../utils/exportUtils';
 
 
+const POR_PAGINA = 10;
+
 export default function DireccionReportes() {
     const [activeTab, setActiveTab] = useState('cohortes'); // 'cohortes' | 'consolidado'
-    
+
     // Filtros de Especialidad
     const [especialidades, setEspecialidades] = useState([]);
     const [selectedEspecialidad, setSelectedEspecialidad] = useState('');
-    
+
     // Datos de los reportes
     const [cohortesData, setCohortesData] = useState([]);
     const [consolidadoData, setConsolidadoData] = useState([]);
-    
+
+    // Paginación (independiente por pestaña, ya que cada una es un reporte distinto)
+    const [pagina, setPagina] = useState(1);
+    const [total, setTotal] = useState(0);
+    const totalPaginas = Math.max(1, Math.ceil(total / POR_PAGINA));
+
+    // KPI globales calculados en el backend sobre TODO el reporte (no solo la
+    // pagina visible), para que los totales no cambien al pasar de pagina
+    const [resumenGlobal, setResumenGlobal] = useState(null);
+
     // Controladores de UI
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -26,9 +37,10 @@ export default function DireccionReportes() {
         cargarFiltros();
     }, []);
 
+    // Al cambiar de pestaña o de especialidad, siempre se vuelve a la página 1
     useEffect(() => {
         if (selectedEspecialidad) {
-            cargarDatosReporte();
+            cargarDatosReporte(1);
         }
     }, [activeTab, selectedEspecialidad]);
 
@@ -50,17 +62,22 @@ export default function DireccionReportes() {
         }
     };
 
-    const cargarDatosReporte = async () => {
+    const cargarDatosReporte = async (numeroPagina = 1) => {
         try {
             setError(null);
             setLoading(true);
             if (activeTab === 'cohortes') {
-                const data = await obtenerDesempenoCohortes(selectedEspecialidad);
+                const data = await obtenerDesempenoCohortes(selectedEspecialidad, numeroPagina, POR_PAGINA);
                 setCohortesData(data.desempeno || []);
+                setTotal(data.total || 0);
+                setResumenGlobal(data.resumen_global || null);
             } else {
-                const data = await obtenerConsolidadoEspecialidad(selectedEspecialidad);
+                const data = await obtenerConsolidadoEspecialidad(selectedEspecialidad, numeroPagina, POR_PAGINA);
                 setConsolidadoData(data.reporte || []);
+                setTotal(data.total || 0);
+                setResumenGlobal(data.resumen_global || null);
             }
+            setPagina(numeroPagina);
         } catch (err) {
             console.error(err);
             setError(err.message || 'Error al cargar los datos del reporte académico.');
@@ -80,31 +97,22 @@ export default function DireccionReportes() {
     };
 
     // --- ACCIÓN: EXPORTAR A PDF (IMPRESIÓN) ---
+    // Nota: el PDF/Excel solo exporta la pagina actualmente cargada, pero los
+    // KPI del resumen (totales, promedios) vienen del backend y reflejan
+    // TODO el reporte, no solo esa pagina.
     const exportarPDF = () => {
         const espNombre = especialidades.find(e => e.id_especialidad.toString() === selectedEspecialidad)?.nombre || 'Reporte';
         if (activeTab === 'cohortes') {
-            const totalEst = cohortesData.reduce((acc, curr) => acc + (curr.total_estudiantes || 0), 0);
-            const promValidos = cohortesData.map(d => d.promedio_ponderado_promedio).filter(p => p !== null && p !== undefined);
-            const promGlob = promValidos.length > 0 ? (promValidos.reduce((acc, curr) => acc + curr, 0) / promValidos.length).toFixed(2) : '-';
-            const tasValidas = cohortesData.map(d => d.tasa_aprobacion).filter(t => t !== null && t !== undefined);
-            const tasAprobGlob = tasValidas.length > 0 ? (tasasValidas.reduce((acc, curr) => acc + curr, 0) / tasValidas.length).toFixed(1) : '-';
-            
             exportarCohortesPDF(cohortesData, espNombre, {
-                totalEstudiantes: totalEst,
-                promedioGlobal: promGlob,
-                tasaAprobacionGlobal: tasAprobGlob
+                totalEstudiantes: resumenGlobal?.total_alumnos ?? 0,
+                promedioGlobal: resumenGlobal?.promedio_ppa_global != null ? resumenGlobal.promedio_ppa_global.toFixed(2) : '-',
+                tasaAprobacionGlobal: resumenGlobal?.tasa_aprobacion_global != null ? resumenGlobal.tasa_aprobacion_global.toFixed(1) : '-'
             });
         } else {
-            const totalAl = consolidadoData.length;
-            const ppasVal = consolidadoData.map(a => a.promedio_ponderado_acumulado).filter(p => p !== null && p !== undefined);
-            const promPpaG = ppasVal.length > 0 ? (ppasVal.reduce((acc, curr) => acc + curr, 0) / ppasVal.length).toFixed(2) : '0.00';
-            const credsApVal = consolidadoData.map(a => a.total_creditos_aprobados).filter(c => c !== null && c !== undefined);
-            const promCredsAp = credsApVal.length > 0 ? (credsApVal.reduce((acc, curr) => acc + curr, 0) / credsApVal.length).toFixed(1) : '0.0';
-
             exportarConsolidadoPDF(consolidadoData, espNombre, {
-                totalAlumnos: totalAl,
-                promedioPpaGlobal: promPpaG,
-                promCreditosAprobados: promCredsAp
+                totalAlumnos: resumenGlobal?.total_alumnos ?? 0,
+                promedioPpaGlobal: resumenGlobal?.promedio_ppa_global != null ? resumenGlobal.promedio_ppa_global.toFixed(2) : '0.00',
+                promCreditosAprobados: resumenGlobal?.promedio_creditos_aprobados != null ? resumenGlobal.promedio_creditos_aprobados.toFixed(1) : '0.0'
             });
         }
     };
@@ -146,7 +154,7 @@ export default function DireccionReportes() {
                     </button>
                     <button
                         type="button"
-                        onClick={cargarDatosReporte}
+                        onClick={() => cargarDatosReporte(pagina)}
                         disabled={loading}
                         className="flex items-center gap-1.5 py-1.5 px-3 bg-bg-alt hover:bg-slate-100 border border-border text-text-heading font-bold text-xs uppercase tracking-wider transition-colors rounded-none cursor-pointer shadow-sm"
                     >
@@ -228,8 +236,12 @@ export default function DireccionReportes() {
                 </div>
             ) : (
                 <div className="w-full min-w-0 overflow-hidden">
-                    {activeTab === 'cohortes' && <TablaCohortes datos={cohortesData} />}
-                    {activeTab === 'consolidado' && <TablaConsolidado alumnos={consolidadoData} />}
+                    {activeTab === 'cohortes' && (
+                        <TablaCohortes datos={cohortesData} total={total} pagina={pagina} totalPaginas={totalPaginas} irAPagina={cargarDatosReporte} resumen={resumenGlobal} />
+                    )}
+                    {activeTab === 'consolidado' && (
+                        <TablaConsolidado alumnos={consolidadoData} total={total} pagina={pagina} totalPaginas={totalPaginas} irAPagina={cargarDatosReporte} />
+                    )}
                 </div>
             )}
         </div>

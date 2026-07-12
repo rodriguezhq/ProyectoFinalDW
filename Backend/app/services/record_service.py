@@ -83,8 +83,9 @@ def obtener_record_estudiante(id_estudiante):
     # Construir lista de periodos
     periodos_list = []
     
-    # Ordenar periodos por fecha_inicio (cronológico)
-    for periodo in sorted(periodos_dict.keys(), key=lambda p: p.fecha_inicio):
+    # Ordenar periodos cronológicamente (PeriodoAcademico no tiene fecha_inicio,
+    # pero id_periodo refleja el orden de creación/cronológico igual)
+    for periodo in sorted(periodos_dict.keys(), key=lambda p: p.id_periodo):
         items = periodos_dict[periodo]
         cursos_periodo = [x[0] for x in items]
         
@@ -129,7 +130,15 @@ def obtener_record_estudiante(id_estudiante):
     return record_data, None
 
 
-def obtener_reporte_consolidado(id_especialidad=None):
+def _paginar_lista(items, page=1, per_page=10):
+    page = max(1, page)
+    per_page = max(1, per_page)
+    total = len(items)
+    inicio = (page - 1) * per_page
+    return items[inicio:inicio + per_page], total
+
+
+def obtener_reporte_consolidado(id_especialidad=None, page=1, per_page=10):
     """
     Genera un reporte consolidado con estadísticas académicas globales de los estudiantes.
     Para uso de Administradores.
@@ -176,11 +185,23 @@ def obtener_reporte_consolidado(id_especialidad=None):
             "promedio_ponderado_acumulado": promedio_acumulado,
             "periodos_matriculados": len(periodos_matriculados)
         })
-        
-    return reporte
+
+    # Resumen global: se calcula sobre TODO el reporte (antes de recortar por
+    # pagina), para que los KPI no cambien segun que pagina este visible.
+    ppas_validos = [r["promedio_ponderado_acumulado"] for r in reporte if r["promedio_ponderado_acumulado"] is not None]
+    resumen = {
+        "total_alumnos": len(reporte),
+        "promedio_ppa_global": round(sum(ppas_validos) / len(ppas_validos), 2) if ppas_validos else None,
+        "promedio_creditos_aprobados": (
+            round(sum(r["total_creditos_aprobados"] for r in reporte) / len(reporte), 1) if reporte else None
+        ),
+    }
+
+    items, total = _paginar_lista(reporte, page, per_page)
+    return items, total, resumen
 
 
-def obtener_desempeno_cohortes(id_especialidad=None):
+def obtener_desempeno_cohortes(id_especialidad=None, page=1, per_page=10):
     """
     Analiza el desempeño de los alumnos agrupados por cohorte (año de ingreso extraído del código del alumno)
     y su respectiva Especialidad. Para uso de la Dirección.
@@ -251,4 +272,16 @@ def obtener_desempeno_cohortes(id_especialidad=None):
         
     # Ordenar por cohorte descendente y especialidad alfabética
     desempeno.sort(key=lambda x: (x["cohorte"], x["especialidad_nombre"]), reverse=True)
-    return desempeno
+
+    # Resumen global: se calcula sobre TODAS las cohortes (antes de recortar
+    # por pagina), para que los KPI no cambien segun que pagina este visible.
+    proms_validos = [d["promedio_ponderado_promedio"] for d in desempeno if d["promedio_ponderado_promedio"] is not None]
+    tasas_validas = [d["tasa_aprobacion"] for d in desempeno if d["tasa_aprobacion"] is not None]
+    resumen = {
+        "total_alumnos": sum(d["total_estudiantes"] for d in desempeno),
+        "promedio_ppa_global": round(sum(proms_validos) / len(proms_validos), 2) if proms_validos else None,
+        "tasa_aprobacion_global": round(sum(tasas_validas) / len(tasas_validas), 1) if tasas_validas else None,
+    }
+
+    items, total = _paginar_lista(desempeno, page, per_page)
+    return items, total, resumen

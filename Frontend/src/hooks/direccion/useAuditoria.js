@@ -1,86 +1,92 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { obtenerAuditoria } from '../../services/servicioDireccion';
+import { obtenerCatalogoUsuarios } from '../../services/servicioUsuarios';
+import { ACCIONES_AUDITORIA } from '../../constants/auditoria';
+
+const POR_PAGINA = 10;
 
 export function useAuditoria() {
   const [auditorias, setAuditorias] = useState([]);
   const [estaCargando, setEstaCargando] = useState(false);
+  const [pagina, setPagina] = useState(1);
+  const [total, setTotal] = useState(0);
+  const totalPaginas = Math.max(1, Math.ceil(total / POR_PAGINA));
 
-  // Opciones para filtros dropdown
-  const [accionesDisponibles, setAccionesDisponibles] = useState([]);
+  // Opciones para filtros dropdown: ninguna de las dos sale de los datos
+  // cargados/filtrados (eso las rompía al re-filtrar), sino de catálogos fijos
   const [usuariosDisponibles, setUsuariosDisponibles] = useState([]);
+  const accionesDisponibles = ACCIONES_AUDITORIA;
 
   // Valores de filtros activos
   const [filtroAccion, setFiltroAccion] = useState('');
   const [filtroUsuario, setFiltroUsuario] = useState('');
 
-  // Carga inicial: obtiene todo y extrae los filtros únicos disponibles
-  const cargarDatosIniciales = useCallback(async () => {
+  // El catálogo de usuarios no sale del log de auditoría (no escala con miles
+  // de registros) sino de un endpoint dedicado, una sola vez.
+  const cargarUsuariosDisponibles = useCallback(async () => {
+    try {
+      const datos = await obtenerCatalogoUsuarios();
+      const lista = (datos.usuarios || []).map(u => ({
+        id_usuario: u.id_usuario,
+        nombre: [u.nombres, u.apellidos].filter(Boolean).join(' ') || u.username
+      }));
+      setUsuariosDisponibles(lista);
+    } catch (error) {
+      // No es crítico para ver la bitácora si falla el catálogo de usuarios
+      console.error(error);
+    }
+  }, []);
+
+  // Trae una pagina puntual y REEMPLAZA lo que se ve (no lo acumula)
+  const cargarPagina = useCallback(async (numeroPagina) => {
     setEstaCargando(true);
     try {
-      const datos = await obtenerAuditoria();
-      const lista = datos.auditorias || [];
-      setAuditorias(lista);
-
-      // Extraer acciones únicas para el dropdown
-      const accionesUnicas = Array.from(new Set(lista.map(a => a.accion).filter(Boolean)));
-      setAccionesDisponibles(accionesUnicas);
-
-      // Extraer usuarios únicos para el dropdown
-      const mapaUsuarios = {};
-      lista.forEach(a => {
-        if (a.id_usuario && !mapaUsuarios[a.id_usuario]) {
-          mapaUsuarios[a.id_usuario] = a.usuario_nombre || `ID: ${a.id_usuario}`;
-        }
-      });
-      const listaUsuarios = Object.keys(mapaUsuarios).map(id => ({
-        id_usuario: parseInt(id),
-        nombre: mapaUsuarios[id]
-      }));
-      setUsuariosDisponibles(listaUsuarios);
+      const datos = await obtenerAuditoria(filtroAccion, filtroUsuario, numeroPagina, POR_PAGINA);
+      setAuditorias(datos.auditorias || []);
+      setPagina(numeroPagina);
+      setTotal(datos.total || 0);
     } catch (error) {
       toast.error(error.message || 'Error al cargar la bitácora de auditoría.');
     } finally {
       setEstaCargando(false);
     }
-  }, []);
+  }, [filtroAccion, filtroUsuario]);
 
   useEffect(() => {
-    cargarDatosIniciales();
-  }, [cargarDatosIniciales]);
+    cargarUsuariosDisponibles();
+  }, [cargarUsuariosDisponibles]);
 
-  // Consulta filtrada al servidor
-  const consultarFiltrado = async (accion, idUsuario) => {
-    setEstaCargando(true);
-    try {
-      const datos = await obtenerAuditoria(accion, idUsuario);
-      setAuditorias(datos.auditorias || []);
-    } catch (error) {
-      toast.error(error.message || 'Error al filtrar los registros de auditoría.');
-    } finally {
-      setEstaCargando(false);
-    }
+  // Al cambiar de filtro, siempre se vuelve a la pagina 1
+  useEffect(() => {
+    cargarPagina(1);
+  }, [cargarPagina]);
+
+  const irAPagina = (numeroPagina) => {
+    if (numeroPagina < 1 || numeroPagina > totalPaginas || numeroPagina === pagina) return;
+    cargarPagina(numeroPagina);
   };
 
   const cambiarFiltroAccion = (nuevaAccion) => {
     setFiltroAccion(nuevaAccion);
-    consultarFiltrado(nuevaAccion, filtroUsuario);
   };
 
   const cambiarFiltroUsuario = (nuevoUsuarioId) => {
     setFiltroUsuario(nuevoUsuarioId);
-    consultarFiltrado(filtroAccion, nuevoUsuarioId);
   };
 
   const limpiarFiltros = () => {
     setFiltroAccion('');
     setFiltroUsuario('');
-    consultarFiltrado('', '');
   };
 
   return {
     auditorias,
     estaCargando,
+    pagina,
+    totalPaginas,
+    total,
+    porPagina: POR_PAGINA,
     accionesDisponibles,
     usuariosDisponibles,
     filtroAccion,
@@ -88,6 +94,7 @@ export function useAuditoria() {
     cambiarFiltroAccion,
     cambiarFiltroUsuario,
     limpiarFiltros,
-    recargarAuditoria: cargarDatosIniciales
+    irAPagina,
+    recargarAuditoria: () => cargarPagina(pagina)
   };
 }
