@@ -33,7 +33,7 @@ def crear_periodo(body: PeriodoCreateBody):
     responses={200: PeriodoListResponse},
     security=[{"jwt": []}],
 )
-@role_required("Administrador")
+@role_required("Administrador", "Direccion")
 def listar_periodos():
     """Retorna la lista completa de todos los periodos académicos."""
     response, status = periodController.listar_periodos_ctrl()
@@ -63,4 +63,17 @@ def activar_periodo(path: PeriodoPath):
 def establecer_matricula_principal(path: PeriodoPath):
     """Establece el periodo especificado como el periodo principal para la matricula de los estudiantes."""
     response, status = periodController.establecer_matricula_principal_ctrl(path.id_periodo)
+    return response, status
+
+
+@period_bp.post(
+    "/<int:id_periodo>/desactivar",
+    summary="Cerrar/desactivar periodo académico",
+    responses={200: PeriodoResponse, 404: MessageResponse, 400: MessageResponse},
+    security=[{"jwt": []}],
+)
+@role_required("Administrador")
+def desactivar_periodo(path: PeriodoPath):
+    """Cierra el periodo especificado desactivando también su matrícula si correspondía."""
+    response, status = periodController.desactivar_periodo_ctrl(path.id_periodo)
     return response, status

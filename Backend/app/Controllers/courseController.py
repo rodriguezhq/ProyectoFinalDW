@@ -314,3 +314,17 @@ def eliminar_seccion_ctrl(id_seccion):
     except EntidadConDependenciasError:
         return {"msg": "No se puede eliminar la sección porque tiene estudiantes matriculados"}, 409
     return {"msg": "Sección eliminada con éxito"}, 200
+
+
+def obtener_cursos_aperturados_ctrl(id_especialidad, id_periodo):
+    from app.models.horario import Horario
+    horarios = Horario.query.filter_by(id_periodo=id_periodo, id_especialidad=id_especialidad).all()
+    
+    ids_cursos = set()
+    for h in horarios:
+        for bloque in h.detalles:
+            id_c = bloque.get("id_curso")
+            if id_c:
+                ids_cursos.add(int(id_c))
+                
+    return {"ids_cursos": list(ids_cursos)}, 200

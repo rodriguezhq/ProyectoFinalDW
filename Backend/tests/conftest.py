@@ -120,7 +120,6 @@ def _seed_minimo():
         password_hash=generate_password_hash(CONTRASENA_PRUEBA),
         estado="inactivo",
         id_rol=rol_estudiante.id_rol,
-        correo="inactivo@test.com",
     )
     usuario_admin = Usuario(
         username="admin_test",
@@ -169,19 +168,21 @@ def _seed_minimo():
     db.session.add_all([periodo, periodo_cerrado])
     db.session.commit()
 
-    # Curso (vinculado a facultad)
+    # Curso (vinculado a facultad y especialidad)
     curso = Curso(codigo="C001", nombre="Curso de Prueba", creditos=4, horas_teoria=3, horas_practica=2, id_facultad=facultad.id_facultad)
+    curso.especialidades.append(especialidad)
     db.session.add(curso)
     db.session.commit()
 
-    # Seccion vinculada directamente al curso
+    # Seccion vinculada a especialidad, ciclo y periodo
     # capacidad=1 a propósito: permite probar el caso "seccion llena" con solo 2 estudiantes
     seccion = Seccion(
         codigo="A",
+        id_especialidad=especialidad.id_especialidad,
+        ciclo=1,
+        id_periodo=periodo.id_periodo,
         capacidad=1,
         estado="abierta",
-        id_curso=curso.id_curso,
-        id_periodo=periodo.id_periodo,
     )
     db.session.add(seccion)
     db.session.commit()

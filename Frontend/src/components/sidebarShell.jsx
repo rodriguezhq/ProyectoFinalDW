@@ -142,6 +142,7 @@ export default function SidebarShell({ menuOptions = [], children }) {
                                         <UserIcon size={16} />
                                         Ver perfil
                                     </button>
+
                                 </div>
                             </>
                         )}

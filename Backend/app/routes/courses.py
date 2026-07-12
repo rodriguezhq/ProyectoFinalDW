@@ -304,4 +304,19 @@ def eliminar_seccion(path: IdSeccionPath):
     return response, status
 
 
+class CursosAperturadosQuery(BaseModel):
+    id_periodo: int = Field(..., description="ID del periodo academico")
+
+
+@courses_bp.get(
+    "/especialidades/<int:id>/cursos-aperturados",
+    responses={200: MessageResponse},
+    security=[{"jwt": []}]
+)
+@jwt_required()
+def obtener_cursos_aperturados(path: IdPath, query: CursosAperturadosQuery):
+    response, status = courseController.obtener_cursos_aperturados_ctrl(path.id, query.id_periodo)
+    return response, status
+
+
 

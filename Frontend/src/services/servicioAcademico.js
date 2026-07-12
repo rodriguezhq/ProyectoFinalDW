@@ -167,6 +167,42 @@ export async function activarPeriodo(id) {
   return respuesta.json();
 }
 
+export async function establecerPeriodoMatricula(id) {
+  const respuesta = await consultarApi(`/api/admin/periodos/${id}/establecer-matricula`, { method: 'POST' });
+  if (!respuesta.ok) {
+    const error = await respuesta.json();
+    throw new Error(error.msg || 'Error al establecer periodo de matrícula.');
+  }
+  return respuesta.json();
+}
+
+export async function desactivarPeriodo(id) {
+  const respuesta = await consultarApi(`/api/admin/periodos/${id}/desactivar`, { method: 'POST' });
+  if (!respuesta.ok) {
+    const error = await respuesta.json();
+    throw new Error(error.msg || 'Error al desactivar el periodo académico.');
+  }
+  return respuesta.json();
+}
+
+export async function obtenerEstadisticasMatricula(idPeriodo) {
+  const respuesta = await consultarApi(`/api/enrollment/estadisticas/${idPeriodo}`, { method: 'GET' });
+  if (!respuesta.ok) {
+    throw new Error('Error al cargar estadísticas de matrícula.');
+  }
+  return respuesta.json();
+}
+
+export async function obtenerCargaDocente(idPeriodo) {
+  let url = '/api/courses/carga-docente';
+  if (idPeriodo) url += `?id_periodo=${idPeriodo}`;
+  const respuesta = await consultarApi(url, { method: 'GET' });
+  if (!respuesta.ok) {
+    throw new Error('Error al cargar la carga docente.');
+  }
+  return respuesta.json();
+}
+
 // ==========================================
 // SERVICIOS DE SECCIONES
 // ==========================================
@@ -216,6 +252,16 @@ export async function eliminarSeccion(id) {
   if (!respuesta.ok) {
     const error = await respuesta.json();
     throw new Error(error.msg || 'Error al eliminar la sección.');
+  }
+  return respuesta.json();
+}
+
+export async function obtenerCursosAperturados(idEspecialidad, idPeriodo) {
+  const respuesta = await consultarApi(`/api/courses/especialidades/${idEspecialidad}/cursos-aperturados?id_periodo=${idPeriodo}`, {
+    method: 'GET'
+  });
+  if (!respuesta.ok) {
+    throw new Error('Error al obtener cursos aperturados.');
   }
   return respuesta.json();
 }

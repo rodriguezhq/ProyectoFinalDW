@@ -80,7 +80,7 @@ export default function PeriodoBlock({ periodo }) {
                                         {c.promedio !== null && c.promedio !== undefined ? c.promedio.toFixed(2) : '-'}
                                     </td>
                                     <td className="p-2.5 text-center">
-                                        <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider ${badgeClass}`}>
+                                        <span className={`px-2 py-0.5 rounded-none text-[8px] font-black uppercase tracking-wider ${badgeClass}`}>
                                             {estadoStr}
                                         </span>
                                     </td>

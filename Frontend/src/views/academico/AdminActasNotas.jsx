@@ -237,7 +237,8 @@ export default function AdminActasNotas() {
     };
 
     return (
-        <div className="w-full flex flex-col gap-6 animate-slide-up">
+        <>
+            <div className="w-full flex flex-col gap-6 animate-slide-up">
             {/* Cabecera Principal */}
             <div className="border-b border-border pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
@@ -362,6 +363,8 @@ export default function AdminActasNotas() {
                 </div>
             )}
 
+            </div>
+
             {/* Modal Detalle de Acta */}
             <ModalDetalleActa
                 modalActa={modalActa}
@@ -371,6 +374,6 @@ export default function AdminActasNotas() {
                 ejecutarValidarActa={ejecutarValidarActa}
                 loading={loading}
             />
-        </div>
+        </>
     );
 }

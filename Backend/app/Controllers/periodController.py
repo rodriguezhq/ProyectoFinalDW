@@ -87,13 +87,41 @@ def establecer_matricula_principal_ctrl(id_periodo):
     # Desactivar matrícula en todos los demás periodos
     PeriodoAcademico.query.update({PeriodoAcademico.es_matricula_activa: False})
 
-    # Activar en el periodo seleccionado
+    # Activar en el periodo seleccionado y forzar vigencia (activo)
     periodo.es_matricula_activa = True
+    periodo.estado = "activo"
     db.session.commit()
 
     actor = usuario_actual()
     registrar_auditoria(
         "establecer_periodo_matricula",
+        "periodo_academico",
+        registro=periodo.id_periodo,
+        id_usuario=actor.id_usuario if actor else None,
+        ip=request.remote_addr,
+    )
+
+    return _serializar_periodo(periodo), 200
+
+
+def desactivar_periodo_ctrl(id_periodo):
+    periodo = db.session.get(PeriodoAcademico, id_periodo)
+    if not periodo:
+        return {"msg": "Periodo académico no encontrado"}, 404
+
+    if periodo.estado == "cerrado":
+        return {"msg": "El periodo ya se encuentra cerrado"}, 400
+
+    periodo.estado = "cerrado"
+    # Si la matricula estaba activa, se desactiva tambien al cerrar el periodo
+    if periodo.es_matricula_activa:
+        periodo.es_matricula_activa = False
+
+    db.session.commit()
+
+    actor = usuario_actual()
+    registrar_auditoria(
+        "cerrar_periodo",
         "periodo_academico",
         registro=periodo.id_periodo,
         id_usuario=actor.id_usuario if actor else None,

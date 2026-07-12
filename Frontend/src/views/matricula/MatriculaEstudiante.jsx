@@ -338,29 +338,49 @@ export default function MatriculaEstudiante() {
                 <div className="flex flex-col gap-6">
                     {/* Banner de confirmación y descarga */}
                     {oferta.estado === 'confirmada' ? (
-                        <div className="bg-emerald-50 border border-emerald-200 p-5 rounded-2xl flex flex-col sm:flex-row items-center gap-4 text-emerald-900 shadow-sm">
+                        <div className="bg-emerald-50 border border-emerald-200 p-5 rounded-2xl flex flex-col md:flex-row items-center gap-4 text-emerald-900 shadow-sm">
                             <CheckCircle2 className="text-emerald-600 shrink-0" size={36} />
-                            <div className="grow text-center sm:text-left">
+                            <div className="grow text-center md:text-left">
                                 <h3 className="font-heading font-extrabold text-lg leading-tight">Matrícula Registrada Oficialmente</h3>
                                 <p className="text-sm text-emerald-800 mt-1">Te encuentras matriculado para el Periodo Académico <b>{oferta.periodo_nombre}</b>.</p>
                             </div>
-                            <a
-                                href={obtenerUrlFichaPdf(oferta.id_matricula)}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white font-bold text-sm shadow-sm hover:bg-primary-dark transition-all duration-200 shrink-0 cursor-pointer"
-                            >
-                                <Download size={16} />
-                                Descargar Ficha PDF
-                            </a>
+                            <div className="flex flex-col sm:flex-row gap-2 shrink-0 w-full sm:w-auto">
+                                <a
+                                    href={`${obtenerUrlFichaPdf(oferta.id_matricula)}?tipo=pre`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-emerald-200 text-emerald-800 font-bold text-sm shadow-xs hover:bg-emerald-100/50 transition-all duration-200 cursor-pointer"
+                                >
+                                    <Download size={16} />
+                                    Descargar Pre-Ficha
+                                </a>
+                                <a
+                                    href={obtenerUrlFichaPdf(oferta.id_matricula)}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white font-bold text-sm shadow-sm hover:bg-emerald-700 transition-all duration-200 cursor-pointer"
+                                >
+                                    <Download size={16} />
+                                    Descargar Ficha Oficial
+                                </a>
+                            </div>
                         </div>
                     ) : (
-                        <div className="bg-amber-50 border border-amber-200 p-5 rounded-2xl flex items-center gap-4 text-amber-900 shadow-sm">
+                        <div className="bg-amber-50 border border-amber-200 p-5 rounded-2xl flex flex-col md:flex-row items-center gap-4 text-amber-900 shadow-sm">
                             <Clock className="text-amber-600 animate-pulse shrink-0" size={36} />
-                            <div className="flex flex-col">
+                            <div className="grow text-center md:text-left">
                                 <h3 className="font-heading font-extrabold text-lg leading-tight">Solicitud en Proceso de Validación</h3>
-                                <p className="text-sm text-amber-800 mt-1">Tu matrícula se encuentra pendiente de validación por el Administrador. Podrás descargar tu Ficha Oficial en PDF una vez sea confirmada.</p>
+                                <p className="text-sm text-amber-800 mt-1">Tu matrícula se encuentra pendiente de validación por el Administrador. Ya puedes descargar tu Constancia de Pre-Matrícula.</p>
                             </div>
+                            <a
+                                href={`${obtenerUrlFichaPdf(oferta.id_matricula)}?tipo=pre`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-600 text-white font-bold text-sm shadow-sm hover:bg-amber-700 transition-all duration-200 shrink-0 cursor-pointer w-full sm:w-auto"
+                            >
+                                <Download size={16} />
+                                Descargar Pre-Ficha PDF
+                            </a>
                         </div>
                     )}
 

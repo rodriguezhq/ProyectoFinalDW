@@ -113,11 +113,23 @@ class SilaboResponse(BaseModel):
 
 
 # ---------------- Direccion ----------------
+class ClaseDocenteItem(BaseModel):
+    curso_codigo: str
+    curso_nombre: str
+    seccion: str
+    dia: str
+    horaInicio: str
+    horaFin: str
+    ambiente: str | None = None
+
+
 class CargaDocenteItem(BaseModel):
     id_docente: int
     nombre: str
     total_secciones: int
     total_horas: int
+    id_facultad: int
+    clases: list[ClaseDocenteItem]
 
 
 class CargaDocenteResponse(BaseModel):

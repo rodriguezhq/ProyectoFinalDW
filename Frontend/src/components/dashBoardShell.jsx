@@ -14,7 +14,8 @@ import {
     TrendingUp,
     Shield,
     Stamp,
-    ShieldCheck
+    ShieldCheck,
+    GraduationCap
 } from 'lucide-react';
 import SidebarShell from './sidebarShell';
 import useAuth from '../hooks/useAuth';
@@ -48,6 +49,8 @@ const MENU_OPTIONS = {
     [ROLES.DIRECCION]: [
         { icon: <LayoutDashboard size={18} />, label: 'Dashboard Estratégico', path: '/direccion' },
         { icon: <TrendingUp size={18} />, label: 'Reportes de Cohortes', path: '/direccion/reportes' },
+        { icon: <BookOpen size={18} />, label: 'Estadísticas de Matrícula', path: '/direccion/matriculas' },
+        { icon: <GraduationCap size={18} />, label: 'Supervisión Académica', path: '/direccion/supervision' },
         { icon: <Shield size={18} />, label: 'Bitácora Auditoría', path: '/direccion/auditoria' },
         { icon: <ShieldCheck size={18} />, label: 'Certificados', path: '/direccion/certificados' },
         { icon: <User size={18} />, label: 'Ver Perfil', path: '/direccion/perfil' }

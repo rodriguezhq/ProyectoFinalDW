@@ -90,9 +90,10 @@ def solicitar_matricula(id_estudiante, id_periodo, secciones_data):
         if not seccion:
             raise SeccionNoEncontradaError()
 
-        # Validar capacidad (por defecto 30 alumnos por curso-sección)
+        # Validar capacidad (por defecto 30 alumnos por curso-sección, o la definida en Seccion)
+        limite = seccion.capacidad if (hasattr(seccion, 'capacidad') and seccion.capacidad is not None) else 30
         matriculados = MatriculaDetalle.query.filter_by(id_seccion=s_id, id_curso=c_id, estado="matriculado").count()
-        if matriculados >= 30:
+        if matriculados >= limite:
             raise SeccionLlenaError()
 
     matricula = Matricula(id_estudiante=id_estudiante, id_periodo=id_periodo, estado="pendiente")

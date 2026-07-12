@@ -10,7 +10,7 @@ class AsignaturaMatriculaInput(BaseModel):
 
 class SolicitarMatriculaBody(BaseModel):
     id_periodo: int
-    secciones: list[AsignaturaMatriculaInput]
+    secciones: list[AsignaturaMatriculaInput | int]
 
 
 class MatriculaDetalleResponse(BaseModel):

@@ -61,34 +61,12 @@ export default function RecordView() {
 
     return (
         <div className="w-full flex flex-col gap-6 animate-slide-up">
-            {/* Cabecera del Récord */}
-            <div className="bg-white border border-border rounded-none p-5 md:p-6 shadow-sm flex flex-col md:flex-row justify-between gap-4">
-                <div className="space-y-1">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold bg-primary-light text-primary uppercase tracking-wider mb-1">
-                        Historial Académico
-                    </span>
-                    <h1 className="text-2xl font-black text-text-heading leading-tight">
-                        {estudiante.nombres} {estudiante.apellidos}
-                    </h1>
-                    <div className="text-xs text-text-muted font-medium flex flex-wrap gap-x-4 gap-y-1">
-                        <span>Código: <strong className="text-text-heading font-semibold">{estudiante.codigo}</strong></span>
-                        <span>DNI: <strong className="text-text-heading font-semibold">{estudiante.dni}</strong></span>
-                        <span>Correo: <strong className="text-text-heading font-semibold">{estudiante.correo || '-'}</strong></span>
-                    </div>
-                </div>
-
-                <div className="border-t md:border-t-0 md:border-l border-border pt-4 md:pt-0 md:pl-6 flex flex-col justify-center min-w-[200px]">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-text-muted block">Especialidad</span>
-                    <span className="text-sm font-bold text-text-heading block">{estudiante.especialidad_nombre}</span>
-                    <span className="text-[10px] text-text-muted font-medium uppercase mt-1">Facultad de {estudiante.facultad_nombre}</span>
-                </div>
-            </div>
 
             {/* Resumen Académico PPA y Créditos */}
-            <RecordKpis 
-                ppa={ppa} 
-                creditosMatriculados={resumen.total_creditos_matriculados} 
-                creditosAprobados={resumen.total_creditos_aprobados} 
+            <RecordKpis
+                ppa={ppa}
+                creditosMatriculados={resumen.total_creditos_matriculados}
+                creditosAprobados={resumen.total_creditos_aprobados}
             />
 
 

@@ -117,7 +117,7 @@ def obtener_oferta_academica_ctrl():
         return {
             "ya_matriculado": True,
             "id_matricula": matricula_existente.id_matricula,
-            "estado": matricula_existente.estado,
+            "estado": "confirmada" if matricula_existente.estado in ["confirmada", "pagada", "validada"] else matricula_existente.estado,
             "periodo_nombre": periodo_activo.nombre,
             "cursos": cursos_matriculados
         }, 200
@@ -346,6 +346,8 @@ def descargar_ficha_matricula_pdf_ctrl(id_matricula):
     if not actor:
         return {"msg": "No autorizado"}, 401
 
+    tipo = request.args.get("tipo", type=str)
+
     matricula = db.session.get(Matricula, id_matricula)
     if not matricula:
         return {"msg": "Matrícula no encontrada"}, 404
@@ -405,7 +407,11 @@ def descargar_ficha_matricula_pdf_ctrl(id_matricula):
     historia.append(Spacer(1, 10))
 
     # Título Principal
-    historia.append(Paragraph("FICHA OFICIAL DE MATRÍCULA", titulo_estilo))
+    if tipo == "pre":
+        titulo_doc = "FICHA DE PRE-MATRÍCULA"
+    else:
+        titulo_doc = "FICHA OFICIAL DE MATRÍCULA" if matricula.estado in ["confirmada", "pagada", "validada"] else "FICHA DE PRE-MATRÍCULA"
+    historia.append(Paragraph(titulo_doc, titulo_estilo))
     historia.append(Spacer(1, 10))
 
     # Datos Generales del Estudiante
@@ -487,30 +493,31 @@ def descargar_ficha_matricula_pdf_ctrl(id_matricula):
     # Pie de pagina / Firmas
     historia.append(Spacer(1, 10))
 
-    # Información del Pago
-    from app.models.pago import Pago
-    pago_confirmado = Pago.query.filter_by(id_matricula=matricula.id_matricula, estado="confirmado").first()
+    # Información del Pago (Solo para Ficha Oficial)
+    if titulo_doc == "FICHA OFICIAL DE MATRÍCULA":
+        from app.models.pago import Pago
+        pago_confirmado = Pago.query.filter_by(id_matricula=matricula.id_matricula, estado="confirmado").first()
 
-    historia.append(Paragraph("ESTADO DE PAGO DE MATRÍCULA", subtitulo_estilo))
-    if pago_confirmado:
-        tabla_pago_data = [
-            [Paragraph(f"<b>Monto Pagado:</b> S/ {pago_confirmado.monto:.2f}", texto_estilo), Paragraph(f"<b>Método de Pago:</b> {pago_confirmado.metodo_pago.capitalize()}", texto_estilo)],
-            [Paragraph(f"<b>Código Operación:</b> {pago_confirmado.codigo_operacion or 'N/A'}", texto_estilo), Paragraph(f"<b>Estado del Pago:</b> Confirmado / Pagado", texto_estilo)]
-        ]
-    else:
-        tabla_pago_data = [
-            [Paragraph("<b>Monto Pagado:</b> S/ 0.00", texto_estilo), Paragraph("<b>Método de Pago:</b> N/A", texto_estilo)],
-            [Paragraph("<b>Código Operación:</b> N/A", texto_estilo), Paragraph("<b>Estado del Pago:</b> Pendiente de Confirmación", texto_estilo)]
-        ]
-    
-    t_pago = Table(tabla_pago_data, colWidths=[260, 260])
-    t_pago.setStyle(TableStyle([
-        ('VALIGN', (0,0), (-1,-1), 'TOP'),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 4),
-        ('TOPPADDING', (0,0), (-1,-1), 4),
-    ]))
-    historia.append(t_pago)
-    historia.append(Spacer(1, 20))
+        historia.append(Paragraph("ESTADO DE PAGO DE MATRÍCULA", subtitulo_estilo))
+        if pago_confirmado:
+            tabla_pago_data = [
+                [Paragraph(f"<b>Monto Pagado:</b> S/ {pago_confirmado.monto:.2f}", texto_estilo), Paragraph(f"<b>Método de Pago:</b> {pago_confirmado.metodo_pago.capitalize()}", texto_estilo)],
+                [Paragraph(f"<b>Código Operación:</b> {pago_confirmado.codigo_operacion or 'N/A'}", texto_estilo), Paragraph(f"<b>Estado del Pago:</b> Confirmado / Pagado", texto_estilo)]
+            ]
+        else:
+            tabla_pago_data = [
+                [Paragraph("<b>Monto Pagado:</b> S/ 0.00", texto_estilo), Paragraph("<b>Método de Pago:</b> N/A", texto_estilo)],
+                [Paragraph("<b>Código Operación:</b> N/A", texto_estilo), Paragraph("<b>Estado del Pago:</b> Pendiente de Confirmación", texto_estilo)]
+            ]
+        
+        t_pago = Table(tabla_pago_data, colWidths=[260, 260])
+        t_pago.setStyle(TableStyle([
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+            ('TOPPADDING', (0,0), (-1,-1), 4),
+        ]))
+        historia.append(t_pago)
+        historia.append(Spacer(1, 20))
 
     tabla_firmas = [
         ["", ""],
@@ -597,13 +604,16 @@ def _serializar_matricula_admin(matricula):
     return {
         "id_matricula": matricula.id_matricula,
         "fecha_matricula": matricula.fecha_matricula.strftime("%Y-%m-%d %H:%M:%S") if matricula.fecha_matricula else "",
-        "estado": matricula.estado,
+        "estado": "confirmada" if matricula.estado in ["confirmada", "pagada", "validada"] else matricula.estado,
         "periodo_nombre": matricula.periodo.nombre,
+        "estudiante_nombre": f"{estudiante.nombres} {estudiante.apellidos}" if estudiante else "",
         "estudiante_nombres": estudiante.nombres,
         "estudiante_apellidos": estudiante.apellidos,
         "estudiante_codigo": estudiante.codigo,
         "estudiante_dni": estudiante.dni,
         "estudiante_especialidad": estudiante.especialidad.nombre,
+        "id_periodo": matricula.id_periodo, # include id_periodo
+        "id_estudiante": matricula.id_estudiante, # include id_estudiante
         "estudiante_ciclo": ciclo_est,
         "cursos": cursos_serialized,
         "pago": pago_det,
@@ -628,7 +638,7 @@ def mis_matriculas():
 
 def listar_todas_matriculas_ctrl():
     actor = usuario_actual()
-    if not actor or actor.rol.nombre != "Administrador":
+    if not actor or actor.rol.nombre not in ["Administrador", "Direccion"]:
         return {"msg": "No autorizado"}, 401
 
     id_periodo = request.args.get("id_periodo", type=int)
@@ -638,7 +648,12 @@ def listar_todas_matriculas_ctrl():
     if id_periodo:
         query = query.filter_by(id_periodo=id_periodo)
     if estado:
-        query = query.filter_by(estado=estado)
+        if estado == "confirmada":
+            query = query.filter(Matricula.estado.in_(["confirmada", "pagada", "validada"]))
+        elif estado == "rechazada":
+            query = query.filter(Matricula.estado.in_(["rechazada", "desaprobada"]))
+        else:
+            query = query.filter_by(estado=estado)
 
     matriculas = query.order_by(Matricula.fecha_matricula.desc()).all()
     return {"matriculas": [_serializar_matricula_admin(m) for m in matriculas]}, 200
@@ -706,3 +721,261 @@ def confirmar_matricula_admin_ctrl(id_matricula, body):
     )
 
     return _serializar_matricula_admin(matricula), 200
+
+
+def estadisticas(id_periodo):
+    actor = usuario_actual()
+    if not actor or actor.rol.nombre != "Direccion":
+        return {"msg": "No autorizado"}, 401
+
+    # Obtener todas las matrículas del periodo
+    matriculas = Matricula.query.filter_by(id_periodo=id_periodo).all()
+
+    total_matriculados = len(matriculas)
+
+    # Agrupar por estado
+    por_estado = {"pendiente": 0, "confirmada": 0, "rechazada": 0}
+    for m in matriculas:
+        # Mapeamos los estados antiguos a confirmada de forma transparente
+        est = "confirmada" if m.estado in ["confirmada", "pagada", "validada"] else m.estado
+        if est in por_estado:
+            por_estado[est] += 1
+        else:
+            por_estado[est] = 1
+
+    # Agrupar por especialidad
+    por_especialidad = {}
+    for m in matriculas:
+        esp_nombre = m.estudiante.especialidad.nombre if m.estudiante.especialidad else "Sin Especialidad"
+        if esp_nombre in por_especialidad:
+            por_especialidad[esp_nombre] += 1
+        else:
+            por_especialidad[esp_nombre] = 1
+
+    return {
+        "total_matriculados": total_matriculados,
+        "por_estado": por_estado,
+        "por_especialidad": por_especialidad
+    }, 200
+
+
+def _serialize_matricula(matricula):
+    estudiante = matricula.estudiante
+    detalles_list = []
+    for det in matricula.detalles:
+        # Obtener horario_string
+        horario_objeto = Horario.query.filter_by(
+            id_periodo=matricula.id_periodo,
+            id_especialidad=estudiante.id_especialidad if estudiante else det.seccion.id_especialidad,
+            ciclo=det.seccion.ciclo if det.seccion else det.curso.ciclo
+        ).first()
+
+        horario_texto_lista = []
+        if horario_objeto and det.seccion:
+            for b in (horario_objeto.detalles or []):
+                if b.get("seccion") == det.seccion.codigo and b.get("id_curso") and int(b.get("id_curso")) == det.id_curso:
+                    horario_texto_lista.append(f"{b.get('dia', '')[:3]}. {b.get('horaInicio')}-{b.get('horaFin')}")
+
+        horario_string = ", ".join(horario_texto_lista) if horario_texto_lista else "Sin horario"
+
+        detalles_list.append({
+            "id_matricula_detalle": det.id_matricula_detalle,
+            "id_curso": det.id_curso,
+            "curso": det.curso.nombre if det.curso else "",
+            "codigo_curso": det.curso.codigo if det.curso else "",
+            "id_seccion": det.id_seccion,
+            "seccion_codigo": det.seccion.codigo if det.seccion else None,
+            "estado": det.estado,
+            "horario": horario_string
+        })
+
+    return {
+        "id_matricula": matricula.id_matricula,
+        "id_estudiante": matricula.id_estudiante,
+        "estudiante_nombre": f"{estudiante.nombres} {estudiante.apellidos}" if estudiante else "",
+        "id_periodo": matricula.id_periodo,
+        "fecha_matricula": matricula.fecha_matricula,
+        "estado": matricula.estado,
+        "detalles": detalles_list
+    }
+
+
+def solicitar(body):
+    actor = usuario_actual()
+    if not actor or not actor.estudiante:
+        return {"msg": "Solo un estudiante puede realizar el proceso de matrícula"}, 403
+
+    from app.services.enrollment_service import (
+        solicitar_matricula,
+        EstudianteInactivoError,
+        PeriodoNoEncontradoError,
+        PeriodoCerradoError,
+        MatriculaDuplicadaError,
+        CursoNoEncontradoError,
+        SeccionNoEncontradaError,
+        SeccionLlenaError,
+    )
+
+    secciones_data = []
+    for item in body.secciones:
+        # Handle int (section ID directly) from tests
+        if isinstance(item, int):
+            sec = db.session.get(Seccion, item)
+            if not sec:
+                return {"msg": f"Sección con ID {item} no encontrada"}, 404
+            
+            # Find the courses for the section's specialty and cycle
+            from app.models.especialidad import Especialidad
+            from app.models.curso import Curso
+            cursos_plan = Curso.query.join(Curso.especialidades).filter(
+                Especialidad.id_especialidad == sec.id_especialidad,
+                Curso.ciclo == sec.ciclo
+            ).all()
+
+            for curso in cursos_plan:
+                secciones_data.append({
+                    "id_curso": curso.id_curso,
+                    "id_seccion": sec.id_seccion
+                })
+        else:
+            # Handle AsignaturaMatriculaInput or dict
+            c_id = getattr(item, 'id_curso', None) or item.get('id_curso')
+            s_id = getattr(item, 'id_seccion', None) or item.get('id_seccion')
+            secciones_data.append({
+                "id_curso": c_id,
+                "id_seccion": s_id
+            })
+
+    try:
+        matricula = solicitar_matricula(actor.estudiante.id_estudiante, body.id_periodo, secciones_data)
+        
+        # Audit
+        registrar_auditoria(
+            "solicitar_matricula",
+            "matricula",
+            registro=matricula.id_matricula,
+            id_usuario=actor.id_usuario,
+            ip=request.remote_addr
+        )
+
+        return _serialize_matricula(matricula), 201
+    except EstudianteInactivoError:
+        return {"msg": "El estudiante no está activo"}, 403
+    except PeriodoNoEncontradoError:
+        return {"msg": "Periodo no encontrado"}, 404
+    except PeriodoCerradoError:
+        return {"msg": "El periodo de matrícula no está activo o está cerrado"}, 409
+    except MatriculaDuplicadaError:
+        return {"msg": "Ya existe una solicitud de matrícula para este periodo"}, 409
+    except CursoNoEncontradoError:
+        return {"msg": "Uno de los cursos no existe"}, 404
+    except SeccionNoEncontradaError:
+        return {"msg": "Una de las secciones no existe"}, 404
+    except SeccionLlenaError:
+        return {"msg": "Una de las secciones seleccionadas está llena"}, 409
+
+
+def validar(id_matricula):
+    actor = usuario_actual()
+    if not actor or actor.rol.nombre != "Administrador":
+        return {"msg": "No autorizado"}, 401
+
+    from app.services.enrollment_service import validar_matricula, MatriculaNoEncontradaError, EstadoInvalidoError
+
+    try:
+        matricula = validar_matricula(id_matricula)
+        registrar_auditoria(
+            "validar_matricula",
+            "matricula",
+            registro=matricula.id_matricula,
+            id_usuario=actor.id_usuario,
+            ip=request.remote_addr
+        )
+        return _serialize_matricula(matricula), 200
+    except MatriculaNoEncontradaError:
+        return {"msg": "Matrícula no encontrada"}, 404
+    except EstadoInvalidoError:
+        return {"msg": "La matrícula no está en estado pendiente para ser validada"}, 409
+
+
+def rechazar(id_matricula):
+    actor = usuario_actual()
+    if not actor or actor.rol.nombre != "Administrador":
+        return {"msg": "No autorizado"}, 401
+
+    from app.services.enrollment_service import rechazar_matricula, MatriculaNoEncontradaError, EstadoInvalidoError
+
+    try:
+        matricula = rechazar_matricula(id_matricula)
+        registrar_auditoria(
+            "rechazar_matricula",
+            "matricula",
+            registro=matricula.id_matricula,
+            id_usuario=actor.id_usuario,
+            ip=request.remote_addr
+        )
+        return _serialize_matricula(matricula), 200
+    except MatriculaNoEncontradaError:
+        return {"msg": "Matrícula no encontrada"}, 404
+    except EstadoInvalidoError:
+        return {"msg": "La matrícula no está en estado pendiente para ser rechazada"}, 409
+
+
+def pago(id_matricula, body):
+    actor = usuario_actual()
+    if not actor or actor.rol.nombre != "Administrador":
+        return {"msg": "No autorizado"}, 401
+
+    from app.services.enrollment_service import registrar_pago, MatriculaNoEncontradaError, EstadoInvalidoError
+
+    try:
+        pago_obj = registrar_pago(id_matricula, body.monto, body.metodo_pago, body.codigo_operacion)
+        # Confirm immediately because admin registered it
+        pago_obj.estado = "confirmado"
+        pago_obj.matricula.estado = "pagada"
+        db.session.commit()
+
+        registrar_auditoria(
+            "registrar_pago_admin",
+            "pago",
+            registro=pago_obj.id_pago,
+            id_usuario=actor.id_usuario,
+            ip=request.remote_addr
+        )
+
+        return {
+            "id_pago": pago_obj.id_pago,
+            "monto": float(pago_obj.monto),
+            "estado": pago_obj.estado
+        }, 201
+    except MatriculaNoEncontradaError:
+        return {"msg": "Matrícula no encontrada"}, 404
+    except EstadoInvalidoError:
+        return {"msg": "La matrícula debe estar en estado validada para registrar pago"}, 409
+
+
+def ficha(id_matricula):
+    actor = usuario_actual()
+    if not actor:
+        return {"msg": "No autorizado"}, 401
+
+    from app.services.enrollment_service import obtener_matricula, generar_ficha_pdf, MatriculaNoEncontradaError
+
+    try:
+        matricula = obtener_matricula(id_matricula)
+        # Check permissions: only the student themselves or an admin can access it
+        if actor.rol.nombre == "Estudiante" and (not actor.estudiante or actor.estudiante.id_estudiante != matricula.id_estudiante):
+            return {"msg": "No tienes permiso para ver esta ficha"}, 403
+
+        pdf_data = generar_ficha_pdf(matricula)
+        buffer = BytesIO(pdf_data)
+        
+        nombre_archivo = f"ficha_matricula_{matricula.estudiante.codigo if matricula.estudiante else 'doc'}.pdf"
+        return send_file(
+            buffer,
+            as_attachment=True,
+            download_name=nombre_archivo,
+            mimetype="application/pdf"
+        )
+    except MatriculaNoEncontradaError:
+        return {"msg": "Matrícula no encontrada"}, 404

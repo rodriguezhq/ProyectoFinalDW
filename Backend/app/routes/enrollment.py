@@ -19,7 +19,9 @@ from app.schemas.enrollment_schema import (
 )
 from app.utils.decorators import role_required
 
-enrollment_tag = Tag(name="Matrícula", description="Solicitud, validación, pago y ficha de matrícula")
+enrollment_tag = Tag(
+    name="Matrícula", description="Solicitud, validación, pago y ficha de matrícula"
+)
 enrollment_bp = APIBlueprint("enrollment", __name__, abp_tags=[enrollment_tag])
 
 
@@ -39,8 +41,12 @@ class ListarMatriculasQuery(BaseModel):
 @enrollment_bp.post(
     "/",
     summary="Solicitar matrícula",
-    responses={201: MatriculaResponse, 403: MessageResponse, 404: MessageResponse, 409: MessageResponse},
-    security=[{"jwt": []}],
+    responses={
+        201: MatriculaResponse,
+        403: MessageResponse,
+        404: MessageResponse,
+        409: MessageResponse,
+    },
 )
 @role_required("Estudiante")
 def solicitar(body: SolicitarMatriculaBody):
@@ -52,9 +58,8 @@ def solicitar(body: SolicitarMatriculaBody):
     "/",
     summary="Listar todas las matrículas (Administrador)",
     responses={200: MatriculaListResponse},
-    security=[{"jwt": []}],
 )
-@role_required("Administrador")
+@role_required("Administrador", "Direccion")
 def listar_todas(query: ListarMatriculasQuery):
     response, status = enrollmentController.listar_todas_matriculas_ctrl()
     return response, status
@@ -64,11 +69,12 @@ def listar_todas(query: ListarMatriculasQuery):
     "/<int:id_matricula>/detalle",
     summary="Obtener detalle de matrícula (Administrador)",
     responses={200: MatriculaResponse, 404: MessageResponse},
-    security=[{"jwt": []}],
 )
 @role_required("Administrador")
 def obtener_detalle(path: MatriculaPath):
-    response, status = enrollmentController.obtener_detalle_matricula_ctrl(path.id_matricula)
+    response, status = enrollmentController.obtener_detalle_matricula_ctrl(
+        path.id_matricula
+    )
     return response, status
 
 
@@ -76,11 +82,12 @@ def obtener_detalle(path: MatriculaPath):
     "/<int:id_matricula>/confirmar",
     summary="Confirmar y registrar pago opcional de matrícula (Administrador)",
     responses={200: MatriculaResponse, 404: MessageResponse, 409: MessageResponse},
-    security=[{"jwt": []}],
 )
 @role_required("Administrador")
 def confirmar_matricula(path: MatriculaPath, body: ConfirmarMatriculaAdminBody):
-    response, status = enrollmentController.confirmar_matricula_admin_ctrl(path.id_matricula, body)
+    response, status = enrollmentController.confirmar_matricula_admin_ctrl(
+        path.id_matricula, body
+    )
     return response, status
 
 
@@ -88,7 +95,6 @@ def confirmar_matricula(path: MatriculaPath, body: ConfirmarMatriculaAdminBody):
     "/mias",
     summary="Mis matrículas",
     responses={200: MatriculaListResponse, 403: MessageResponse},
-    security=[{"jwt": []}],
 )
 @role_required("Estudiante")
 def mias():
@@ -104,7 +110,6 @@ class PagoPath(BaseModel):
     "/<int:id_matricula>/validar",
     summary="Validar requisitos de matrícula",
     responses={200: MatriculaResponse, 404: MessageResponse, 409: MessageResponse},
-    security=[{"jwt": []}],
 )
 @role_required("Administrador")
 def validar(path: MatriculaPath):
@@ -116,7 +121,6 @@ def validar(path: MatriculaPath):
     "/<int:id_matricula>/rechazar",
     summary="Rechazar solicitud de matrícula",
     responses={200: MatriculaResponse, 404: MessageResponse, 409: MessageResponse},
-    security=[{"jwt": []}],
 )
 @role_required("Administrador")
 def rechazar(path: MatriculaPath):
@@ -128,7 +132,6 @@ def rechazar(path: MatriculaPath):
     "/<int:id_matricula>/pago",
     summary="Registrar pago de matrícula",
     responses={201: PagoResponse, 404: MessageResponse, 409: MessageResponse},
-    security=[{"jwt": []}],
 )
 @role_required("Administrador")
 def pago(path: MatriculaPath, body: PagoBody):
@@ -140,7 +143,6 @@ def pago(path: MatriculaPath, body: PagoBody):
     "/pago/<int:id_pago>/validar",
     summary="Validar/confirmar pago de matrícula",
     responses={200: PagoResponse, 404: MessageResponse, 409: MessageResponse},
-    security=[{"jwt": []}],
 )
 @role_required("Administrador")
 def validar_pago(path: PagoPath):
@@ -152,7 +154,6 @@ def validar_pago(path: PagoPath):
     "/<int:id_matricula>/ficha",
     summary="Descargar ficha oficial (PDF)",
     responses={404: MessageResponse, 403: MessageResponse},
-    security=[{"jwt": []}],
 )
 @role_required("Estudiante", "Administrador")
 def ficha(path: MatriculaPath):
@@ -163,7 +164,6 @@ def ficha(path: MatriculaPath):
     "/estadisticas/<int:id_periodo>",
     summary="Estadísticas de matrícula del periodo",
     responses={200: EstadisticasResponse},
-    security=[{"jwt": []}],
 )
 @role_required("Direccion")
 def estadisticas(path: PeriodoPath):
@@ -174,8 +174,11 @@ def estadisticas(path: PeriodoPath):
 @enrollment_bp.get(
     "/oferta-academica",
     summary="Obtener oferta académica disponible para el estudiante",
-    responses={200: OfertaAcademicaResponse, 400: MessageResponse, 403: MessageResponse},
-    security=[{"jwt": []}],
+    responses={
+        200: OfertaAcademicaResponse,
+        400: MessageResponse,
+        403: MessageResponse,
+    },
 )
 @role_required("Estudiante")
 def obtener_oferta_academica():
@@ -187,8 +190,12 @@ def obtener_oferta_academica():
 @enrollment_bp.post(
     "/matricular",
     summary="Registrar la matrícula del estudiante",
-    responses={201: FichaMatriculaResponse, 400: MessageResponse, 403: MessageResponse, 404: MessageResponse},
-    security=[{"jwt": []}],
+    responses={
+        201: FichaMatriculaResponse,
+        400: MessageResponse,
+        403: MessageResponse,
+        404: MessageResponse,
+    },
 )
 @role_required("Estudiante")
 def registrar_matricula(body: MatriculaBody):
@@ -201,7 +208,6 @@ def registrar_matricula(body: MatriculaBody):
     "/matricula/<int:id_matricula>/pdf",
     summary="Descargar PDF de la Ficha de Matrícula",
     responses={403: MessageResponse, 404: MessageResponse},
-    security=[{"jwt": []}],
 )
 @role_required("Estudiante", "Administrador", "Direccion")
 def descargar_ficha_matricula_pdf(path: MatriculaPath):
