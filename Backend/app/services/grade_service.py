@@ -81,11 +81,47 @@ def _nota_a_dict(nota):
 
 
 def registrar_notas(id_matricula_detalle, data):
+    from app.services.auth_service import usuario_actual
+    from app.models.horario import Horario
 
     # Verificar que el matricula_detalle existe
     detalle = MatriculaDetalle.query.get(id_matricula_detalle)
     if not detalle:
         return None, "Matrícula detalle no encontrada"
+
+    # Validar usuario y rol de docente
+    actor = usuario_actual()
+    if not actor or not actor.docente:
+        return None, "Solo un docente puede registrar notas"
+
+    seccion = detalle.seccion
+    if not seccion:
+        return None, "Sección no encontrada para esta matrícula"
+
+    # Validar que el periodo de la sección esté activo
+    periodo = seccion.periodo
+    if not periodo or periodo.estado != "activo":
+        return None, "El periodo académico está cerrado. No se pueden modificar las notas."
+
+    # Validar que el docente tenga asignado este curso y sección en el horario del periodo
+    horario_objeto = Horario.query.filter_by(
+        id_periodo=seccion.id_periodo,
+        id_especialidad=seccion.id_especialidad,
+        ciclo=seccion.ciclo
+    ).first()
+
+    if not horario_objeto:
+        return None, "No se encontró horario asignado para esta sección"
+
+    es_su_curso = False
+    for bloque in (horario_objeto.detalles or []):
+        if (bloque.get("id_curso") and int(bloque.get("id_curso")) == detalle.id_curso and 
+            bloque.get("id_docente") and int(bloque.get("id_docente")) == actor.docente.id_docente):
+            es_su_curso = True
+            break
+
+    if not es_su_curso:
+        return None, "No tienes permiso para registrar notas en este curso"
 
     # Buscar nota existente o crear una nueva
     nota = Nota.query.filter_by(id_matricula_detalle=id_matricula_detalle).first()

@@ -112,14 +112,25 @@ export default function IngresarCalificacionesDocente() {
 
         // Validar formato y rango de notas
         const esNotaValida = (val) => {
-            if (val === '') return true;
+            if (val === undefined || val === null || val === '') return true;
             const num = parseFloat(val);
             return !isNaN(num) && num >= 0 && num <= 20;
         };
 
-        if (!esNotaValida(notes => notes.parcial1) || !esNotaValida(notes => notes.parcial2) || 
-            !esNotaValida(notes => notes.final) || !esNotaValida(notes => notes.sustitutorio)) {
-            toast.error('Las notas deben estar en el rango de 0 a 20.');
+        if (!esNotaValida(notas.parcial1)) {
+            toast.error('La nota del Parcial 1 debe estar en el rango de 0 a 20.');
+            return;
+        }
+        if (!esNotaValida(notas.parcial2)) {
+            toast.error('La nota del Parcial 2 debe estar en el rango de 0 a 20.');
+            return;
+        }
+        if (!esNotaValida(notas.final)) {
+            toast.error('La nota del Examen Final debe estar en el rango de 0 a 20.');
+            return;
+        }
+        if (!esNotaValida(notas.sustitutorio)) {
+            toast.error('La nota del Examen Sustitutorio debe estar en el rango de 0 a 20.');
             return;
         }
 
@@ -217,22 +228,7 @@ export default function IngresarCalificacionesDocente() {
                 )}
             </div>
 
-            {/* Banner de Modo de Operación */}
-            {esPeriodoActivo ? (
-                <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-xl flex items-center gap-3 text-emerald-800 text-sm shadow-xs">
-                    <CheckCircle2 className="text-emerald-600 shrink-0" size={20} />
-                    <div>
-                        <span className="font-bold">Modo de Edición Activo</span>. Puedes ingresar y guardar las calificaciones de los parciales y examen final de los estudiantes. El promedio ponderado se calculará automáticamente.
-                    </div>
-                </div>
-            ) : (
-                <div className="bg-amber-50 border border-amber-200 p-4 rounded-xl flex items-center gap-3 text-amber-800 text-sm shadow-xs">
-                    <AlertTriangle className="text-amber-600 shrink-0" size={20} />
-                    <div>
-                        <span className="font-bold">Modo de Solo Lectura</span>. El periodo académico se encuentra cerrado. Las calificaciones no pueden ser modificadas por esta interfaz.
-                    </div>
-                </div>
-            )}
+
 
             {/* Ficha Resumen de la Asignatura */}
             <div className="bg-bg-alt/75 border border-border p-5 rounded-xl flex flex-wrap gap-x-8 gap-y-3 justify-between items-center shadow-xs">

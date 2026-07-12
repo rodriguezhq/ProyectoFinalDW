@@ -513,28 +513,44 @@ def seed():
     print("Creando matricula_detalle...")
     det_cristhian_ed = MatriculaDetalle(id_matricula=mat_cristhian_pasado.id_matricula, id_seccion=sec_is_c3_pasado.id_seccion, id_curso=curso_ed.id_curso, estado="matriculado")
     det_cristhian_bd = MatriculaDetalle(id_matricula=mat_cristhian_pasado.id_matricula, id_seccion=sec_is_c5_pasado.id_seccion, id_curso=curso_bd.id_curso, estado="matriculado")
+    
+    # Estudiante Cristhian (Periodo Actual 2026-I)
     det_cristhian_daw = MatriculaDetalle(id_matricula=mat_cristhian_actual.id_matricula, id_seccion=sec_is_c9_actual.id_seccion, id_curso=curso_daw.id_curso, estado="matriculado")
     det_cristhian_isw = MatriculaDetalle(id_matricula=mat_cristhian_actual.id_matricula, id_seccion=sec_is_c7_actual.id_seccion, id_curso=curso_isw.id_curso, estado="matriculado")
-    
-    # Nuevas matriculas para los cursos de docente_ana en el periodo actual
     det_cristhian_ia = MatriculaDetalle(id_matricula=mat_cristhian_actual.id_matricula, id_seccion=sec_is_c9_actual.id_seccion, id_curso=curso_ia.id_curso, estado="matriculado")
     det_cristhian_bd_actual = MatriculaDetalle(id_matricula=mat_cristhian_actual.id_matricula, id_seccion=sec_is_c5_actual.id_seccion, id_curso=curso_bd.id_curso, estado="matriculado")
-    
+    det_cristhian_mate2 = MatriculaDetalle(id_matricula=mat_cristhian_actual.id_matricula, id_seccion=sec_is_c2_actual.id_seccion, id_curso=curso_mate2.id_curso, estado="matriculado")
+    det_cristhian_alg = MatriculaDetalle(id_matricula=mat_cristhian_actual.id_matricula, id_seccion=sec_is_c2_actual.id_seccion, id_curso=curso_alg.id_curso, estado="matriculado")
+    det_cristhian_redes = MatriculaDetalle(id_matricula=mat_cristhian_actual.id_matricula, id_seccion=sec_is_c5_actual.id_seccion, id_curso=curso_redes.id_curso, estado="matriculado")
+
+    # Estudiante Scoot (Periodo Actual 2026-I)
     det_scoot_daw = MatriculaDetalle(id_matricula=mat_scoot_actual.id_matricula, id_seccion=sec_is_c9_actual.id_seccion, id_curso=curso_daw.id_curso, estado="matriculado")
     det_scoot_ia = MatriculaDetalle(id_matricula=mat_scoot_actual.id_matricula, id_seccion=sec_is_c9_actual.id_seccion, id_curso=curso_ia.id_curso, estado="matriculado")
-    
+    det_scoot_bd_actual = MatriculaDetalle(id_matricula=mat_scoot_actual.id_matricula, id_seccion=sec_is_c5_actual.id_seccion, id_curso=curso_bd.id_curso, estado="matriculado")
+    det_scoot_mate2 = MatriculaDetalle(id_matricula=mat_scoot_actual.id_matricula, id_seccion=sec_is_c2_actual.id_seccion, id_curso=curso_mate2.id_curso, estado="matriculado")
+    det_scoot_alg = MatriculaDetalle(id_matricula=mat_scoot_actual.id_matricula, id_seccion=sec_is_c2_actual.id_seccion, id_curso=curso_alg.id_curso, estado="matriculado")
+    det_scoot_redes = MatriculaDetalle(id_matricula=mat_scoot_actual.id_matricula, id_seccion=sec_is_c5_actual.id_seccion, id_curso=curso_redes.id_curso, estado="matriculado")
+
+    # Estudiante Maria (Periodo Actual 2026-I)
     det_maria_isw = MatriculaDetalle(id_matricula=mat_maria_actual.id_matricula, id_seccion=sec_is_c7_actual.id_seccion, id_curso=curso_isw.id_curso, estado="matriculado")
     det_maria_ed = MatriculaDetalle(id_matricula=mat_maria_actual.id_matricula, id_seccion=sec_is_c3_actual.id_seccion, id_curso=curso_ed.id_curso, estado="matriculado")
-    
+    det_maria_intro = MatriculaDetalle(id_matricula=mat_maria_actual.id_matricula, id_seccion=sec_is_c1_actual.id_seccion, id_curso=curso_intro.id_curso, estado="matriculado")
+    det_maria_mate1 = MatriculaDetalle(id_matricula=mat_maria_actual.id_matricula, id_seccion=sec_is_c1_actual.id_seccion, id_curso=curso_mate1.id_curso, estado="matriculado")
+    det_maria_fis1 = MatriculaDetalle(id_matricula=mat_maria_actual.id_matricula, id_seccion=sec_is_c3_actual.id_seccion, id_curso=curso_fis1.id_curso, estado="matriculado")
+
+    # Estudiante Pedro (Periodo Actual 2026-I)
     det_pedro_ms = MatriculaDetalle(id_matricula=mat_pedro_actual.id_matricula, id_seccion=sec_ic_c4_actual.id_seccion, id_curso=curso_ms.id_curso, estado="matriculado")
     det_pedro_intro = MatriculaDetalle(id_matricula=mat_pedro_actual.id_matricula, id_seccion=sec_is_c1_actual.id_seccion, id_curso=curso_intro.id_curso, estado="matriculado")
-    
+    det_pedro_mate1 = MatriculaDetalle(id_matricula=mat_pedro_actual.id_matricula, id_seccion=sec_is_c1_actual.id_seccion, id_curso=curso_mate1.id_curso, estado="matriculado")
+    det_pedro_fis1 = MatriculaDetalle(id_matricula=mat_pedro_actual.id_matricula, id_seccion=sec_is_c3_actual.id_seccion, id_curso=curso_fis1.id_curso, estado="matriculado")
+    det_pedro_ed = MatriculaDetalle(id_matricula=mat_pedro_actual.id_matricula, id_seccion=sec_is_c3_actual.id_seccion, id_curso=curso_ed.id_curso, estado="matriculado")
+
     db.session.add_all([
-        det_cristhian_ed, det_cristhian_bd, det_cristhian_daw, det_cristhian_isw,
-        det_cristhian_ia, det_cristhian_bd_actual,
-        det_scoot_daw, det_scoot_ia,
-        det_maria_isw, det_maria_ed,
-        det_pedro_ms, det_pedro_intro
+        det_cristhian_ed, det_cristhian_bd,
+        det_cristhian_daw, det_cristhian_isw, det_cristhian_ia, det_cristhian_bd_actual, det_cristhian_mate2, det_cristhian_alg, det_cristhian_redes,
+        det_scoot_daw, det_scoot_ia, det_scoot_bd_actual, det_scoot_mate2, det_scoot_alg, det_scoot_redes,
+        det_maria_isw, det_maria_ed, det_maria_intro, det_maria_mate1, det_maria_fis1,
+        det_pedro_ms, det_pedro_intro, det_pedro_mate1, det_pedro_fis1, det_pedro_ed
     ])
     db.session.commit()
 
@@ -561,29 +577,60 @@ def seed():
         Nota(parcial1=12, parcial2=10, final=11, sustitutorio=13, promedio=13.00,
              estado="consolidada", id_matricula_detalle=det_cristhian_bd.id_matricula_detalle),
         
-        # Periodo activo: parcial1 registrado o pendiente
+        # Periodo activo: notas en curso o pendientes
+        # Docente Ana Torres (daw, ia, ed, bd)
         Nota(parcial1=14, parcial2=None, final=None, sustitutorio=None, promedio=None,
              estado="registrada", id_matricula_detalle=det_cristhian_daw.id_matricula_detalle),
-        Nota(parcial1=16, parcial2=None, final=None, sustitutorio=None, promedio=None,
-             estado="registrada", id_matricula_detalle=det_cristhian_isw.id_matricula_detalle),
         Nota(parcial1=13, parcial2=None, final=None, sustitutorio=None, promedio=None,
              estado="registrada", id_matricula_detalle=det_scoot_daw.id_matricula_detalle),
         Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
-             estado="pendiente", id_matricula_detalle=det_maria_isw.id_matricula_detalle),
-        Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
-             estado="pendiente", id_matricula_detalle=det_pedro_ms.id_matricula_detalle),
-        
-        # Notas para los nuevos cursos asignados a docente_ana (en estado pendiente para registrar)
-        Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
              estado="pendiente", id_matricula_detalle=det_cristhian_ia.id_matricula_detalle),
-        Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
-             estado="pendiente", id_matricula_detalle=det_cristhian_bd_actual.id_matricula_detalle),
         Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
              estado="pendiente", id_matricula_detalle=det_scoot_ia.id_matricula_detalle),
         Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
+             estado="pendiente", id_matricula_detalle=det_cristhian_bd_actual.id_matricula_detalle),
+        Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
+             estado="pendiente", id_matricula_detalle=det_scoot_bd_actual.id_matricula_detalle),
+        Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
              estado="pendiente", id_matricula_detalle=det_maria_ed.id_matricula_detalle),
         Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
+             estado="pendiente", id_matricula_detalle=det_pedro_ed.id_matricula_detalle),
+
+        # Docente Jaime Suasnabar (intro, redes)
+        Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
              estado="pendiente", id_matricula_detalle=det_pedro_intro.id_matricula_detalle),
+        Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
+             estado="pendiente", id_matricula_detalle=det_maria_intro.id_matricula_detalle),
+        Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
+             estado="pendiente", id_matricula_detalle=det_cristhian_redes.id_matricula_detalle),
+        Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
+             estado="pendiente", id_matricula_detalle=det_scoot_redes.id_matricula_detalle),
+
+        # Docente Luis Ramirez (mate1, mate2, fis1, isw)
+        Nota(parcial1=16, parcial2=None, final=None, sustitutorio=None, promedio=None,
+             estado="registrada", id_matricula_detalle=det_cristhian_isw.id_matricula_detalle),
+        Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
+             estado="pendiente", id_matricula_detalle=det_maria_isw.id_matricula_detalle),
+        Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
+             estado="pendiente", id_matricula_detalle=det_maria_mate1.id_matricula_detalle),
+        Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
+             estado="pendiente", id_matricula_detalle=det_pedro_mate1.id_matricula_detalle),
+        Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
+             estado="pendiente", id_matricula_detalle=det_cristhian_mate2.id_matricula_detalle),
+        Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
+             estado="pendiente", id_matricula_detalle=det_scoot_mate2.id_matricula_detalle),
+        Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
+             estado="pendiente", id_matricula_detalle=det_maria_fis1.id_matricula_detalle),
+        Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
+             estado="pendiente", id_matricula_detalle=det_pedro_fis1.id_matricula_detalle),
+
+        # Docente Carlos Espinoza (alg, ms)
+        Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
+             estado="pendiente", id_matricula_detalle=det_pedro_ms.id_matricula_detalle),
+        Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
+             estado="pendiente", id_matricula_detalle=det_cristhian_alg.id_matricula_detalle),
+        Nota(parcial1=None, parcial2=None, final=None, sustitutorio=None, promedio=None,
+             estado="pendiente", id_matricula_detalle=det_scoot_alg.id_matricula_detalle),
     ])
     db.session.commit()
 
