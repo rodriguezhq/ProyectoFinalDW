@@ -92,13 +92,13 @@ export default function ProfileView() {
             </div>
 
             {error && (
-                <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl text-red-700 text-sm font-medium">
+                <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-none text-red-700 text-sm font-medium">
                     {error}
                 </div>
             )}
 
             {successMessage && (
-                <div className="mb-6 p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-r-xl text-emerald-700 text-sm font-medium flex items-center gap-2">
+                <div className="mb-6 p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-none text-emerald-700 text-sm font-medium flex items-center gap-2">
                     <CheckCircle2 size={18} />
                     {successMessage}
                 </div>
@@ -152,35 +152,35 @@ export default function ProfileView() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                             <div>
                                 <span className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Código Universitario</span>
-                                <span className="font-mono font-semibold text-text-heading text-base bg-bg-alt px-3 py-2.5 rounded-lg border border-border block">
+                                <span className="font-mono font-semibold text-text-heading text-base bg-bg-alt px-3 py-2.5 rounded-none border border-border block">
                                     {userCode}
                                 </span>
                             </div>
 
                             <div>
                                 <span className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Rol de Sistema</span>
-                                <span className="font-semibold text-text-heading text-base bg-bg-alt px-3 py-2.5 rounded-lg border border-border block">
+                                <span className="font-semibold text-text-heading text-base bg-bg-alt px-3 py-2.5 rounded-none border border-border block">
                                     {role}
                                 </span>
                             </div>
 
                             <div>
                                 <span className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Correo Electrónico</span>
-                                <span className="font-medium text-text-heading text-base bg-bg-alt px-3 py-2.5 rounded-lg border border-border block truncate">
+                                <span className="font-medium text-text-heading text-base bg-bg-alt px-3 py-2.5 rounded-none border border-border block truncate">
                                     {profile?.correo || `${profile?.username || 'usuario'}@uncp.edu.pe`}
                                 </span>
                             </div>
 
                             <div>
                                 <span className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Teléfono / Celular</span>
-                                <span className="font-semibold text-text-heading text-base bg-bg-alt px-3 py-2.5 rounded-lg border border-border block">
+                                <span className="font-semibold text-text-heading text-base bg-bg-alt px-3 py-2.5 rounded-none border border-border block">
                                     {profile?.telefono || 'No registrado'}
                                 </span>
                             </div>
 
                             <div className="md:col-span-2">
                                 <span className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Institución</span>
-                                <span className="font-semibold text-text-heading text-base bg-bg-alt px-3 py-2.5 rounded-lg border border-border block">
+                                <span className="font-semibold text-text-heading text-base bg-bg-alt px-3 py-2.5 rounded-none border border-border block">
                                     Universidad Nacional del Centro del Perú
                                 </span>
                             </div>
@@ -193,7 +193,7 @@ export default function ProfileView() {
                                 <label htmlFor="telefono" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                                     Teléfono / Celular
                                 </label>
-                                <div className="relative rounded-lg shadow-sm">
+                                <div className="relative rounded-none shadow-sm">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted">
                                         <Phone size={18} />
                                     </div>
@@ -201,7 +201,7 @@ export default function ProfileView() {
                                         type="tel"
                                         id="telefono"
                                         maxLength={9}
-                                        className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-lg bg-bg-input text-text-heading placeholder-text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-[0.92rem] transition-colors"
+                                        className="block w-full pl-10 pr-3 py-2.5 border border-border rounded-none bg-bg-input text-text-heading placeholder-text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-[0.92rem] transition-colors"
                                         placeholder="Ej: 964111222"
                                         value={telefono}
                                         onChange={(e) => setTelefono(e.target.value.replace(/\D/g, '').slice(0, 9))}
@@ -210,7 +210,7 @@ export default function ProfileView() {
                                 <p className="text-xs text-text-muted mt-1.5">Solo disponible para roles de Estudiante o Docente.</p>
                             </div>
 
-                            <div className="bg-bg-alt p-5 rounded-xl border border-border space-y-4">
+                            <div className="bg-bg-alt p-5 rounded-none border border-border space-y-4">
                                 <h3 className="font-heading font-bold text-sm text-text-heading flex items-center gap-1.5 border-b border-border pb-3">
                                     <Lock size={16} className="text-primary" />
                                     Cambiar Contraseña
@@ -222,11 +222,11 @@ export default function ProfileView() {
                                         <label htmlFor="current-pass" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                                             Contraseña Actual
                                         </label>
-                                        <div className="relative rounded-lg shadow-sm">
+                                        <div className="relative rounded-none shadow-sm">
                                             <input
                                                 type={showPassword ? 'text' : 'password'}
                                                 id="current-pass"
-                                                className="block w-full px-3 py-2.5 border border-border rounded-lg bg-bg-input text-text-heading placeholder-text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-[0.92rem] transition-colors"
+                                                className="block w-full px-3 py-2.5 border border-border rounded-none bg-bg-input text-text-heading placeholder-text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-[0.92rem] transition-colors"
                                                 placeholder="Necesaria solo si vas a cambiar la contraseña"
                                                 value={currentPassword}
                                                 onChange={(e) => setCurrentPassword(e.target.value)}
@@ -239,11 +239,11 @@ export default function ProfileView() {
                                         <label htmlFor="new-pass" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                                             Nueva Contraseña
                                         </label>
-                                        <div className="relative rounded-lg shadow-sm">
+                                        <div className="relative rounded-none shadow-sm">
                                             <input
                                                 type={showPassword ? 'text' : 'password'}
                                                 id="new-pass"
-                                                className="block w-full px-3 py-2.5 border border-border rounded-lg bg-bg-input text-text-heading placeholder-text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-[0.92rem] transition-colors"
+                                                className="block w-full px-3 py-2.5 border border-border rounded-none bg-bg-input text-text-heading placeholder-text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-[0.92rem] transition-colors"
                                                 placeholder="Dejar en blanco para no cambiar"
                                                 value={password}
                                                 onChange={(e) => setPassword(e.target.value)}
@@ -263,11 +263,11 @@ export default function ProfileView() {
                                         <label htmlFor="confirm-pass" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                                             Confirmar Nueva Contraseña
                                         </label>
-                                        <div className="relative rounded-lg shadow-sm">
+                                        <div className="relative rounded-none shadow-sm">
                                             <input
                                                 type={showPassword ? 'text' : 'password'}
                                                 id="confirm-pass"
-                                                className="block w-full px-3 py-2.5 border border-border rounded-lg bg-bg-input text-text-heading placeholder-text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-[0.92rem] transition-colors"
+                                                className="block w-full px-3 py-2.5 border border-border rounded-none bg-bg-input text-text-heading placeholder-text-muted focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-[0.92rem] transition-colors"
                                                 placeholder="Confirmar nueva contraseña"
                                                 value={confirmPassword}
                                                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -282,7 +282,7 @@ export default function ProfileView() {
                                 <button
                                     type="submit"
                                     disabled={isSaving}
-                                    className="flex items-center gap-2 bg-primary hover:bg-primary-hover disabled:bg-primary/50 text-white font-semibold py-2 px-5 rounded-lg text-sm shadow-sm transition-all duration-150 cursor-pointer focus:outline-none"
+                                    className="flex items-center gap-2 bg-primary hover:bg-primary-hover disabled:bg-primary/50 text-white font-semibold py-2 px-5 rounded-none text-sm shadow-sm transition-all duration-150 cursor-pointer focus:outline-none"
                                 >
                                     {isSaving ? (
                                         <>
@@ -299,7 +299,7 @@ export default function ProfileView() {
                                 <button
                                     type="button"
                                     disabled={isSaving}
-                                    className="bg-bg-alt border border-border hover:bg-slate-100 disabled:opacity-50 text-text-main font-semibold py-2 px-5 rounded-lg text-sm transition-all duration-150 cursor-pointer focus:outline-none"
+                                    className="bg-bg-alt border border-border hover:bg-slate-100 disabled:opacity-50 text-text-main font-semibold py-2 px-5 rounded-none text-sm transition-all duration-150 cursor-pointer focus:outline-none"
                                     onClick={() => { setActiveTab('view'); setError(null); setSuccessMessage(''); }}
                                 >
                                     Cancelar
