@@ -83,8 +83,8 @@ def obtener_record_estudiante(id_estudiante):
     # Construir lista de periodos
     periodos_list = []
     
-    # Ordenar periodos por fecha_inicio (cronológico)
-    for periodo in sorted(periodos_dict.keys(), key=lambda p: p.fecha_inicio):
+    # Ordenar periodos por id_periodo (cronológico)
+    for periodo in sorted(periodos_dict.keys(), key=lambda p: p.id_periodo):
         items = periodos_dict[periodo]
         cursos_periodo = [x[0] for x in items]
         

@@ -606,11 +606,14 @@ def _serializar_matricula_admin(matricula):
         "fecha_matricula": matricula.fecha_matricula.strftime("%Y-%m-%d %H:%M:%S") if matricula.fecha_matricula else "",
         "estado": "confirmada" if matricula.estado in ["confirmada", "pagada", "validada"] else matricula.estado,
         "periodo_nombre": matricula.periodo.nombre,
+        "estudiante_nombre": f"{estudiante.nombres} {estudiante.apellidos}" if estudiante else "",
         "estudiante_nombres": estudiante.nombres,
         "estudiante_apellidos": estudiante.apellidos,
         "estudiante_codigo": estudiante.codigo,
         "estudiante_dni": estudiante.dni,
         "estudiante_especialidad": estudiante.especialidad.nombre,
+        "id_periodo": matricula.id_periodo, # include id_periodo
+        "id_estudiante": matricula.id_estudiante, # include id_estudiante
         "estudiante_ciclo": ciclo_est,
         "cursos": cursos_serialized,
         "pago": pago_det,
@@ -739,3 +742,235 @@ def estadisticas(id_periodo):
         "por_estado": por_estado,
         "por_especialidad": por_especialidad
     }, 200
+
+
+def _serialize_matricula(matricula):
+    estudiante = matricula.estudiante
+    detalles_list = []
+    for det in matricula.detalles:
+        # Obtener horario_string
+        horario_objeto = Horario.query.filter_by(
+            id_periodo=matricula.id_periodo,
+            id_especialidad=estudiante.id_especialidad if estudiante else det.seccion.id_especialidad,
+            ciclo=det.seccion.ciclo if det.seccion else det.curso.ciclo
+        ).first()
+
+        horario_texto_lista = []
+        if horario_objeto and det.seccion:
+            for b in (horario_objeto.detalles or []):
+                if b.get("seccion") == det.seccion.codigo and b.get("id_curso") and int(b.get("id_curso")) == det.id_curso:
+                    horario_texto_lista.append(f"{b.get('dia', '')[:3]}. {b.get('horaInicio')}-{b.get('horaFin')}")
+
+        horario_string = ", ".join(horario_texto_lista) if horario_texto_lista else "Sin horario"
+
+        detalles_list.append({
+            "id_matricula_detalle": det.id_matricula_detalle,
+            "id_curso": det.id_curso,
+            "curso": det.curso.nombre if det.curso else "",
+            "codigo_curso": det.curso.codigo if det.curso else "",
+            "id_seccion": det.id_seccion,
+            "seccion_codigo": det.seccion.codigo if det.seccion else None,
+            "estado": det.estado,
+            "horario": horario_string
+        })
+
+    return {
+        "id_matricula": matricula.id_matricula,
+        "id_estudiante": matricula.id_estudiante,
+        "estudiante_nombre": f"{estudiante.nombres} {estudiante.apellidos}" if estudiante else "",
+        "id_periodo": matricula.id_periodo,
+        "fecha_matricula": matricula.fecha_matricula,
+        "estado": matricula.estado,
+        "detalles": detalles_list
+    }
+
+
+def solicitar(body):
+    actor = usuario_actual()
+    if not actor or not actor.estudiante:
+        return {"msg": "Solo un estudiante puede realizar el proceso de matrícula"}, 403
+
+    from app.services.enrollment_service import (
+        solicitar_matricula,
+        EstudianteInactivoError,
+        PeriodoNoEncontradoError,
+        PeriodoCerradoError,
+        MatriculaDuplicadaError,
+        CursoNoEncontradoError,
+        SeccionNoEncontradaError,
+        SeccionLlenaError,
+    )
+
+    secciones_data = []
+    for item in body.secciones:
+        # Handle int (section ID directly) from tests
+        if isinstance(item, int):
+            sec = db.session.get(Seccion, item)
+            if not sec:
+                return {"msg": f"Sección con ID {item} no encontrada"}, 404
+            
+            # Find the courses for the section's specialty and cycle
+            from app.models.especialidad import Especialidad
+            from app.models.curso import Curso
+            cursos_plan = Curso.query.join(Curso.especialidades).filter(
+                Especialidad.id_especialidad == sec.id_especialidad,
+                Curso.ciclo == sec.ciclo
+            ).all()
+
+            for curso in cursos_plan:
+                secciones_data.append({
+                    "id_curso": curso.id_curso,
+                    "id_seccion": sec.id_seccion
+                })
+        else:
+            # Handle AsignaturaMatriculaInput or dict
+            c_id = getattr(item, 'id_curso', None) or item.get('id_curso')
+            s_id = getattr(item, 'id_seccion', None) or item.get('id_seccion')
+            secciones_data.append({
+                "id_curso": c_id,
+                "id_seccion": s_id
+            })
+
+    try:
+        matricula = solicitar_matricula(actor.estudiante.id_estudiante, body.id_periodo, secciones_data)
+        
+        # Audit
+        registrar_auditoria(
+            "solicitar_matricula",
+            "matricula",
+            registro=matricula.id_matricula,
+            id_usuario=actor.id_usuario,
+            ip=request.remote_addr
+        )
+
+        return _serialize_matricula(matricula), 201
+    except EstudianteInactivoError:
+        return {"msg": "El estudiante no está activo"}, 403
+    except PeriodoNoEncontradoError:
+        return {"msg": "Periodo no encontrado"}, 404
+    except PeriodoCerradoError:
+        return {"msg": "El periodo de matrícula no está activo o está cerrado"}, 409
+    except MatriculaDuplicadaError:
+        return {"msg": "Ya existe una solicitud de matrícula para este periodo"}, 409
+    except CursoNoEncontradoError:
+        return {"msg": "Uno de los cursos no existe"}, 404
+    except SeccionNoEncontradaError:
+        return {"msg": "Una de las secciones no existe"}, 404
+    except SeccionLlenaError:
+        return {"msg": "Una de las secciones seleccionadas está llena"}, 409
+
+
+def mis_matriculas():
+    actor = usuario_actual()
+    if not actor or not actor.estudiante:
+        return {"msg": "Solo un estudiante puede consultar sus matrículas"}, 403
+
+    from app.services.enrollment_service import obtener_matriculas_estudiante
+    matriculas = obtener_matriculas_estudiante(actor.estudiante.id_estudiante)
+    return {"matriculas": [_serialize_matricula(m) for m in matriculas]}, 200
+
+
+def validar(id_matricula):
+    actor = usuario_actual()
+    if not actor or actor.rol.nombre != "Administrador":
+        return {"msg": "No autorizado"}, 401
+
+    from app.services.enrollment_service import validar_matricula, MatriculaNoEncontradaError, EstadoInvalidoError
+
+    try:
+        matricula = validar_matricula(id_matricula)
+        registrar_auditoria(
+            "validar_matricula",
+            "matricula",
+            registro=matricula.id_matricula,
+            id_usuario=actor.id_usuario,
+            ip=request.remote_addr
+        )
+        return _serialize_matricula(matricula), 200
+    except MatriculaNoEncontradaError:
+        return {"msg": "Matrícula no encontrada"}, 404
+    except EstadoInvalidoError:
+        return {"msg": "La matrícula no está en estado pendiente para ser validada"}, 409
+
+
+def rechazar(id_matricula):
+    actor = usuario_actual()
+    if not actor or actor.rol.nombre != "Administrador":
+        return {"msg": "No autorizado"}, 401
+
+    from app.services.enrollment_service import rechazar_matricula, MatriculaNoEncontradaError, EstadoInvalidoError
+
+    try:
+        matricula = rechazar_matricula(id_matricula)
+        registrar_auditoria(
+            "rechazar_matricula",
+            "matricula",
+            registro=matricula.id_matricula,
+            id_usuario=actor.id_usuario,
+            ip=request.remote_addr
+        )
+        return _serialize_matricula(matricula), 200
+    except MatriculaNoEncontradaError:
+        return {"msg": "Matrícula no encontrada"}, 404
+    except EstadoInvalidoError:
+        return {"msg": "La matrícula no está en estado pendiente para ser rechazada"}, 409
+
+
+def pago(id_matricula, body):
+    actor = usuario_actual()
+    if not actor or actor.rol.nombre != "Administrador":
+        return {"msg": "No autorizado"}, 401
+
+    from app.services.enrollment_service import registrar_pago, MatriculaNoEncontradaError, EstadoInvalidoError
+
+    try:
+        pago_obj = registrar_pago(id_matricula, body.monto, body.metodo_pago, body.codigo_operacion)
+        # Confirm immediately because admin registered it
+        pago_obj.estado = "confirmado"
+        pago_obj.matricula.estado = "pagada"
+        db.session.commit()
+
+        registrar_auditoria(
+            "registrar_pago_admin",
+            "pago",
+            registro=pago_obj.id_pago,
+            id_usuario=actor.id_usuario,
+            ip=request.remote_addr
+        )
+
+        return {
+            "id_pago": pago_obj.id_pago,
+            "monto": float(pago_obj.monto),
+            "estado": pago_obj.estado
+        }, 201
+    except MatriculaNoEncontradaError:
+        return {"msg": "Matrícula no encontrada"}, 404
+    except EstadoInvalidoError:
+        return {"msg": "La matrícula debe estar en estado validada para registrar pago"}, 409
+
+
+def ficha(id_matricula):
+    actor = usuario_actual()
+    if not actor:
+        return {"msg": "No autorizado"}, 401
+
+    from app.services.enrollment_service import obtener_matricula, generar_ficha_pdf, MatriculaNoEncontradaError
+
+    try:
+        matricula = obtener_matricula(id_matricula)
+        # Check permissions: only the student themselves or an admin can access it
+        if actor.rol.nombre == "Estudiante" and (not actor.estudiante or actor.estudiante.id_estudiante != matricula.id_estudiante):
+            return {"msg": "No tienes permiso para ver esta ficha"}, 403
+
+        pdf_data = generar_ficha_pdf(matricula)
+        buffer = BytesIO(pdf_data)
+        
+        nombre_archivo = f"ficha_matricula_{matricula.estudiante.codigo if matricula.estudiante else 'doc'}.pdf"
+        return send_file(
+            buffer,
+            as_attachment=True,
+            download_name=nombre_archivo,
+            mimetype="application/pdf"
+        )
+    except MatriculaNoEncontradaError:
+        return {"msg": "Matrícula no encontrada"}, 404

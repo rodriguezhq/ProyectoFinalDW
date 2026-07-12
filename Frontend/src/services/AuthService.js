@@ -1,35 +1,36 @@
-import { consultarApi } from './clienteApi';
-
+const API_URL = `${import.meta.env.VITE_API_BASE_URL}/api/auth`;
 const AuthService = {
-    Login: async (email, password) => {
-        const respuesta = await consultarApi('/api/auth/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ correo: email, password })
-        });
-
-        if (!respuesta.ok) {
-            const error = await respuesta.json();
-            throw new Error(error.msg || 'Credenciales incorrectas');
-        }
-
-        const datos = await respuesta.json();
-        // datos contiene { user, msg }
-        localStorage.setItem('sga_user', JSON.stringify(datos.user));
-        return datos;
-    },
-
-    Logout: async () => {
+    async Login(correo, password) {
         try {
-            await consultarApi('/api/auth/logout', {
-                method: 'POST'
+            const response = await fetch(`${API_URL}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ correo, password }),
+                credentials: 'include' // Obligatorio para cookies JWT httpOnly
             });
-        } finally {
+            if (!response.ok) {
+                throw new Error("Credenciales incorrectas");
+            }
+            const data = await response.json();
+            localStorage.setItem('sga_user', JSON.stringify(data.user));
+            return data;
+        } catch (e) {
             localStorage.removeItem('sga_user');
+            throw e;
+        }
+    },
+    async Logout() {
+        try {
+            await fetch(`${API_URL}/logout`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            localStorage.removeItem('sga_user');
+        } catch (e) {
+            localStorage.removeItem('sga_user');
+            throw e;
         }
     }
-};
+}
 
 export default AuthService;

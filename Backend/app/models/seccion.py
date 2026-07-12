@@ -11,6 +11,8 @@ class Seccion(db.Model):
     id_especialidad = db.Column(db.Integer, db.ForeignKey("especialidad.id_especialidad"), nullable=False) # Relación con la carrera
     ciclo = db.Column(db.Integer, nullable=False) # Ciclo académico (1 al 10)
     id_periodo = db.Column(db.Integer, db.ForeignKey("periodo_academico.id_periodo"), nullable=False) # Relación con el periodo académico
+    capacidad = db.Column(db.Integer, nullable=False, default=30) # Capacidad de alumnos en la sección
+    estado = db.Column(db.String(20), nullable=False, default="abierta") # Estado de la sección (e.g. abierta, cerrada)
 
     # Relaciones SQLAlchemy
     especialidad = db.relationship("Especialidad")

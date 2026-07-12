@@ -211,34 +211,38 @@ def test_crear_seccion_exitosa(client, app):
     ids = _ids(app)
     resp = client.post(
         f"{COURSES_URL}/secciones",
-        json={"codigo": "B", "capacidad": 20, "id_curso": ids["curso"], "id_periodo": ids["periodo"]},
+        json={"codigo": "B", "id_especialidad": ids["especialidad"], "ciclo": 1, "id_periodo": ids["periodo"]},
         headers=_auth_headers(client, "admin_test"),
     )
     assert resp.status_code == 201
-    assert resp.get_json()["estado"] == "abierta"
+    body = resp.get_json()
+    assert body["codigo"] == "B"
+    assert body["id_especialidad"] == ids["especialidad"]
+    assert body["ciclo"] == 1
+    assert body["id_periodo"] == ids["periodo"]
 
 
 def test_crear_seccion_con_periodo_inexistente_devuelve_404(client, app):
     ids = _ids(app)
     resp = client.post(
         f"{COURSES_URL}/secciones",
-        json={"codigo": "C", "id_curso": ids["curso"], "id_periodo": 999999},
+        json={"codigo": "C", "id_especialidad": ids["especialidad"], "ciclo": 1, "id_periodo": 999999},
         headers=_auth_headers(client, "admin_test"),
     )
     assert resp.status_code == 404
 
 
-def test_actualizar_seccion_asigna_docente(client, app):
+def test_actualizar_seccion_exitosa(client, app):
     ids = _ids(app)
     resp = client.put(
         f"{COURSES_URL}/secciones/{ids['seccion']}",
-        json={"id_docente": ids["docente"]},
+        json={"codigo": "A-Mod", "id_especialidad": ids["especialidad"], "ciclo": 2, "id_periodo": ids["periodo"]},
         headers=_auth_headers(client, "admin_test"),
     )
     body = resp.get_json()
     assert resp.status_code == 200
-    assert body["id_docente"] == ids["docente"]
-    assert body["docente_nombre"] == "Carlos Torres"
+    assert body["codigo"] == "A-Mod"
+    assert body["ciclo"] == 2
 
 
 def test_listar_secciones_filtra_por_periodo(client, app):
@@ -254,8 +258,25 @@ def test_listar_secciones_filtra_por_periodo(client, app):
 def test_mis_secciones_devuelve_solo_las_asignadas(client, app):
     ids = _ids(app)
     with app.app_context():
-        seccion = db.session.get(Seccion, ids["seccion"])
-        seccion.id_docente = ids["docente"]
+        from app.models.horario import Horario
+        horario = Horario(
+            id_periodo=ids["periodo"],
+            id_facultad=ids["facultad"],
+            id_especialidad=ids["especialidad"],
+            ciclo=1,
+            detalles=[
+                {
+                    "id_curso": ids["curso"],
+                    "id_docente": ids["docente"],
+                    "codigo": "A",
+                    "dia": "LUNES",
+                    "horaInicio": "08:00",
+                    "horaFin": "10:00",
+                    "curso_nombre": "Curso de Prueba"
+                }
+            ]
+        )
+        db.session.add(horario)
         db.session.commit()
 
     resp = client.get(f"{COURSES_URL}/mis-secciones", headers=_auth_headers(client, "ctorres"))
@@ -272,13 +293,30 @@ def test_mis_secciones_con_rol_no_docente_devuelve_403(client, app):
 def test_subir_silabo_exitoso(client, app):
     ids = _ids(app)
     with app.app_context():
-        seccion = db.session.get(Seccion, ids["seccion"])
-        seccion.id_docente = ids["docente"]
+        from app.models.horario import Horario
+        horario = Horario(
+            id_periodo=ids["periodo"],
+            id_facultad=ids["facultad"],
+            id_especialidad=ids["especialidad"],
+            ciclo=1,
+            detalles=[
+                {
+                    "id_curso": ids["curso"],
+                    "id_docente": ids["docente"],
+                    "codigo": "A",
+                    "dia": "LUNES",
+                    "horaInicio": "08:00",
+                    "horaFin": "10:00",
+                    "curso_nombre": "Curso de Prueba"
+                }
+            ]
+        )
+        db.session.add(horario)
         db.session.commit()
 
     data = {"archivo": (io.BytesIO(b"contenido silabo"), "silabo.pdf")}
     resp = client.post(
-        f"{COURSES_URL}/secciones/{ids['seccion']}/silabo",
+        f"{COURSES_URL}/cursos/{ids['curso']}/silabo",
         data=data,
         content_type="multipart/form-data",
         headers=_auth_headers(client, "ctorres"),
@@ -290,10 +328,10 @@ def test_subir_silabo_exitoso(client, app):
 
 def test_subir_silabo_de_seccion_de_otro_docente_devuelve_403(client, app):
     ids = _ids(app)
-    # La seccion del seed NO está asignada a ctorres en este test
+    # No hay horario asignado a ctorres para este curso en este test
     data = {"archivo": (io.BytesIO(b"x"), "silabo.pdf")}
     resp = client.post(
-        f"{COURSES_URL}/secciones/{ids['seccion']}/silabo",
+        f"{COURSES_URL}/cursos/{ids['curso']}/silabo",
         data=data,
         content_type="multipart/form-data",
         headers=_auth_headers(client, "ctorres"),
@@ -306,8 +344,25 @@ def test_subir_silabo_de_seccion_de_otro_docente_devuelve_403(client, app):
 def test_carga_docente_cuenta_secciones_y_horas(client, app):
     ids = _ids(app)
     with app.app_context():
-        seccion = db.session.get(Seccion, ids["seccion"])
-        seccion.id_docente = ids["docente"]
+        from app.models.horario import Horario
+        horario = Horario(
+            id_periodo=ids["periodo"],
+            id_facultad=ids["facultad"],
+            id_especialidad=ids["especialidad"],
+            ciclo=1,
+            detalles=[
+                {
+                    "id_curso": ids["curso"],
+                    "id_docente": ids["docente"],
+                    "codigo": "A",
+                    "dia": "LUNES",
+                    "horaInicio": "08:00",
+                    "horaFin": "10:00",
+                    "curso_nombre": "Curso de Prueba"
+                }
+            ]
+        )
+        db.session.add(horario)
         db.session.commit()
 
     resp = client.get(
