@@ -44,3 +44,30 @@ def consultar_notas_curso(id_curso):
     """
     notas = grade_service.obtener_notas_curso(id_curso)
     return {"msg": "Notas de la sección", "notas": notas}, 200
+
+
+def obtener_actas_periodo(id_periodo):
+    actas = grade_service.obtener_actas_periodo(id_periodo)
+    return {"actas": actas}, 200
+
+
+def obtener_detalle_acta(id_seccion, id_curso):
+    detalle = grade_service.obtener_detalle_acta(id_seccion, id_curso)
+    return {"detalle": detalle}, 200
+
+
+def validar_acta(id_seccion, id_curso):
+    success, error = grade_service.validar_acta(id_seccion, id_curso)
+    if not success:
+        return {"msg": error}, 400
+
+    actor = usuario_actual()
+    registrar_auditoria(
+        "validar_acta",
+        "seccion_curso",
+        registro=f"seccion:{id_seccion}-curso:{id_curso}",
+        id_usuario=actor.id_usuario if actor else None,
+        ip=request.remote_addr,
+    )
+    return {"msg": "Acta validada y consolidada exitosamente"}, 200
+

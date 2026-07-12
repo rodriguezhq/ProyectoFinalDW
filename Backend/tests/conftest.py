@@ -161,10 +161,10 @@ def _seed_minimo():
 
     # Periodos
     periodo = PeriodoAcademico(
-        nombre="2026-I", fecha_inicio=date(2026, 3, 1), fecha_fin=date(2026, 7, 18), estado="activo"
+        nombre="2026-I", estado="activo"
     )
     periodo_cerrado = PeriodoAcademico(
-        nombre="2025-II", fecha_inicio=date(2025, 8, 1), fecha_fin=date(2025, 12, 20), estado="cerrado"
+        nombre="2025-II", estado="cerrado"
     )
     db.session.add_all([periodo, periodo_cerrado])
     db.session.commit()

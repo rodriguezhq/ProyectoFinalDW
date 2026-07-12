@@ -1,31 +1,106 @@
 import React, { useState, useEffect } from 'react';
-import { obtenerEspecialidades } from '../../services/servicioAcademico';
+import { obtenerEspecialidades, obtenerPeriodos } from '../../services/servicioAcademico';
 import { obtenerConsolidadoEspecialidad } from '../../services/servicioDireccion';
+import { obtenerActasPeriodo, obtenerDetalleActa, validarActa } from '../../services/servicioActas';
 import ConsolidadoAdminTable from '../../components/administrador/ConsolidadoAdminTable';
-import { FileSpreadsheet, FileText, Search, RefreshCw, AlertCircle, Loader2, Award, Users, BookOpen } from 'lucide-react';
+import { 
+    RefreshCw, 
+    AlertCircle, 
+    Loader2, 
+    Users, 
+    CheckCircle, 
+    FolderCheck
+} from 'lucide-react';
 import { exportarConsolidadoCSV, exportarConsolidadoPDF } from '../../utils/exportUtils';
 
+import FiltrosActas from './components/FiltrosActas';
+import TablaActas from './components/TablaActas';
+import ModalDetalleActa from './components/ModalDetalleActa';
+import FiltrosConsolidado from './components/FiltrosConsolidado';
+import TarjetasResumenConsolidado from './components/TarjetasResumenConsolidado';
 
 export default function AdminActasNotas() {
+    const [activeTab, setActiveTab] = useState('actas'); // 'actas' | 'consolidado'
+
+    // --- ESTADO GENERAL ---
+    const [periodos, setPeriodos] = useState([]);
+    const [selectedPeriodo, setSelectedPeriodo] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+    const [successMessage, setSuccessMessage] = useState(null);
+
+    // --- ESTADO TAB 1: VALIDACIÓN DE ACTAS ---
+    const [actas, setActas] = useState([]);
+    const [filtroTextoActas, setFiltroTextoActas] = useState('');
+    const [modalActa, setModalActa] = useState(null); // { id_seccion, id_curso, seccion_codigo, curso_nombre, ... }
+    const [modalLoading, setModalLoading] = useState(false);
+    const [modalError, setModalError] = useState(null);
+
+    // --- ESTADO TAB 2: CONSOLIDADO ---
     const [especialidades, setEspecialidades] = useState([]);
     const [selectedEspecialidad, setSelectedEspecialidad] = useState('');
     const [alumnos, setAlumnos] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
 
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-
+    // --- CARGAR PERIODOS ---
     useEffect(() => {
-        cargarFiltros();
+        cargarPeriodosIniciales();
     }, []);
 
+    // --- CARGAR DATOS AL CAMBIAR PERIODO (TAB 1) ---
     useEffect(() => {
-        if (selectedEspecialidad) {
+        if (selectedPeriodo && activeTab === 'actas') {
+            cargarActas();
+        }
+    }, [selectedPeriodo, activeTab]);
+
+    // --- CARGAR FILTROS AL ENTRAR AL CONSOLIDADO (TAB 2) ---
+    useEffect(() => {
+        if (activeTab === 'consolidado' && especialidades.length === 0) {
+            cargarEspecialidadesIniciales();
+        } else if (activeTab === 'consolidado' && selectedEspecialidad) {
             cargarConsolidado();
         }
-    }, [selectedEspecialidad]);
+    }, [activeTab, selectedEspecialidad]);
 
-    const cargarFiltros = async () => {
+    const cargarPeriodosIniciales = async () => {
+        try {
+            setError(null);
+            setLoading(true);
+            const data = await obtenerPeriodos();
+            const list = data.periodos || [];
+            setPeriodos(list);
+            
+            // Seleccionar por defecto el periodo activo, o el primero de la lista
+            const activo = list.find(p => p.estado === 'activo');
+            if (activo) {
+                setSelectedPeriodo(activo.id_periodo.toString());
+            } else if (list.length > 0) {
+                setSelectedPeriodo(list[0].id_periodo.toString());
+            }
+        } catch (err) {
+            console.error(err);
+            setError('Error al cargar la lista de periodos académicos.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const cargarActas = async () => {
+        try {
+            setError(null);
+            setLoading(true);
+            const data = await obtenerActasPeriodo(selectedPeriodo);
+            setActas(data.actas || []);
+        } catch (err) {
+            console.error(err);
+            setError(err.message || 'Error al obtener el listado de actas.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const cargarEspecialidadesIniciales = async () => {
         try {
             setError(null);
             setLoading(true);
@@ -37,7 +112,7 @@ export default function AdminActasNotas() {
             }
         } catch (err) {
             console.error(err);
-            setError('Error al inicializar la lista de especialidades/carreras.');
+            setError('Error al inicializar la lista de carreras.');
         } finally {
             setLoading(false);
         }
@@ -57,7 +132,72 @@ export default function AdminActasNotas() {
         }
     };
 
-    // Filtrar alumnos localmente por búsqueda
+    // --- ACCIÓN: MOSTRAR DETALLE DEL ACTA EN MODAL ---
+    const verDetalleActa = async (actaItem) => {
+        try {
+            setModalError(null);
+            setModalLoading(true);
+            setModalActa({
+                id_seccion: actaItem.id_seccion,
+                id_curso: actaItem.id_curso,
+                seccion_codigo: actaItem.seccion_codigo,
+                curso_codigo: actaItem.curso_codigo,
+                curso_nombre: actaItem.curso_nombre,
+                docente_nombre: actaItem.docente_nombre,
+                especialidad_nombre: actaItem.especialidad_nombre,
+                ciclo: actaItem.ciclo,
+                estado_acta: actaItem.estado_acta,
+                total_estudiantes: actaItem.total_estudiantes,
+                alumnos: []
+            });
+
+            const data = await obtenerDetalleActa(actaItem.id_seccion, actaItem.id_curso);
+            setModalActa(prev => prev ? { ...prev, alumnos: data.detalle || [] } : null);
+        } catch (err) {
+            console.error(err);
+            setModalError(err.message || 'Error al obtener las notas de los estudiantes.');
+        } finally {
+            setModalLoading(false);
+        }
+    };
+
+    // --- ACCIÓN: VALIDAR / CERRAR ACTA DE NOTAS ---
+    const ejecutarValidarActa = async (idSeccion, idCurso) => {
+        try {
+            setError(null);
+            setSuccessMessage(null);
+            setLoading(true);
+            await validarActa(idSeccion, idCurso);
+            
+            setSuccessMessage('El acta de notas ha sido validada y consolidada exitosamente.');
+            setModalActa(null); // Cerrar modal si estaba abierto
+            cargarActas(); // Recargar listado principal
+            
+            // Borrar mensaje de éxito después de 4 segundos
+            setTimeout(() => setSuccessMessage(null), 4000);
+        } catch (err) {
+            console.error(err);
+            if (modalActa) {
+                setModalError(err.message || 'Faltan registrar notas en esta sección.');
+            } else {
+                setError(err.message || 'Error al consolidar el acta.');
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // --- FILTRADOS LOCALES ---
+    const actasFiltradas = actas.filter(a => {
+        const query = filtroTextoActas.toLowerCase();
+        return (
+            (a.curso_nombre || '').toLowerCase().includes(query) ||
+            (a.curso_codigo || '').toLowerCase().includes(query) ||
+            (a.docente_nombre || '').toLowerCase().includes(query) ||
+            (a.especialidad_nombre || '').toLowerCase().includes(query)
+        );
+    });
+
     const alumnosFiltrados = alumnos.filter(a => {
         const query = searchQuery.toLowerCase();
         return (
@@ -67,7 +207,7 @@ export default function AdminActasNotas() {
         );
     });
 
-    // --- CÁLCULOS KPI ---
+    // --- CÁLCULOS KPI (TAB CONSOLIDADO) ---
     const totalAlumnos = alumnosFiltrados.length;
     const ppasValidos = alumnosFiltrados.map(a => a.promedio_ponderado_acumulado).filter(p => p !== null && p !== undefined);
     const promedioPpaGlobal = ppasValidos.length > 0
@@ -79,14 +219,13 @@ export default function AdminActasNotas() {
         ? (creditosAprobadosValidos.reduce((acc, curr) => acc + curr, 0) / creditosAprobadosValidos.length).toFixed(1)
         : '0.0';
 
-    // --- ACCIÓN: EXPORTAR A EXCEL (CSV) ---
+    // --- EXPORTACIONES ---
     const exportarExcel = () => {
         if (alumnosFiltrados.length === 0) return;
         const espNombre = especialidades.find(e => e.id_especialidad.toString() === selectedEspecialidad)?.nombre || 'Reporte';
         exportarConsolidadoCSV(alumnosFiltrados, espNombre);
     };
 
-    // --- ACCIÓN: EXPORTAR A PDF ---
     const exportarPDF = () => {
         if (alumnosFiltrados.length === 0) return;
         const espNombre = especialidades.find(e => e.id_especialidad.toString() === selectedEspecialidad)?.nombre || 'Reporte';
@@ -99,142 +238,139 @@ export default function AdminActasNotas() {
 
     return (
         <div className="w-full flex flex-col gap-6 animate-slide-up">
-            {/* Cabecera */}
+            {/* Cabecera Principal */}
             <div className="border-b border-border pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-xl font-bold tracking-tight text-text-heading font-heading">
-                        Reportes Académicos Consolidados
+                    <h1 className="text-xl font-bold tracking-tight text-text-heading font-heading font-black">
+                        Consolidación de Actas y Notas
                     </h1>
-                    <p className="text-xs text-text-muted mt-0.5 font-normal">
-                        Monitoree el rendimiento general de los estudiantes y exporte el consolidado en formatos listos para imprimir o analizar.
+                    <p className="text-xs text-text-muted mt-0.5 font-bold">
+                        Valide los registros de calificaciones de los docentes, cierre actas de manera oficial y exporte consolidados académicos.
                     </p>
                 </div>
-                <button
-                    type="button"
-                    onClick={cargarConsolidado}
-                    disabled={loading}
-                    className="flex items-center gap-2 py-1.5 px-3 bg-bg-alt hover:bg-slate-100 border border-border text-text-heading font-bold text-xs uppercase tracking-wider transition-colors rounded-none cursor-pointer"
-                >
-                    <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
-                    Actualizar
-                </button>
+                {activeTab === 'actas' && (
+                    <button
+                        type="button"
+                        onClick={cargarActas}
+                        disabled={loading}
+                        className="flex items-center gap-2 py-1.5 px-3 bg-bg-alt hover:bg-slate-100 border border-border text-text-heading font-bold text-xs uppercase tracking-wider transition-colors rounded-none cursor-pointer"
+                    >
+                        <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
+                        Actualizar
+                    </button>
+                )}
             </div>
 
-            {/* Banner de error */}
+            {/* Banners de Notificaciones */}
             {error && (
-                <div className="p-4 bg-red-50 border-l-4 border-red-500 rounded-r-xl text-red-700 text-sm font-medium flex items-center gap-2 shadow-xs">
+                <div className="p-4 bg-red-50 border-l-4 border-red-500 rounded-none text-red-700 text-sm font-bold flex items-center gap-2 shadow-xs">
                     <AlertCircle size={18} />
                     <span>{error}</span>
                 </div>
             )}
-
-            {/* Panel de Filtro y Buscador */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-bg-alt border border-border p-4 rounded-none shadow-xs">
-                <div className="flex flex-col gap-1.5">
-                    <label htmlFor="especialidad-select" className="text-xs font-bold uppercase tracking-wider text-text-muted">
-                        Seleccionar Carrera Académica:
-                    </label>
-                    <select
-                        id="especialidad-select"
-                        value={selectedEspecialidad}
-                        onChange={(e) => setSelectedEspecialidad(e.target.value)}
-                        className="w-full bg-white border border-border text-sm p-2 rounded-none outline-none focus:border-primary font-medium"
-                    >
-                        {especialidades.map(esp => (
-                            <option key={esp.id_especialidad} value={esp.id_especialidad}>
-                                {esp.nombre} ({esp.codigo})
-                            </option>
-                        ))}
-                    </select>
-                </div>
-
-                <div className="flex flex-col justify-end text-xs text-text-muted italic leading-relaxed md:text-right">
-                    <span>Selecciona una carrera para que el consolidado se actualice automáticamente.</span>
-                </div>
-            </div>
-
-            {/* Tarjetas KPI Resumen */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                {/* KPI 1: Total Alumnos */}
-                <div className="bg-white border border-border p-4.5 rounded-none shadow-xs flex items-center gap-4 border-t-4 border-t-blue-500">
-                    <div className="p-2.5 bg-blue-50 text-blue-600 rounded-none">
-                        <Users size={20} />
-                    </div>
-                    <div>
-                        <span className="block text-[10px] font-bold text-text-muted uppercase tracking-wider">Estudiantes</span>
-                        <span className="text-xl font-black text-text-heading leading-tight">{totalAlumnos}</span>
-                    </div>
-                </div>
-
-                {/* KPI 2: Promedio de Carrera */}
-                <div className="bg-white border border-border p-4.5 rounded-none shadow-xs flex items-center gap-4 border-t-4 border-t-primary">
-                    <div className="p-2.5 bg-primary-light text-primary rounded-none">
-                        <Award size={20} />
-                    </div>
-                    <div>
-                        <span className="block text-[10px] font-bold text-text-muted uppercase tracking-wider">Promedio PPA Global</span>
-                        <span className="text-xl font-black text-text-heading leading-tight">{promedioPpaGlobal}</span>
-                    </div>
-                </div>
-
-                {/* KPI 3: Créditos Aprobados Promedio */}
-                <div className="bg-white border border-border p-4.5 rounded-none shadow-xs flex items-center gap-4 border-t-4 border-t-emerald-500">
-                    <div className="p-2.5 bg-emerald-50 text-emerald-600 rounded-none">
-                        <BookOpen size={20} />
-                    </div>
-                    <div>
-                        <span className="block text-[10px] font-bold text-text-muted uppercase tracking-wider font-sans">Créditos Aprobados Prom.</span>
-                        <span className="text-xl font-black text-text-heading leading-tight">{promCreditosAprobados}</span>
-                    </div>
-                </div>
-            </div>
-
-            {/* Controles de Búsqueda y Exportación */}
-            <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
-                <div className="relative flex-1">
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Buscar por código, nombres o apellidos..."
-                        className="w-full bg-white border border-border text-xs py-2 pl-9 pr-4 rounded-none outline-none focus:border-primary font-medium"
-                    />
-                    <Search className="absolute left-3 top-2.5 text-text-muted" size={14} />
-                </div>
-
-                <div className="flex gap-2 shrink-0">
-                    <button
-                        type="button"
-                        onClick={exportarExcel}
-                        disabled={alumnosFiltrados.length === 0}
-                        className="flex items-center justify-center gap-1.5 py-2 px-3.5 bg-[#107C41] hover:bg-[#0e6b37] border-none text-white font-bold text-xs uppercase tracking-wider transition-colors rounded-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-                    >
-                        <FileSpreadsheet size={14} />
-                        Excel
-                    </button>
-                    <button
-                        type="button"
-                        onClick={exportarPDF}
-                        disabled={alumnosFiltrados.length === 0}
-                        className="flex items-center justify-center gap-1.5 py-2 px-3.5 bg-[#E11D48] hover:bg-[#be183d] border-none text-white font-bold text-xs uppercase tracking-wider transition-colors rounded-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
-                    >
-                        <FileText size={14} />
-                        PDF
-                    </button>
-                </div>
-            </div>
-
-            {/* Cargando o Contenido de la Tabla */}
-            {loading ? (
-                <div className="flex flex-col items-center justify-center py-16 gap-3">
-                    <Loader2 className="animate-spin text-primary" size={32} />
-                    <p className="text-xs text-text-muted font-semibold">Obteniendo reporte consolidado académico...</p>
-                </div>
-            ) : (
-                <div className="w-full min-w-0 overflow-hidden">
-                    <ConsolidadoAdminTable alumnos={alumnosFiltrados} />
+            {successMessage && (
+                <div className="p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-none text-emerald-700 text-sm font-bold flex items-center gap-2 shadow-xs">
+                    <CheckCircle size={18} />
+                    <span>{successMessage}</span>
                 </div>
             )}
+
+            {/* Pestañas de Navegación del Módulo */}
+            <div className="flex gap-2 border-b border-border bg-slate-50/50 p-1 rounded-none">
+                <button
+                    type="button"
+                    onClick={() => setActiveTab('actas')}
+                    className={`py-2 px-4 font-heading text-xs font-extrabold border-b-2 transition-all duration-150 flex items-center gap-2 cursor-pointer ${
+                        activeTab === 'actas' 
+                            ? 'border-primary text-primary bg-white shadow-xs rounded-none font-black' 
+                            : 'border-transparent text-text-muted hover:text-text-heading'
+                    }`}
+                >
+                    <FolderCheck size={14} />
+                    Validación de Actas
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setActiveTab('consolidado')}
+                    className={`py-2 px-4 font-heading text-xs font-extrabold border-b-2 transition-all duration-150 flex items-center gap-2 cursor-pointer ${
+                        activeTab === 'consolidado' 
+                            ? 'border-primary text-primary bg-white shadow-xs rounded-none font-black' 
+                            : 'border-transparent text-text-muted hover:text-text-heading'
+                    }`}
+                >
+                    <Users size={14} />
+                    Consolidado por Carrera
+                </button>
+            </div>
+
+            {/* ---------------- PESTAÑA 1: VALIDACIÓN DE ACTAS ---------------- */}
+            {activeTab === 'actas' && (
+                <div className="w-full flex flex-col gap-5">
+                    <FiltrosActas
+                        periodos={periodos}
+                        selectedPeriodo={selectedPeriodo}
+                        setSelectedPeriodo={setSelectedPeriodo}
+                        filtroTextoActas={filtroTextoActas}
+                        setFiltroTextoActas={setFiltroTextoActas}
+                    />
+
+                    {loading ? (
+                        <div className="flex flex-col items-center justify-center py-20 gap-3">
+                            <Loader2 className="animate-spin text-primary" size={36} />
+                            <p className="text-sm text-text-muted font-bold">Cargando actas de calificaciones...</p>
+                        </div>
+                    ) : (
+                        <TablaActas
+                            actas={actasFiltradas}
+                            verDetalleActa={verDetalleActa}
+                            ejecutarValidarActa={ejecutarValidarActa}
+                        />
+                    )}
+                </div>
+            )}
+
+            {/* ---------------- PESTAÑA 2: CONSOLIDADO POR CARRERA ---------------- */}
+            {activeTab === 'consolidado' && (
+                <div className="w-full flex flex-col gap-6">
+                    <FiltrosConsolidado
+                        especialidades={especialidades}
+                        selectedEspecialidad={selectedEspecialidad}
+                        setSelectedEspecialidad={setSelectedEspecialidad}
+                        searchQuery={searchQuery}
+                        setSearchQuery={setSearchQuery}
+                        exportarExcel={exportarExcel}
+                        exportarPDF={exportarPDF}
+                        alumnosFiltrados={alumnosFiltrados}
+                    />
+
+                    <TarjetasResumenConsolidado
+                        totalAlumnos={totalAlumnos}
+                        promedioPpaGlobal={promedioPpaGlobal}
+                        promCreditosAprobados={promCreditosAprobados}
+                    />
+
+                    {loading ? (
+                        <div className="flex flex-col items-center justify-center py-16 gap-3">
+                            <Loader2 className="animate-spin text-primary" size={32} />
+                            <p className="text-xs text-text-muted font-bold">Cargando reporte consolidado...</p>
+                        </div>
+                    ) : (
+                        <div className="w-full min-w-0 overflow-hidden">
+                            <ConsolidadoAdminTable alumnos={alumnosFiltrados} />
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Modal Detalle de Acta */}
+            <ModalDetalleActa
+                modalActa={modalActa}
+                setModalActa={setModalActa}
+                modalLoading={modalLoading}
+                modalError={modalError}
+                ejecutarValidarActa={ejecutarValidarActa}
+                loading={loading}
+            />
         </div>
     );
 }

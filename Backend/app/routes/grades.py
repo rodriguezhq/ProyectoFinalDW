@@ -72,3 +72,52 @@ def consultar_notas_curso(path: IdCursoPath):
     """Consulta las notas de todos los estudiantes de un curso."""
     response, status = gradeController.consultar_notas_curso(path.id_curso)
     return response, status
+
+
+class PeriodoQuery(BaseModel):
+    id_periodo: int = Field(..., description="ID del periodo académico")
+
+
+class ActaPath(BaseModel):
+    id_seccion: int = Field(..., description="ID de la sección")
+    id_curso: int = Field(..., description="ID del curso")
+
+
+@grades_bp.get(
+    "/actas",
+    summary="Listar actas del periodo académico",
+    description="Devuelve el listado de clases con su estado de acta para el periodo especificado.",
+    responses={200: MessageResponse},
+    security=[{"jwt": []}],
+)
+@role_required("Administrador")
+def listar_actas(query: PeriodoQuery):
+    response, status = gradeController.obtener_actas_periodo(query.id_periodo)
+    return response, status
+
+
+@grades_bp.get(
+    "/actas/seccion/<int:id_seccion>/curso/<int:id_curso>",
+    summary="Obtener detalle de notas del acta",
+    description="Devuelve la lista de estudiantes y sus notas para una sección y curso específicos.",
+    responses={200: MessageResponse, 404: MessageResponse},
+    security=[{"jwt": []}],
+)
+@role_required("Administrador")
+def obtener_detalle_acta(path: ActaPath):
+    response, status = gradeController.obtener_detalle_acta(path.id_seccion, path.id_curso)
+    return response, status
+
+
+@grades_bp.post(
+    "/actas/seccion/<int:id_seccion>/curso/<int:id_curso>/validar",
+    summary="Validar y consolidar notas del acta",
+    description="Actualiza el estado de las notas a 'validada', bloqueando cambios.",
+    responses={200: MessageResponse, 400: MessageResponse, 404: MessageResponse},
+    security=[{"jwt": []}],
+)
+@role_required("Administrador")
+def validar_acta(path: ActaPath):
+    response, status = gradeController.validar_acta(path.id_seccion, path.id_curso)
+    return response, status
+
