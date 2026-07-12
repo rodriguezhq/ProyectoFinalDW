@@ -117,7 +117,7 @@ def obtener_oferta_academica_ctrl():
         return {
             "ya_matriculado": True,
             "id_matricula": matricula_existente.id_matricula,
-            "estado": matricula_existente.estado,
+            "estado": "confirmada" if matricula_existente.estado in ["confirmada", "pagada", "validada"] else matricula_existente.estado,
             "periodo_nombre": periodo_activo.nombre,
             "cursos": cursos_matriculados
         }, 200
@@ -346,6 +346,8 @@ def descargar_ficha_matricula_pdf_ctrl(id_matricula):
     if not actor:
         return {"msg": "No autorizado"}, 401
 
+    tipo = request.args.get("tipo", type=str)
+
     matricula = db.session.get(Matricula, id_matricula)
     if not matricula:
         return {"msg": "Matrícula no encontrada"}, 404
@@ -405,7 +407,11 @@ def descargar_ficha_matricula_pdf_ctrl(id_matricula):
     historia.append(Spacer(1, 10))
 
     # Título Principal
-    historia.append(Paragraph("FICHA OFICIAL DE MATRÍCULA", titulo_estilo))
+    if tipo == "pre":
+        titulo_doc = "FICHA DE PRE-MATRÍCULA"
+    else:
+        titulo_doc = "FICHA OFICIAL DE MATRÍCULA" if matricula.estado in ["confirmada", "pagada", "validada"] else "FICHA DE PRE-MATRÍCULA"
+    historia.append(Paragraph(titulo_doc, titulo_estilo))
     historia.append(Spacer(1, 10))
 
     # Datos Generales del Estudiante
@@ -487,30 +493,31 @@ def descargar_ficha_matricula_pdf_ctrl(id_matricula):
     # Pie de pagina / Firmas
     historia.append(Spacer(1, 10))
 
-    # Información del Pago
-    from app.models.pago import Pago
-    pago_confirmado = Pago.query.filter_by(id_matricula=matricula.id_matricula, estado="confirmado").first()
+    # Información del Pago (Solo para Ficha Oficial)
+    if titulo_doc == "FICHA OFICIAL DE MATRÍCULA":
+        from app.models.pago import Pago
+        pago_confirmado = Pago.query.filter_by(id_matricula=matricula.id_matricula, estado="confirmado").first()
 
-    historia.append(Paragraph("ESTADO DE PAGO DE MATRÍCULA", subtitulo_estilo))
-    if pago_confirmado:
-        tabla_pago_data = [
-            [Paragraph(f"<b>Monto Pagado:</b> S/ {pago_confirmado.monto:.2f}", texto_estilo), Paragraph(f"<b>Método de Pago:</b> {pago_confirmado.metodo_pago.capitalize()}", texto_estilo)],
-            [Paragraph(f"<b>Código Operación:</b> {pago_confirmado.codigo_operacion or 'N/A'}", texto_estilo), Paragraph(f"<b>Estado del Pago:</b> Confirmado / Pagado", texto_estilo)]
-        ]
-    else:
-        tabla_pago_data = [
-            [Paragraph("<b>Monto Pagado:</b> S/ 0.00", texto_estilo), Paragraph("<b>Método de Pago:</b> N/A", texto_estilo)],
-            [Paragraph("<b>Código Operación:</b> N/A", texto_estilo), Paragraph("<b>Estado del Pago:</b> Pendiente de Confirmación", texto_estilo)]
-        ]
-    
-    t_pago = Table(tabla_pago_data, colWidths=[260, 260])
-    t_pago.setStyle(TableStyle([
-        ('VALIGN', (0,0), (-1,-1), 'TOP'),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 4),
-        ('TOPPADDING', (0,0), (-1,-1), 4),
-    ]))
-    historia.append(t_pago)
-    historia.append(Spacer(1, 20))
+        historia.append(Paragraph("ESTADO DE PAGO DE MATRÍCULA", subtitulo_estilo))
+        if pago_confirmado:
+            tabla_pago_data = [
+                [Paragraph(f"<b>Monto Pagado:</b> S/ {pago_confirmado.monto:.2f}", texto_estilo), Paragraph(f"<b>Método de Pago:</b> {pago_confirmado.metodo_pago.capitalize()}", texto_estilo)],
+                [Paragraph(f"<b>Código Operación:</b> {pago_confirmado.codigo_operacion or 'N/A'}", texto_estilo), Paragraph(f"<b>Estado del Pago:</b> Confirmado / Pagado", texto_estilo)]
+            ]
+        else:
+            tabla_pago_data = [
+                [Paragraph("<b>Monto Pagado:</b> S/ 0.00", texto_estilo), Paragraph("<b>Método de Pago:</b> N/A", texto_estilo)],
+                [Paragraph("<b>Código Operación:</b> N/A", texto_estilo), Paragraph("<b>Estado del Pago:</b> Pendiente de Confirmación", texto_estilo)]
+            ]
+        
+        t_pago = Table(tabla_pago_data, colWidths=[260, 260])
+        t_pago.setStyle(TableStyle([
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+            ('TOPPADDING', (0,0), (-1,-1), 4),
+        ]))
+        historia.append(t_pago)
+        historia.append(Spacer(1, 20))
 
     tabla_firmas = [
         ["", ""],
@@ -597,7 +604,7 @@ def _serializar_matricula_admin(matricula):
     return {
         "id_matricula": matricula.id_matricula,
         "fecha_matricula": matricula.fecha_matricula.strftime("%Y-%m-%d %H:%M:%S") if matricula.fecha_matricula else "",
-        "estado": matricula.estado,
+        "estado": "confirmada" if matricula.estado in ["confirmada", "pagada", "validada"] else matricula.estado,
         "periodo_nombre": matricula.periodo.nombre,
         "estudiante_nombres": estudiante.nombres,
         "estudiante_apellidos": estudiante.apellidos,
@@ -613,7 +620,7 @@ def _serializar_matricula_admin(matricula):
 
 def listar_todas_matriculas_ctrl():
     actor = usuario_actual()
-    if not actor or actor.rol.nombre != "Administrador":
+    if not actor or actor.rol.nombre not in ["Administrador", "Direccion"]:
         return {"msg": "No autorizado"}, 401
 
     id_periodo = request.args.get("id_periodo", type=int)
@@ -623,7 +630,12 @@ def listar_todas_matriculas_ctrl():
     if id_periodo:
         query = query.filter_by(id_periodo=id_periodo)
     if estado:
-        query = query.filter_by(estado=estado)
+        if estado == "confirmada":
+            query = query.filter(Matricula.estado.in_(["confirmada", "pagada", "validada"]))
+        elif estado == "rechazada":
+            query = query.filter(Matricula.estado.in_(["rechazada", "desaprobada"]))
+        else:
+            query = query.filter_by(estado=estado)
 
     matriculas = query.order_by(Matricula.fecha_matricula.desc()).all()
     return {"matriculas": [_serializar_matricula_admin(m) for m in matriculas]}, 200
@@ -691,3 +703,39 @@ def confirmar_matricula_admin_ctrl(id_matricula, body):
     )
 
     return _serializar_matricula_admin(matricula), 200
+
+
+def estadisticas(id_periodo):
+    actor = usuario_actual()
+    if not actor or actor.rol.nombre != "Direccion":
+        return {"msg": "No autorizado"}, 401
+
+    # Obtener todas las matrículas del periodo
+    matriculas = Matricula.query.filter_by(id_periodo=id_periodo).all()
+
+    total_matriculados = len(matriculas)
+
+    # Agrupar por estado
+    por_estado = {"pendiente": 0, "confirmada": 0, "rechazada": 0}
+    for m in matriculas:
+        # Mapeamos los estados antiguos a confirmada de forma transparente
+        est = "confirmada" if m.estado in ["confirmada", "pagada", "validada"] else m.estado
+        if est in por_estado:
+            por_estado[est] += 1
+        else:
+            por_estado[est] = 1
+
+    # Agrupar por especialidad
+    por_especialidad = {}
+    for m in matriculas:
+        esp_nombre = m.estudiante.especialidad.nombre if m.estudiante.especialidad else "Sin Especialidad"
+        if esp_nombre in por_especialidad:
+            por_especialidad[esp_nombre] += 1
+        else:
+            por_especialidad[esp_nombre] = 1
+
+    return {
+        "total_matriculados": total_matriculados,
+        "por_estado": por_estado,
+        "por_especialidad": por_especialidad
+    }, 200

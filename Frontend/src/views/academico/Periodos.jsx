@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { Calendar, Plus, X, Zap } from 'lucide-react';
-import { obtenerPeriodos, guardarPeriodo, activarPeriodo } from '../../services/servicioAcademico';
+import { Calendar, Plus, X, Zap, Star } from 'lucide-react';
+import { obtenerPeriodos, guardarPeriodo, activarPeriodo, establecerPeriodoMatricula, desactivarPeriodo } from '../../services/servicioAcademico';
 
 export default function Periodos() {
   const [periodos, setPeriodos] = useState([]);
@@ -11,8 +11,10 @@ export default function Periodos() {
   const [modalOpen, setModalOpen] = useState(false);
   const [nombre, setNombre] = useState('');
 
-  // Confirmar activación
+  // Confirmar activación, matrícula y desactivación
   const [confirmActivarId, setConfirmActivarId] = useState(null);
+  const [confirmMatriculaId, setConfirmMatriculaId] = useState(null);
+  const [confirmCerrarId, setConfirmCerrarId] = useState(null);
 
   const cargarPeriodos = async () => {
     setEstaCargando(true);
@@ -67,6 +69,26 @@ export default function Periodos() {
     }
   };
 
+  const manejarEstablecerMatricula = async (id) => {
+    try {
+      await establecerPeriodoMatricula(id);
+      toast.success('Periodo establecido como el oficial para matrícula de estudiantes.');
+      cargarPeriodos();
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
+  const manejarCerrarPeriodo = async (id) => {
+    try {
+      await desactivarPeriodo(id);
+      toast.success('Periodo académico cerrado con éxito. Matrícula asociada desactivada.');
+      cargarPeriodos();
+    } catch (err) {
+      toast.error(err.message);
+    }
+  };
+
   return (
     <>
       <div className="flex flex-col gap-6 animate-slide-up">
@@ -103,6 +125,7 @@ export default function Periodos() {
                   <tr className="bg-bg-alt border-b border-border">
                     <th className="p-4 text-left text-[0.85rem] font-heading font-extrabold text-text-heading">Nombre del Periodo</th>
                     <th className="p-4 text-center text-[0.85rem] font-heading font-extrabold text-text-heading">Estado</th>
+                    <th className="p-4 text-center text-[0.85rem] font-heading font-extrabold text-text-heading">Matrícula Activa</th>
                     <th className="p-4 text-center text-[0.85rem] font-heading font-extrabold text-text-heading">Acciones</th>
                   </tr>
                 </thead>
@@ -119,17 +142,45 @@ export default function Periodos() {
                           {p.estado === 'activo' ? 'Activo' : 'Cerrado'}
                         </span>
                       </td>
-                      <td className="p-4 text-center flex justify-center items-center">
+                      <td className="p-4 text-center">
+                        <div className="flex justify-center items-center">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (!p.es_matricula_activa) {
+                                setConfirmMatriculaId(p.id_periodo);
+                              }
+                            }}
+                            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${
+                              p.es_matricula_activa ? 'bg-primary hover:bg-primary-hover' : 'bg-slate-200 hover:bg-slate-300'
+                            }`}
+                            aria-label="Toggle Periodo de Matricula"
+                          >
+                            <span
+                              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-sm ring-0 transition duration-200 ease-in-out ${
+                                p.es_matricula_activa ? 'translate-x-5' : 'translate-x-0'
+                              }`}
+                            />
+                          </button>
+                        </div>
+                      </td>
+                      <td className="p-4 text-center">
                         {p.estado === 'cerrado' ? (
                           <button
                             type="button"
                             onClick={() => setConfirmActivarId(p.id_periodo)}
-                            className="flex items-center gap-1 bg-primary/5 hover:bg-primary-light text-primary py-1.5 px-3.5 rounded text-[0.82rem] font-bold border border-primary/10 transition-all cursor-pointer"
+                            className="inline-flex items-center gap-1 bg-primary/5 hover:bg-primary-light text-primary py-1.5 px-3.5 rounded text-[0.82rem] font-bold border border-primary/10 transition-all cursor-pointer mx-auto"
                           >
                             <Zap size={14} /> Reabrir
                           </button>
                         ) : (
-                          <span className="text-[0.82rem] text-emerald-600 font-bold">Vigente</span>
+                          <button
+                            type="button"
+                            onClick={() => setConfirmCerrarId(p.id_periodo)}
+                            className="inline-flex items-center gap-1 bg-red-50 hover:bg-red-100 text-red-600 py-1.5 px-3.5 rounded text-[0.82rem] font-bold border border-red-200 transition-all cursor-pointer mx-auto"
+                          >
+                            Cerrar
+                          </button>
                         )}
                       </td>
                     </tr>
@@ -222,6 +273,76 @@ export default function Periodos() {
                 className="bg-primary text-white py-2.5 px-6 font-bold text-[0.88rem] rounded-lg hover:bg-primary-hover transition-colors shadow-sm cursor-pointer"
               >
                 Confirmar y Reabrir
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Confirmar Matrícula Modal */}
+      {confirmMatriculaId && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => setConfirmMatriculaId(null)}>
+          <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-[400px] w-full p-6 animate-scale-in text-center" onClick={(e) => e.stopPropagation()}>
+            <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-4">
+              <Star size={28} className="fill-primary text-primary" />
+            </div>
+            <h3 className="font-heading font-extrabold text-[1.1rem] text-text-heading mb-2">
+              ¿Establecer como Periodo de Matrícula?
+            </h3>
+            <p className="text-[0.88rem] text-text-muted mb-6">
+              Esto activará la matrícula de estudiantes únicamente para este periodo académico. Se desactivará automáticamente la matrícula en cualquier otro periodo.
+            </p>
+            <div className="flex justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmMatriculaId(null)}
+                className="py-2.5 px-4 text-[0.88rem] font-semibold border border-border rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  manejarEstablecerMatricula(confirmMatriculaId);
+                  setConfirmMatriculaId(null);
+                }}
+                className="bg-primary hover:bg-primary-hover text-white py-2.5 px-6 font-bold text-[0.88rem] rounded-lg transition-colors shadow-sm cursor-pointer"
+              >
+                Confirmar y Activar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Confirmar Desactivación/Cierre Modal */}
+      {confirmCerrarId && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => setConfirmCerrarId(null)}>
+          <div className="bg-white rounded-2xl border border-border shadow-2xl max-w-[400px] w-full p-6 animate-scale-in text-center" onClick={(e) => e.stopPropagation()}>
+            <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <X size={28} />
+            </div>
+            <h3 className="font-heading font-extrabold text-[1.1rem] text-text-heading mb-2">
+              ¿Desactivar y Cerrar Periodo Académico?
+            </h3>
+            <p className="text-[0.88rem] text-text-muted mb-6">
+              Esto cerrará el periodo seleccionado. Si este periodo tiene actualmente activa la matrícula de estudiantes, esta se desactivará también de forma automática.
+            </p>
+            <div className="flex justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => setConfirmCerrarId(null)}
+                className="py-2.5 px-4 text-[0.88rem] font-semibold border border-border rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  manejarCerrarPeriodo(confirmCerrarId);
+                  setConfirmCerrarId(null);
+                }}
+                className="bg-red-600 hover:bg-red-700 text-white py-2.5 px-6 font-bold text-[0.88rem] rounded-lg transition-colors shadow-sm cursor-pointer"
+              >
+                Confirmar y Cerrar
               </button>
             </div>
           </div>

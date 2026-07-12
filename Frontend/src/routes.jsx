@@ -30,6 +30,8 @@ import UsuariosRoles from './views/usuarios/UsuariosRoles';
 // Vistas de Dirección
 import Auditoria from './views/direccion/Auditoria';
 import DireccionReportes from './views/direccion/DireccionReportes';
+import SupervisarMatriculasDireccion from './views/direccion/SupervisarMatriculasDireccion';
+import SupervisarAcademicoDireccion from './views/direccion/SupervisarAcademicoDireccion';
 
 import ProfileView from './views/compartidos/ProfileView';
 import RegistrarNotasDocente from './views/academico/RegistrarNotasDocente';
@@ -111,6 +113,8 @@ export function AppRoutes() {
                 <Route path="/direccion" element={<DireccionDashboard />}>
                     <Route index element={<VistaPanel isDirection={true} />} />
                     <Route path="reportes" element={<DireccionReportes />} />
+                    <Route path="matriculas" element={<SupervisarMatriculasDireccion />} />
+                    <Route path="supervision" element={<SupervisarAcademicoDireccion />} />
                     <Route path="auditoria" element={<Auditoria />} />
                     <Route path="certificados" element={<GestionCertificados esDireccion={true} />} />
                     <Route path="perfil" element={<ProfileView />} />

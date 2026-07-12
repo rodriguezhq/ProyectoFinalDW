@@ -48,7 +48,7 @@ export default function ValidarMatriculasAdmin() {
             }
 
             // Cargar especialidades
-            const resEsp = await consultarApi('/api/admin/especialidades/', { method: 'GET' });
+            const resEsp = await consultarApi('/api/courses/especialidades', { method: 'GET' });
             const datosEsp = resEsp.ok ? await resEsp.json() : null;
             const listaEsp = datosEsp ? (datosEsp.especialidades || []) : [];
             setEspecialidades(listaEsp);

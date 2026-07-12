@@ -11,7 +11,8 @@ import {
     Check, 
     X,
     Coins,
-    User
+    User,
+    Download
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { 
@@ -222,6 +223,17 @@ export default function DetalleMatriculaAdmin() {
                     }`}>
                         {matricula.estado}
                     </span>
+                    {matricula.estado === 'confirmada' && (
+                        <a
+                            href={`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/enrollment/matricula/${id_matricula}/pdf`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white font-bold text-[0.72rem] shadow-xs hover:bg-primary-dark transition-all duration-200 cursor-pointer mt-2"
+                        >
+                            <Download size={12} />
+                            Descargar Ficha PDF
+                        </a>
+                    )}
                 </div>
             </div>
 

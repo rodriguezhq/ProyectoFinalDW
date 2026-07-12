@@ -54,7 +54,7 @@ def solicitar(body: SolicitarMatriculaBody):
     responses={200: MatriculaListResponse},
     security=[{"jwt": []}],
 )
-@role_required("Administrador")
+@role_required("Administrador", "Direccion")
 def listar_todas(query: ListarMatriculasQuery):
     response, status = enrollmentController.listar_todas_matriculas_ctrl()
     return response, status

@@ -385,9 +385,25 @@ def carga_docente(id_periodo):
                         "nombre": f"{docente.nombres} {docente.apellidos}",
                         "total_secciones": 0,
                         "total_horas": 0,
+                        "id_facultad": docente.id_facultad,
+                        "clases": []
                     }
                 por_docente[id_docente]["total_secciones"] += 1
                 por_docente[id_docente]["total_horas"] += horas
+                
+                # Agregar información detallada de la clase para pintar el horario
+                clase_info = {
+                    "curso_codigo": curso.codigo,
+                    "curso_nombre": curso.nombre,
+                    "seccion": bloque.get("seccion") or bloque.get("codigo_seccion") or "A",
+                    "dia": bloque.get("dia", ""),
+                    "horaInicio": bloque.get("horaInicio", ""),
+                    "horaFin": bloque.get("horaFin", ""),
+                    "ambiente": bloque.get("ambiente") or bloque.get("aula") or "N/A"
+                }
+                # Evitar duplicados exactos si hay solapamiento de datos en la semilla
+                if clase_info not in por_docente[id_docente]["clases"]:
+                    por_docente[id_docente]["clases"].append(clase_info)
 
     return list(por_docente.values())
 

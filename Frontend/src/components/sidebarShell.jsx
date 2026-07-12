@@ -142,6 +142,17 @@ export default function SidebarShell({ menuOptions = [], children }) {
                                         <UserIcon size={16} />
                                         Ver perfil
                                     </button>
+                                    <button
+                                        type="button"
+                                        className="w-full flex items-center gap-2.5 py-2.5 px-4 text-[0.88rem] font-medium text-red-600 hover:bg-red-50/30 hover:text-red-700 transition-all duration-150 border-t border-border text-left"
+                                        onClick={() => {
+                                            setDropdownOpen(false);
+                                            logout();
+                                        }}
+                                    >
+                                        <LogOut size={16} />
+                                        Cerrar sesión
+                                    </button>
                                 </div>
                             </>
                         )}
