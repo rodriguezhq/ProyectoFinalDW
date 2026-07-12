@@ -1,59 +1,47 @@
 import { useEffect, useState } from 'react';
-import { Eye, EyeOff, Lock, User, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Lock, User } from 'lucide-react';
 import imageUncp from '../src/assets/Escudo_UNCP.png';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import { ROLE_ROUTES } from './constants/roles';
+import { toast } from 'sonner';
 
 export default function Login() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const [notification, setNotification] = useState(null);
-    const navigate = useNavigate()
+    const navigate = useNavigate();
     const { login } = useAuth();
+
     const handleLogin = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-        setNotification(null);
         try {
             const user = await login(email, password);
             if (user) {
                 const route = ROLE_ROUTES[user.rol];
                 if (route) {
+                    toast.success(`¡Bienvenido al sistema, ${user.nombres || user.username}!`);
                     navigate(route);
                 } else {
-                    setNotification({
-                        type: "error",
-                        message: "Rol de usuario no reconocido en el sistema."
-                    });
+                    toast.error("Rol de usuario no reconocido en el sistema.");
                 }
             } else {
-                setNotification({
-                    type: "error",
-                    message: "Credenciales incorrectas"
-                });
+                toast.error("Credenciales incorrectas");
             }
         } catch (error) {
-            setNotification({
-                type: "error",
-                message: "Credenciales incorrectas"
-            });
+            toast.error("Credenciales incorrectas");
         } finally {
             setIsLoading(false);
         }
-
-    }
+    };
 
     return (
-
-        <div className="min-h-screen w-full flex items-center justify-center bg-bg-alt relative overflow-hidden font-sans antialiased ">
-
+        <div className="min-h-screen w-full flex items-center justify-center bg-bg-alt relative overflow-hidden font-sans antialiased">
             <div className="w-full max-w-[440px] px-6 z-10">
-
                 <div className="bg-white rounded-2xl border border-border p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300">
-
+                    
                     {/* Encabezado con Logo o Escudo */}
                     <div className="flex flex-col items-center mb-5">
                         <div className="w-20 h-20 rounded-full bg-primary-light flex items-center justify-center mb-4 border border-primary/10">
@@ -73,9 +61,9 @@ export default function Login() {
                             Sistema de Gestión Académica institucional
                         </p>
                     </div>
+
                     {/* Formulario */}
                     <form onSubmit={handleLogin} className="space-y-4">
-
                         {/* Input de Correo */}
                         <div className="relative">
                             <label
@@ -84,7 +72,7 @@ export default function Login() {
                             >
                                 Correo Institucional
                             </label>
-                            <div className="relative flex items-center ">
+                            <div className="relative flex items-center">
                                 <span className="absolute left-3 text-text-muted">
                                     <User size={18} />
                                 </span>
@@ -159,18 +147,7 @@ export default function Login() {
                             )}
                         </button>
                     </form>
-                    {/* Caja de Notificaciones */}
-                    {notification && (
-                        <div className={`p-4 rounded-lg text-[0.88rem] font-medium mb-6 flex items-start gap-3 border ${notification.type === 'success'
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                            : 'bg-red-50 text-red-700 border-red-200'
-                            } animate-scale-in`}>
-                            <span className="mt-0.5 shrink-0">
-                                {notification.type === "success" ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
-                            </span>
-                            <span>{notification.message}</span>
-                        </div>
-                    )}
+
                     {/* Footer de la tarjeta */}
                     <div className="mt-5 text-center text-[0.85rem] text-text-muted">
                         ¿No tienes cuenta activa?{" "}
@@ -182,7 +159,6 @@ export default function Login() {
                             Solicita acceso
                         </a>
                     </div>
-
                 </div>
 
                 {/* Créditos institucionales */}

@@ -11,6 +11,7 @@ def _serializar_periodo(p):
         id_periodo=p.id_periodo,
         nombre=p.nombre,
         estado=p.estado,
+        es_matricula_activa=p.es_matricula_activa,
     ).model_dump(mode="json")
 
 
@@ -25,9 +26,13 @@ def crear_periodo_ctrl(body):
     for p_ant in periodos_activos:
         p_ant.estado = "cerrado"
 
+    # Desactivar matrícula en todos los periodos anteriores
+    PeriodoAcademico.query.update({PeriodoAcademico.es_matricula_activa: False})
+
     periodo = PeriodoAcademico(
         nombre=body.nombre,
         estado="activo",  # Se crea activo por defecto
+        es_matricula_activa=True,
     )
     db.session.add(periodo)
     db.session.commit()
@@ -65,6 +70,30 @@ def activar_periodo_ctrl(id_periodo):
     actor = usuario_actual()
     registrar_auditoria(
         "activar_periodo",
+        "periodo_academico",
+        registro=periodo.id_periodo,
+        id_usuario=actor.id_usuario if actor else None,
+        ip=request.remote_addr,
+    )
+
+    return _serializar_periodo(periodo), 200
+
+
+def establecer_matricula_principal_ctrl(id_periodo):
+    periodo = db.session.get(PeriodoAcademico, id_periodo)
+    if not periodo:
+        return {"msg": "Periodo académico no encontrado"}, 404
+
+    # Desactivar matrícula en todos los demás periodos
+    PeriodoAcademico.query.update({PeriodoAcademico.es_matricula_activa: False})
+
+    # Activar en el periodo seleccionado
+    periodo.es_matricula_activa = True
+    db.session.commit()
+
+    actor = usuario_actual()
+    registrar_auditoria(
+        "establecer_periodo_matricula",
         "periodo_academico",
         registro=periodo.id_periodo,
         id_usuario=actor.id_usuario if actor else None,

@@ -12,6 +12,10 @@ from app.schemas.enrollment_schema import (
     PagoBody,
     PagoResponse,
     SolicitarMatriculaBody,
+    OfertaAcademicaResponse,
+    MatriculaBody,
+    FichaMatriculaResponse,
+    ConfirmarMatriculaAdminBody,
 )
 from app.utils.decorators import role_required
 
@@ -52,7 +56,31 @@ def solicitar(body: SolicitarMatriculaBody):
 )
 @role_required("Administrador")
 def listar_todas(query: ListarMatriculasQuery):
-    response, status = enrollmentController.listar_todas(query.id_periodo, query.estado)
+    response, status = enrollmentController.listar_todas_matriculas_ctrl()
+    return response, status
+
+
+@enrollment_bp.get(
+    "/<int:id_matricula>/detalle",
+    summary="Obtener detalle de matrícula (Administrador)",
+    responses={200: MatriculaResponse, 404: MessageResponse},
+    security=[{"jwt": []}],
+)
+@role_required("Administrador")
+def obtener_detalle(path: MatriculaPath):
+    response, status = enrollmentController.obtener_detalle_matricula_ctrl(path.id_matricula)
+    return response, status
+
+
+@enrollment_bp.post(
+    "/<int:id_matricula>/confirmar",
+    summary="Confirmar y registrar pago opcional de matrícula (Administrador)",
+    responses={200: MatriculaResponse, 404: MessageResponse, 409: MessageResponse},
+    security=[{"jwt": []}],
+)
+@role_required("Administrador")
+def confirmar_matricula(path: MatriculaPath, body: ConfirmarMatriculaAdminBody):
+    response, status = enrollmentController.confirmar_matricula_admin_ctrl(path.id_matricula, body)
     return response, status
 
 
@@ -141,3 +169,41 @@ def ficha(path: MatriculaPath):
 def estadisticas(path: PeriodoPath):
     response, status = enrollmentController.estadisticas(path.id_periodo)
     return response, status
+
+
+@enrollment_bp.get(
+    "/oferta-academica",
+    summary="Obtener oferta académica disponible para el estudiante",
+    responses={200: OfertaAcademicaResponse, 400: MessageResponse, 403: MessageResponse},
+    security=[{"jwt": []}],
+)
+@role_required("Estudiante")
+def obtener_oferta_academica():
+    """Retorna la lista de asignaturas y secciones disponibles para matricularse en el periodo activo."""
+    response, status = enrollmentController.obtener_oferta_academica_ctrl()
+    return response, status
+
+
+@enrollment_bp.post(
+    "/matricular",
+    summary="Registrar la matrícula del estudiante",
+    responses={201: FichaMatriculaResponse, 400: MessageResponse, 403: MessageResponse, 404: MessageResponse},
+    security=[{"jwt": []}],
+)
+@role_required("Estudiante")
+def registrar_matricula(body: MatriculaBody):
+    """Procesa e inscribe al estudiante en las secciones seleccionadas."""
+    response, status = enrollmentController.registrar_matricula_estudiante_ctrl(body)
+    return response, status
+
+
+@enrollment_bp.get(
+    "/matricula/<int:id_matricula>/pdf",
+    summary="Descargar PDF de la Ficha de Matrícula",
+    responses={403: MessageResponse, 404: MessageResponse},
+    security=[{"jwt": []}],
+)
+@role_required("Estudiante", "Administrador", "Direccion")
+def descargar_ficha_matricula_pdf(path: MatriculaPath):
+    """Genera y descarga la Ficha de Matrícula en PDF."""
+    return enrollmentController.descargar_ficha_matricula_pdf_ctrl(path.id_matricula)

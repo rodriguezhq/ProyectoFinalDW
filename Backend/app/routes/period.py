@@ -51,3 +51,16 @@ def activar_periodo(path: PeriodoPath):
     """Activa el periodo especificado, cerrando automáticamente el periodo anterior y sus secciones."""
     response, status = periodController.activar_periodo_ctrl(path.id_periodo)
     return response, status
+
+
+@period_bp.post(
+    "/<int:id_periodo>/establecer-matricula",
+    summary="Establecer periodo principal para matricula de estudiantes",
+    responses={200: PeriodoResponse, 404: MessageResponse},
+    security=[{"jwt": []}],
+)
+@role_required("Administrador")
+def establecer_matricula_principal(path: PeriodoPath):
+    """Establece el periodo especificado como el periodo principal para la matricula de los estudiantes."""
+    response, status = periodController.establecer_matricula_principal_ctrl(path.id_periodo)
+    return response, status

@@ -11,6 +11,7 @@ class PeriodoResponse(BaseModel):
     id_periodo: int
     nombre: str
     estado: str
+    es_matricula_activa: bool
 
 
 # Schema para listar múltiples periodos académicos

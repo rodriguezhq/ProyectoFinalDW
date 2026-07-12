@@ -74,10 +74,10 @@ def seed():
     # ---------- Periodos academicos ----------
     print("Creando periodos academicos...")
     periodo_pasado = PeriodoAcademico(
-        nombre="2025-II", estado="cerrado"
+        nombre="2025-II", estado="cerrado", es_matricula_activa=False
     )
     periodo_actual = PeriodoAcademico(
-        nombre="2026-I", estado="activo"
+        nombre="2026-I", estado="activo", es_matricula_activa=True
     )
     db.session.add_all([periodo_pasado, periodo_actual])
     db.session.commit()
@@ -221,7 +221,12 @@ def seed():
         correo="pedro.salazar@uncp.edu.pe", telefono="987444555",
         fecha_nacimiento=date(2001, 11, 27), estado="activo", id_especialidad=esp_is.id_especialidad
     )
-    db.session.add_all([est_cristhian, est_scoot, est_maria, est_pedro])
+    est_juan = Estudiante(
+        codigo="2026100099", dni="70555666", nombres="Juan", apellidos="Perez Quispe",
+        correo="juan.perez@uncp.edu.pe", telefono="987555666",
+        fecha_nacimiento=date(2007, 4, 15), estado="activo", id_especialidad=esp_is.id_especialidad
+    )
+    db.session.add_all([est_cristhian, est_scoot, est_maria, est_pedro, est_juan])
     db.session.commit()
 
     # ---------- Horarios ----------
@@ -479,6 +484,8 @@ def seed():
                 id_estudiante=est_maria.id_estudiante),
         Usuario(username="psalazar", password_hash=pw, estado="activo", id_rol=rol_estudiante.id_rol,
                 id_estudiante=est_pedro.id_estudiante),
+        Usuario(username="juanp", password_hash=pw, estado="activo", id_rol=rol_estudiante.id_rol,
+                id_estudiante=est_juan.id_estudiante),
     ]
     db.session.add_all(usuarios)
     db.session.commit()
@@ -488,19 +495,19 @@ def seed():
     print("Creando matriculas...")
     mat_cristhian_pasado = Matricula(
         id_estudiante=est_cristhian.id_estudiante, id_periodo=periodo_pasado.id_periodo,
-        fecha_matricula=datetime(2025, 7, 20, 9, 0), estado="pagada",
+        fecha_matricula=datetime(2025, 7, 20, 9, 0), estado="confirmada",
     )
     mat_cristhian_actual = Matricula(
         id_estudiante=est_cristhian.id_estudiante, id_periodo=periodo_actual.id_periodo,
-        fecha_matricula=datetime(2026, 2, 20, 9, 0), estado="pagada",
+        fecha_matricula=datetime(2026, 2, 20, 9, 0), estado="confirmada",
     )
     mat_scoot_actual = Matricula(
         id_estudiante=est_scoot.id_estudiante, id_periodo=periodo_actual.id_periodo,
-        fecha_matricula=datetime(2026, 2, 21, 10, 0), estado="pagada",
+        fecha_matricula=datetime(2026, 2, 21, 10, 0), estado="confirmada",
     )
     mat_maria_actual = Matricula(
         id_estudiante=est_maria.id_estudiante, id_periodo=periodo_actual.id_periodo,
-        fecha_matricula=datetime(2026, 2, 22, 11, 0), estado="validada",
+        fecha_matricula=datetime(2026, 2, 22, 11, 0), estado="confirmada",
     )
     mat_pedro_actual = Matricula(
         id_estudiante=est_pedro.id_estudiante, id_periodo=periodo_actual.id_periodo,
