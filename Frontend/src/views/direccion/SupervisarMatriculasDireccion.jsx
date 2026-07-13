@@ -425,7 +425,7 @@ export default function SupervisarMatriculasDireccion() {
                             </td>
                             <td className="p-4 text-center">
                               <a
-                                href={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${urlFicha}`}
+                                href={`${import.meta.env.VITE_API_BASE_URL || ''}${urlFicha}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className={`inline-flex items-center gap-1.5 py-1.5 px-3 rounded-none text-[0.82rem] font-bold border transition-all cursor-pointer ${

@@ -1,6 +1,6 @@
 import { consultarApi } from './clienteApi';
 
-const urlBaseApi = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const urlBaseApi = import.meta.env.VITE_API_BASE_URL || '';
 
 // ==========================================
 // SERVICIOS DE CERTIFICADOS Y DOCUMENTOS

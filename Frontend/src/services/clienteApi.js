@@ -1,6 +1,6 @@
 import { toast } from 'sonner';
 
-const urlBaseApi = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+const urlBaseApi = import.meta.env.VITE_API_BASE_URL || "";
 
 // Obtiene el valor de una cookie por su nombre
 function obtenerCookie(nombre) {

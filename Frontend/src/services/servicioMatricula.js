@@ -1,6 +1,6 @@
 import { consultarApi } from './clienteApi';
 
-const urlBaseApi = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
+const urlBaseApi = import.meta.env.VITE_API_BASE_URL || "";
 
 /**
  * Obtiene la oferta académica disponible para el estudiante en el periodo activo.

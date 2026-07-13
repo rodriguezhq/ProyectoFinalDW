@@ -91,8 +91,7 @@ export default function DetalleCursoDocente() {
     };
 
     const obtenerUrlDescarga = (rutaRelativa) => {
-        // Asumiendo que el backend corre en el puerto 5000 por defecto
-        const urlBase = 'http://localhost:5000';
+        const urlBase = import.meta.env.VITE_API_BASE_URL || '';
         return `${urlBase}/${rutaRelativa}`;
     };
 

@@ -265,7 +265,7 @@ export default function GradesView() {
                                                     <td className="p-4 text-center">
                                                         {item.silabo_archivo ? (
                                                             <a
-                                                                href={`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/${item.silabo_archivo}`}
+                                                                href={`${import.meta.env.VITE_API_BASE_URL || ''}/${item.silabo_archivo}`}
                                                                 target="_blank"
                                                                 rel="noreferrer"
                                                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 border border-primary/20 text-primary hover:bg-primary hover:text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer"
