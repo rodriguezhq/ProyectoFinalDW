@@ -29,7 +29,7 @@ export default function Usuarios({ rolFiltrado }) {
   const [apellidos, setApellidos] = useState('');
   const [correo, setCorreo] = useState('');
   const [idRol, setIdRol] = useState('');
-  const [estado, setEstado] = useState('Activo');
+  const [estado, setEstado] = useState('activo');
 
   // Campos específicos para Estudiante y Docente (Obligatorios en creación, bloqueados en edición)
   const [codigoPersona, setCodigoPersona] = useState('');
@@ -59,7 +59,7 @@ export default function Usuarios({ rolFiltrado }) {
     setIdFacultad('');
     setIdEspecialidad('');
     setCiclo('1');
-    setEstado('Activo');
+    setEstado('activo');
     setModalOpen(true);
   };
 
@@ -76,7 +76,7 @@ export default function Usuarios({ rolFiltrado }) {
     setIdFacultad(usuario.id_facultad ? String(usuario.id_facultad) : '');
     setIdEspecialidad(usuario.id_especialidad ? String(usuario.id_especialidad) : '');
     setCiclo(usuario.ciclo ? String(usuario.ciclo) : '1');
-    setEstado(usuario.estado || 'Activo');
+    setEstado(usuario.estado || 'activo');
     setModalOpen(true);
   };
 
@@ -261,8 +261,8 @@ export default function Usuarios({ rolFiltrado }) {
                           </td>
                         )}
                         <td className="p-2 border-r border-border/60 text-center font-bold">
-                          <span className={`inline-block py-0.5 px-2 rounded ${usuario.estado === 'Activo' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
-                            {usuario.estado}
+                          <span className={`inline-block py-0.5 px-2 rounded ${usuario.estado === 'activo' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}`}>
+                            {usuario.estado === 'activo' ? 'Activo' : 'Inactivo'}
                           </span>
                         </td>
                         <td className="p-2 text-center">
@@ -480,8 +480,8 @@ export default function Usuarios({ rolFiltrado }) {
                       onChange={(e) => setEstado(e.target.value)}
                       className="p-2.5 border border-border bg-white rounded-md focus:outline-none focus:border-primary text-[0.88rem] cursor-pointer"
                     >
-                      <option value="Activo">Activo</option>
-                      <option value="Inactivo">Inactivo</option>
+                      <option value="activo">Activo</option>
+                      <option value="inactivo">Inactivo</option>
                     </select>
                   </div>
                 )}
