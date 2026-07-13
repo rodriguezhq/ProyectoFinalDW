@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    Loader2, 
-    FileText, 
-    CheckCircle2, 
-    AlertTriangle, 
-    Download, 
-    BookOpen, 
-    Clock, 
+import {
+    Loader2,
+    FileText,
+    CheckCircle2,
+    AlertTriangle,
+    Download,
+    BookOpen,
+    Clock,
     BadgeCheck,
     Plus,
     Trash2,
@@ -14,10 +14,10 @@ import {
     HelpCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { 
-    obtenerOfertaAcademica, 
-    procesarMatricula, 
-    obtenerUrlFichaPdf 
+import {
+    obtenerOfertaAcademica,
+    procesarMatricula,
+    obtenerUrlFichaPdf
 } from '../../services/servicioMatricula';
 
 // Paleta de colores premium para distinguir las asignaturas en el calendario
@@ -38,7 +38,7 @@ const HORAS_DIA = Array.from({ length: 15 }, (_, i) => i + 8); // de 08:00 AM a 
 export default function MatriculaEstudiante() {
     const [cargando, setCargando] = useState(true);
     const [oferta, setOferta] = useState(null);
-    
+
     // Lista de secciones actualmente agregadas al horario/calendario
     const [seccionesElegidas, setSeccionesElegidas] = useState([]);
     const [procesando, setProcesando] = useState(false);
@@ -227,7 +227,7 @@ export default function MatriculaEstudiante() {
                 <AlertTriangle className="mx-auto text-red-600 mb-3" size={32} />
                 <h3 className="font-bold text-lg mb-1">Error de Sistema</h3>
                 <p className="text-sm">No se pudo cargar la oferta académica en este momento.</p>
-                <button 
+                <button
                     onClick={cargarOferta}
                     className="mt-4 px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition-colors"
                 >
@@ -240,10 +240,10 @@ export default function MatriculaEstudiante() {
     const totalCreditosElegidos = seccionesElegidas.reduce((acc, s) => acc + s.creditos, 0);
 
     return (
-        <div className="max-w-6xl mx-auto flex flex-col gap-6 animate-fade-in pb-12">
-            
+        <div className=" mx-auto flex flex-col gap-6 animate-fade-in pb-12">
+
             {/* Header del Proceso */}
-            <div className="bg-bg-alt/50 border border-border p-5 rounded-2xl flex flex-wrap justify-between items-center gap-4 shadow-xs">
+            <div className="bg-bg-alt/50 border border-border p-5 rounded-none flex flex-wrap justify-between items-center gap-4 shadow-xs">
                 <div className="flex flex-col gap-1">
                     <span className="text-[0.68rem] font-bold text-text-muted uppercase tracking-wider">Plan de Estudios</span>
                     <h3 className="font-heading font-extrabold text-xl text-text-heading">Matrícula en Línea — Periodo {oferta.periodo_nombre}</h3>
@@ -271,7 +271,7 @@ export default function MatriculaEstudiante() {
             </div>
 
             {/* Panel Superior: Calendario Semanal de Horario */}
-            <div className="bg-white border border-border rounded-2xl p-5 shadow-xs flex flex-col gap-4">
+            <div className="bg-white border border-border rounded-none p-5 shadow-xs flex flex-col gap-4">
                 <div className="flex items-center justify-between border-b border-border pb-4">
                     <div className="flex items-center gap-2">
                         <CalendarDays className="text-primary" size={22} />
@@ -307,8 +307,8 @@ export default function MatriculaEstudiante() {
                                             // Solo renderizar el contenido completo del bloque en la hora de inicio para evitar repeticiones visuales molestas
                                             const esFilaInicio = bloque.inicio === hora;
                                             return (
-                                                <td 
-                                                    key={dia} 
+                                                <td
+                                                    key={dia}
                                                     className={`py-1 px-1 border-r border-border last:border-r-0 text-[0.72rem] leading-tight font-bold transition-all ${bloque.color.bg} border-l-2`}
                                                 >
                                                     {esFilaInicio ? (
@@ -419,7 +419,7 @@ export default function MatriculaEstudiante() {
                                                     <div className="flex flex-col gap-0.5">
                                                         {c.horarios.map((h, hIdx) => (
                                                             <div key={hIdx} className="flex items-center gap-1">
-                                                                <span className="capitalize text-primary font-bold">{h.dia.toLowerCase()}</span>: 
+                                                                <span className="capitalize text-primary font-bold">{h.dia.toLowerCase()}</span>:
                                                                 <span>{h.horaInicio} - {h.horaFin}</span>
                                                             </div>
                                                         ))}
@@ -439,7 +439,7 @@ export default function MatriculaEstudiante() {
                 <form onSubmit={manejarEnvioMatricula} className="flex flex-col gap-6">
                     <div className="flex flex-col gap-4">
                         <h4 className="font-heading font-bold text-text-heading border-b border-border pb-2">Asignaturas Disponibles de tu Ciclo</h4>
-                        
+
                         {oferta.cursos.map(curso => {
                             const seccionSeleccionada = seccionesElegidas.find(s => s.id_curso === curso.id_curso);
 
@@ -461,14 +461,14 @@ export default function MatriculaEstudiante() {
                                     <div className="flex flex-col gap-3">
                                         {curso.secciones.map(seccion => {
                                             const esAgregada = seccionSeleccionada && seccionSeleccionada.id_seccion === seccion.id_seccion;
-                                            
+
                                             // Validar si genera cruce con las demas secciones elegidas
                                             const validacionCruce = evaluarCruceSeccion(seccion, curso.id_curso);
                                             const tieneCruce = validacionCruce.cruce;
 
                                             return (
-                                                <div 
-                                                    key={seccion.id_seccion} 
+                                                <div
+                                                    key={seccion.id_seccion}
                                                     className={`p-3.5 border rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all ${esAgregada ? 'bg-primary/5 border-primary/30' : 'bg-bg-alt/20 border-border/70'}`}
                                                 >
                                                     <div className="grow flex flex-col sm:flex-row sm:items-center gap-x-6 gap-y-2">
@@ -482,7 +482,7 @@ export default function MatriculaEstudiante() {
                                                                 {seccion.horarios && seccion.horarios.length > 0 ? (
                                                                     seccion.horarios.map((h, hIdx) => (
                                                                         <div key={hIdx} className="flex items-center gap-1.5 text-xs text-text-main font-semibold">
-                                                                            <span className="capitalize text-primary-dark font-extrabold">{h.dia.toLowerCase()}</span>: 
+                                                                            <span className="capitalize text-primary-dark font-extrabold">{h.dia.toLowerCase()}</span>:
                                                                             <span className="text-text-muted">{h.horaInicio} - {h.horaFin}</span>
                                                                             {h.docente_nombre && (
                                                                                 <span className="text-[0.68rem] text-text-light italic font-normal">({h.docente_nombre})</span>

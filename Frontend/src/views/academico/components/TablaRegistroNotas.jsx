@@ -24,7 +24,7 @@ export default function TablaRegistroNotas({ notesList, onSaveGrade }) {
         // Filtrar para permitir solo números enteros o decimales en formato básico (ej: "15" o "15.5")
         // No permitir letras ni caracteres especiales excepto punto decimal
         const valorLimpio = valor.replace(/[^0-9.]/g, '');
-        
+
         // Validar que no haya más de un punto decimal
         const partes = valorLimpio.split('.');
         if (partes.length > 2) return;
@@ -54,7 +54,7 @@ export default function TablaRegistroNotas({ notesList, onSaveGrade }) {
             return !isNaN(num) && num >= 0 && num <= 20;
         };
 
-        if (!validateGrade(grades.parcial1) || !validateGrade(grades.parcial2) || 
+        if (!validateGrade(grades.parcial1) || !validateGrade(grades.parcial2) ||
             !validateGrade(grades.final) || !validateGrade(grades.sustitutorio)) {
             alert("Todas las notas ingresadas deben ser números entre 0 y 20.");
             return;
@@ -108,30 +108,30 @@ export default function TablaRegistroNotas({ notesList, onSaveGrade }) {
     }
 
     return (
-        <div className="w-full flex flex-col gap-1.5">
+        <div className="w-full flex flex-col ">
             <span className="text-xs text-text-muted font-semibold self-end">
                 * Las notas son sobre un sistema vigesimal (0 - 20).
             </span>
-            
+
             {/* Contenedor de la tabla responsiva y con scroll vertical aislado */}
-            <div className="w-full overflow-x-auto border border-border rounded-xl shadow-sm">
-                <div 
-                    className="overflow-y-auto max-h-[480px] min-w-[900px]" 
+            <div className="w-full overflow-x-auto border border-border rounded-none shadow-sm">
+                <div
+                    className="overflow-y-auto max-h-[480px] min-w-[900px]"
                     style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(13,82,44,0.2) transparent' }}
                 >
                     <table className="w-full text-left border-collapse text-[0.88rem]">
                         {/* Cabecera pegajosa (Sticky) */}
                         <thead className="bg-bg-alt text-text-heading font-extrabold sticky top-0 z-10 border-b border-border shadow-[0_1px_0_0_rgba(226,232,240,1)]">
                             <tr>
-                                <th className="p-4 bg-bg-alt">Código</th>
-                                <th className="p-4 bg-bg-alt">Estudiante</th>
-                                <th className="p-4 text-center bg-bg-alt w-[90px]">Parcial 1</th>
-                                <th className="p-4 text-center bg-bg-alt w-[90px]">Parcial 2</th>
-                                <th className="p-4 text-center bg-bg-alt w-[90px]">Ex. Final</th>
-                                <th className="p-4 text-center bg-bg-alt w-[90px]">Ex. Sust.</th>
-                                <th className="p-4 text-center bg-bg-alt w-[90px]">Promedio</th>
-                                <th className="p-4 text-center bg-bg-alt w-[110px]">Estado</th>
-                                <th className="p-4 text-center bg-bg-alt w-[100px]">Acciones</th>
+                                <th className="p-2 bg-bg-alt">Código</th>
+                                <th className="p-2 bg-bg-alt">Estudiante</th>
+                                <th className="p-2 text-center bg-bg-alt w-[80px]">Parcial 1</th>
+                                <th className="p-2 text-center bg-bg-alt w-[80px]">Parcial 2</th>
+                                <th className="p-2 text-center bg-bg-alt w-[80px]">Ex. Final</th>
+                                <th className="p-2 text-center bg-bg-alt w-[80px]">Ex. Sust.</th>
+                                <th className="p-2 text-center bg-bg-alt w-[80px]">Promedio</th>
+                                <th className="p-2 text-center bg-bg-alt w-[110px]">Estado</th>
+                                <th className="p-2 text-center bg-bg-alt w-[100px]">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-border bg-white">
@@ -139,11 +139,11 @@ export default function TablaRegistroNotas({ notesList, onSaveGrade }) {
                                 const idDetalle = item.id_matricula_detalle;
                                 const currentLocal = localGrades[idDetalle] || { parcial1: '', parcial2: '', final: '', sustitutorio: '' };
                                 const isSaving = savingIds[idDetalle] || false;
-                                
+
                                 // Color del promedio: Verde si es aprobada (>= 10.5), rojo si es desaprobada, gris si está vacía
                                 const esAprobado = item.promedio !== null && item.promedio >= 10.5;
-                                const colorPromedio = item.promedio === null 
-                                    ? 'text-text-muted' 
+                                const colorPromedio = item.promedio === null
+                                    ? 'text-text-muted'
                                     : (esAprobado ? 'text-emerald-600 font-extrabold' : 'text-red-600 font-extrabold');
 
                                 return (
@@ -154,65 +154,65 @@ export default function TablaRegistroNotas({ notesList, onSaveGrade }) {
                                         <td className="p-4 font-bold text-text-heading">
                                             {item.estudiante_nombre}
                                         </td>
-                                        
+
                                         {/* Input Parcial 1 */}
                                         <td className="p-4">
                                             <input
                                                 type="text"
-                                                className="w-16 mx-auto text-center py-1.5 border border-border rounded bg-bg-input text-text-heading focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-[0.88rem]"
+                                                className="w-14 mx-auto text-center  border border-border rounded bg-bg-input text-text-heading focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-[0.88rem]"
                                                 value={currentLocal.parcial1}
                                                 placeholder="-"
                                                 onChange={(e) => handleInputChange(idDetalle, 'parcial1', e.target.value)}
                                                 disabled={isSaving}
                                             />
                                         </td>
-                                        
+
                                         {/* Input Parcial 2 */}
                                         <td className="p-4">
                                             <input
                                                 type="text"
-                                                className="w-16 mx-auto text-center py-1.5 border border-border rounded bg-bg-input text-text-heading focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-[0.88rem]"
+                                                className="w-14 mx-auto text-center  border border-border rounded bg-bg-input text-text-heading focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-[0.88rem]"
                                                 value={currentLocal.parcial2}
                                                 placeholder="-"
                                                 onChange={(e) => handleInputChange(idDetalle, 'parcial2', e.target.value)}
                                                 disabled={isSaving}
                                             />
                                         </td>
-                                        
+
                                         {/* Input Final */}
                                         <td className="p-4">
                                             <input
                                                 type="text"
-                                                className="w-16 mx-auto text-center py-1.5 border border-border rounded bg-bg-input text-text-heading focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-[0.88rem]"
+                                                className="w-14 mx-auto text-center  border border-border rounded bg-bg-input text-text-heading focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-[0.88rem]"
                                                 value={currentLocal.final}
                                                 placeholder="-"
                                                 onChange={(e) => handleInputChange(idDetalle, 'final', e.target.value)}
                                                 disabled={isSaving}
                                             />
                                         </td>
-                                        
+
                                         {/* Input Sustitutorio */}
                                         <td className="p-4">
                                             <input
                                                 type="text"
-                                                className="w-16 mx-auto text-center py-1.5 border border-border rounded bg-bg-input text-text-heading focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-[0.88rem]"
+                                                className="w-14 mx-auto text-center  border border-border rounded bg-bg-input text-text-heading focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-[0.88rem]"
                                                 value={currentLocal.sustitutorio}
                                                 placeholder="-"
                                                 onChange={(e) => handleInputChange(idDetalle, 'sustitutorio', e.target.value)}
                                                 disabled={isSaving}
                                             />
                                         </td>
-                                        
+
                                         {/* Promedio */}
                                         <td className={`p-4 text-center font-mono ${colorPromedio}`}>
                                             {item.promedio !== null ? item.promedio.toFixed(2) : '-'}
                                         </td>
-                                        
+
                                         {/* Estado */}
                                         <td className="p-4 text-center">
                                             {renderEstadoBadge(item.estado)}
                                         </td>
-                                        
+
                                         {/* Acciones */}
                                         <td className="p-4 text-center">
                                             <button
