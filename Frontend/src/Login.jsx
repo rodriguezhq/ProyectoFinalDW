@@ -39,12 +39,12 @@ export default function Login() {
 
     return (
         <div className="min-h-screen w-full flex items-center justify-center bg-bg-alt relative overflow-hidden font-sans antialiased">
-            <div className="w-full max-w-[440px] px-6 z-10">
-                <div className="bg-white rounded-2xl border border-border p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300">
-                    
+            <div className="w-full max-w-[400px] px-4 z-10">
+                <div className="bg-white rounded-none border border-border p-5 md:p-6 shadow-none transition-all duration-300">
+
                     {/* Encabezado con Logo o Escudo */}
-                    <div className="flex flex-col items-center mb-5">
-                        <div className="w-20 h-20 rounded-full bg-primary-light flex items-center justify-center mb-4 border border-primary/10">
+                    <div className="flex flex-col items-center mb-3">
+                        <div className="w-16 h-16 rounded-full bg-primary-light flex items-center justify-center mb-2 border border-primary/10">
                             <img
                                 src={imageUncp}
                                 alt="Escudo de la UNCP"
@@ -54,21 +54,21 @@ export default function Login() {
                                 }}
                             />
                         </div>
-                        <h1 className="text-2xl md:text-3xl font-extrabold text-text-heading text-center tracking-tight">
+                        <h1 className="text-xl md:text-2xl font-extrabold text-text-heading text-center tracking-tight">
                             SGA <span className="text-primary font-bold">UNCP</span>
                         </h1>
-                        <p className="text-text-muted text-[0.88rem] mt-1.5 text-center">
+                        <p className="text-text-muted text-[0.88rem] mt-1 text-center">
                             Sistema de Gestión Académica institucional
                         </p>
                     </div>
 
                     {/* Formulario */}
-                    <form onSubmit={handleLogin} className="space-y-4">
+                    <form onSubmit={handleLogin} className="space-y-3">
                         {/* Input de Correo */}
                         <div className="relative">
                             <label
                                 htmlFor="email"
-                                className="block text-[0.85rem] font-semibold text-text-heading mb-1.5"
+                                className="block text-[0.85rem] font-semibold text-text-heading mb-1"
                             >
                                 Correo Institucional
                             </label>
@@ -84,14 +84,14 @@ export default function Login() {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     disabled={isLoading}
-                                    className="w-full py-2.5 pl-11 pr-4 bg-bg-alt border border-border rounded-lg text-text-heading text-[0.95rem] transition-all duration-300 placeholder:text-text-muted/65 focus:outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
+                                    className="w-full py-2.5 pl-11 pr-4 bg-bg-alt border border-border rounded-none text-text-heading text-[0.95rem] transition-all duration-300 placeholder:text-text-muted/65 focus:outline-none focus:border-primary focus:bg-white focus:ring-1 focus:ring-primary/10"
                                 />
                             </div>
                         </div>
 
                         {/* Input de Contraseña */}
                         <div className="relative">
-                            <div className="flex justify-between items-center mb-1.5">
+                            <div className="flex justify-between items-center mb-1">
                                 <label
                                     htmlFor="password"
                                     className="block text-[0.85rem] font-semibold text-text-heading"
@@ -118,7 +118,7 @@ export default function Login() {
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     disabled={isLoading}
-                                    className="w-full py-2.5 pl-11 pr-12 bg-bg-alt border border-border rounded-lg text-text-heading text-[0.95rem] transition-all duration-300 placeholder:text-text-muted/65 focus:outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10"
+                                    className="w-full py-2.5 pl-11 pr-12 bg-bg-alt border border-border rounded-none text-text-heading text-[0.95rem] transition-all duration-300 placeholder:text-text-muted/65 focus:outline-none focus:border-primary focus:bg-white focus:ring-1 focus:ring-primary/10"
                                 />
                                 <button
                                     type="button"
@@ -135,11 +135,11 @@ export default function Login() {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className="w-full bg-primary text-white py-2.5 font-semibold rounded-lg transition-all duration-300 flex items-center justify-center gap-2.5 shadow-[0_4px_14px_rgba(13,82,44,0.15)] hover:bg-primary-hover hover:shadow-[0_6px_20px_rgba(13,82,44,0.22)] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed disabled:active:scale-100"
+                            className="w-full bg-primary text-white py-2.5 font-semibold rounded-none transition-all duration-300 flex items-center justify-center gap-2.5 shadow-none hover:bg-primary-hover hover:shadow-none active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed disabled:active:scale-100"
                         >
                             {isLoading ? (
                                 <>
-                                    <span className="w-5 h-5 border-2 border-white/30 rounded-full border-t-white animate-spin"></span>
+                                    <span className="w-5 h-5 border-2 border-white/30 rounded-none border-t-white animate-spin"></span>
                                     Autenticando...
                                 </>
                             ) : (
@@ -149,7 +149,7 @@ export default function Login() {
                     </form>
 
                     {/* Footer de la tarjeta */}
-                    <div className="mt-5 text-center text-[0.85rem] text-text-muted">
+                    <div className="mt-3 text-center text-[0.85rem] text-text-muted">
                         ¿No tienes cuenta activa?{" "}
                         <a
                             href="#contacto"
@@ -162,7 +162,7 @@ export default function Login() {
                 </div>
 
                 {/* Créditos institucionales */}
-                <p className="mt-6 text-center text-text-muted/60 text-[0.75rem]">
+                <p className="mt-4 text-center text-text-muted/60 text-[0.75rem]">
                     © 2026 Universidad Nacional del Centro del Perú. Todos los derechos reservados.
                 </p>
             </div>

@@ -5,20 +5,20 @@ import { diasSemana, franjasHorarias, clasesColor } from '../../constants/horari
 
 export default function VistaHorario({ isTeacher = false }) {
   const esDocente = isTeacher;
-  
+
   // Utilizar hook personalizado para obtener los datos del horario
   const { datosHorario, estaCargando, mensajeError } = useHorario(esDocente);
 
   const obtenerCursoParaSlot = (dia, slotHora) => {
     const horaInicioSlot = slotHora.split(' - ')[0];
-    
+
     return datosHorario.find(item => {
       if (item.dia !== dia) return false;
-      
+
       const valorInicio = parseInt(item.horaInicio.replace(':', ''));
       const valorFin = parseInt(item.horaFin.replace(':', ''));
       const valorActual = parseInt(horaInicioSlot.replace(':', ''));
-      
+
       return valorActual >= valorInicio && valorActual < valorFin;
     });
   };
@@ -40,14 +40,12 @@ export default function VistaHorario({ isTeacher = false }) {
         <p className="text-[0.85rem] text-text-muted">Asegúrate de que el backend esté ejecutándose.</p>
       </div>
     );
-  }
-
-  return (
-    <div className="bg-white border border-border shadow-xs p-4 md:p-6 mb-4 animate-slide-up rounded-none">
-      <div className="mb-7">
+  } return (
+    <div className="bg-white rounded-none border border-border p-4 lg:px-2 mb-2 animate-slide-up shadow-none">
+      <div className="mb-4">
         <h3 className="flex items-center gap-2 font-heading text-[1.35rem] font-extrabold text-text-heading mb-1.5"><Calendar size={22} /> Horario Académico — Periodo 2026-I</h3>
         <p className="text-[0.95rem] text-text-muted">
-          {esDocente 
+          {esDocente
             ? 'Vista de dictado de clases asignadas y laboratorios programados.'
             : 'Consulta tus asignaturas matriculadas, secciones y distribución de aulas.'}
         </p>
@@ -78,9 +76,9 @@ export default function VistaHorario({ isTeacher = false }) {
 
                       if (esInicio) {
                         return (
-                          <td 
-                            key={dia} 
-                            rowSpan={duracion} 
+                          <td
+                            key={dia}
+                            rowSpan={duracion}
                             className="p-1.5 border-b border-r border-border last:border-r-0 text-center text-[0.88rem] align-middle"
                           >
                             <div className={`p-3 px-2.5 rounded-none flex flex-col gap-1 h-full shadow-[0_2px_6px_rgba(0,0,0,0.02)] text-left animate-fade-in ${clasesColor[cursoActivo.color] || ''}`}>
@@ -104,7 +102,7 @@ export default function VistaHorario({ isTeacher = false }) {
         </table>
       </div>
 
-      <div className="mt-6 flex items-center flex-wrap gap-4 text-[0.85rem]">
+      <div className="mt-4 flex items-center flex-wrap gap-2 text-[0.85rem]">
         <span className="font-bold text-text-heading">Código de colores:</span>
         <div className="flex flex-wrap gap-2">
           <span className="text-[0.75rem] font-semibold py-1 px-2.5 rounded-none border bg-blue-50 text-blue-600 border-blue-200/50">Desarrollo Web</span>

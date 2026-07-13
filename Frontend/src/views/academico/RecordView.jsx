@@ -60,7 +60,7 @@ export default function RecordView() {
     const ppa = resumen.promedio_ponderado_acumulado;
 
     return (
-        <div className="w-full flex flex-col gap-6 animate-slide-up">
+        <div className="w-full flex flex-col gap-3 lg:px-2 animate-slide-up">
 
             {/* Resumen Académico PPA y Créditos */}
             <RecordKpis
@@ -71,7 +71,7 @@ export default function RecordView() {
 
 
             {/* Listado Cronológico por Semestre */}
-            <div className="flex flex-col gap-6 mt-2">
+            <div className="flex flex-col gap-3 mt-1">
                 <h2 className="text-lg font-black text-text-heading tracking-tight flex items-center gap-2">
                     Detalle de Semestres y Calificaciones Cursadas
                 </h2>

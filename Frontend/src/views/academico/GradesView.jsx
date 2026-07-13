@@ -66,25 +66,25 @@ export default function GradesView() {
         switch (estado) {
             case 'aprobada':
                 return (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-none text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                         Aprobado
                     </span>
                 );
             case 'desaprobada':
                 return (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-none text-xs font-bold bg-red-50 text-red-700 border border-red-200">
                         Desaprobado
                     </span>
                 );
             case 'registrada':
                 return (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-none text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
                         Registrada
                     </span>
                 );
             default:
                 return (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-50 text-text-muted border border-border">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-none text-xs font-bold bg-slate-50 text-text-muted border border-border">
                         Sin Notas
                     </span>
                 );
@@ -111,9 +111,9 @@ export default function GradesView() {
     }
 
     return (
-        <div className="mx-auto py-1 px-0.5 space-y-6 animate-fade-in">
+        <div className="mx-auto py-1 px-0.5 lg:px-2 space-y-3 animate-fade-in">
             {/* Cabecera */}
-            <div className="pb-4 border-b border-border">
+            <div className="pb-2 border-b border-border">
                 <h1 className="font-heading text-2xl font-extrabold text-text-heading leading-tight">
                     Boleta de Calificaciones
                 </h1>
@@ -123,14 +123,14 @@ export default function GradesView() {
             </div>
 
             {notes.length === 0 ? (
-                <div className="p-8 bg-amber-50 border border-amber-200 rounded-xl text-center">
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-none text-center">
                     <p className="font-bold text-amber-800">No se encontraron notas registradas</p>
                     <p className="text-sm text-amber-700 mt-1">Aún no cuentas con historial de calificaciones en el sistema.</p>
                 </div>
             ) : (
-                <div className="space-y-6">
+                <div className="space-y-3">
                     {/* Selector de Periodo y Resumen del Estudiante */}
-                    <div className="bg-bg-alt p-5 border border-border rounded-xl flex flex-col md:flex-row justify-between items-center gap-4">
+                    <div className="bg-bg-alt p-3 border border-border rounded-none flex flex-col md:flex-row justify-between items-center gap-2">
                         <div className="flex flex-col text-left w-full md:w-auto">
                             <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Estudiante</span>
                             <span className="font-bold text-text-heading text-base mt-0.5">
@@ -155,9 +155,9 @@ export default function GradesView() {
                     </div>
 
                     {/* Fichas de Estadísticas Rápidas del Ciclo */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="bg-white border border-border p-4.5 rounded-xl shadow-xs flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-lg bg-primary-light text-primary flex items-center justify-center shrink-0">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                        <div className="bg-white border border-border p-3 rounded-none shadow-none flex items-center gap-2">
+                            <div className="w-10 h-10 rounded-none bg-primary-light text-primary flex items-center justify-center shrink-0">
                                 <BookOpen size={20} />
                             </div>
                             <div className="text-left">
@@ -166,8 +166,8 @@ export default function GradesView() {
                             </div>
                         </div>
 
-                        <div className="bg-white border border-border p-4.5 rounded-xl shadow-xs flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
+                        <div className="bg-white border border-border p-3 rounded-none shadow-none flex items-center gap-2">
+                            <div className="w-10 h-10 rounded-none bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
                                 <Award size={20} />
                             </div>
                             <div className="text-left">
@@ -176,8 +176,8 @@ export default function GradesView() {
                             </div>
                         </div>
 
-                        <div className="bg-white border border-border p-4.5 rounded-xl shadow-xs flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-lg bg-emerald-50/50 text-emerald-600 flex items-center justify-center shrink-0">
+                        <div className="bg-white border border-border p-3 rounded-none shadow-none flex items-center gap-2">
+                            <div className="w-10 h-10 rounded-none bg-emerald-50/50 text-emerald-600 flex items-center justify-center shrink-0">
                                 <span className="text-lg font-bold">✓</span>
                             </div>
                             <div className="text-left">
@@ -186,8 +186,8 @@ export default function GradesView() {
                             </div>
                         </div>
 
-                        <div className="bg-white border border-border p-4.5 rounded-xl shadow-xs flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-lg bg-red-50 text-red-500 flex items-center justify-center shrink-0 border border-red-100">
+                        <div className="bg-white border border-border p-3 rounded-none shadow-none flex items-center gap-2">
+                            <div className="w-10 h-10 rounded-none bg-red-50 text-red-500 flex items-center justify-center shrink-0 border border-red-100">
                                 <span className="text-lg font-bold">✗</span>
                             </div>
                             <div className="text-left">
@@ -198,15 +198,15 @@ export default function GradesView() {
                     </div>
 
                     {/* Tabla de Calificaciones con Scroll Aislado */}
-                    <div className="bg-white border border-border p-5 rounded-xl shadow-xs space-y-4">
-                        <div className="flex items-center gap-2 border-b border-border pb-3.5">
+                    <div className="bg-white border border-border p-3 rounded-none shadow-none space-y-2">
+                        <div className="flex items-center gap-2 border-b border-border pb-2">
                             <FileSpreadsheet className="text-primary" size={20} />
                             <h3 className="font-heading font-extrabold text-text-heading text-base">
                                 Calificaciones Detalladas — {selectedPeriod}
                             </h3>
                         </div>
 
-                        <div className="w-full overflow-x-auto border border-border rounded-xl shadow-sm">
+                        <div className="w-full overflow-x-auto border border-border rounded-none shadow-none">
                             <div 
                                 className="overflow-y-auto max-h-[380px] min-w-[900px]" 
                                 style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(13,82,44,0.2) transparent' }}

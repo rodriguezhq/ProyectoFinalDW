@@ -240,10 +240,10 @@ export default function MatriculaEstudiante() {
     const totalCreditosElegidos = seccionesElegidas.reduce((acc, s) => acc + s.creditos, 0);
 
     return (
-        <div className=" mx-auto flex flex-col gap-6 animate-fade-in pb-12">
+        <div className="mx-auto flex flex-col gap-3 lg:px-2 animate-fade-in pb-4">
 
             {/* Header del Proceso */}
-            <div className="bg-bg-alt/50 border border-border p-5 rounded-none flex flex-wrap justify-between items-center gap-4 shadow-xs">
+            <div className="bg-bg-alt/50 border border-border p-4 rounded-none flex flex-wrap justify-between items-center gap-2 shadow-none">
                 <div className="flex flex-col gap-1">
                     <span className="text-[0.68rem] font-bold text-text-muted uppercase tracking-wider">Plan de Estudios</span>
                     <h3 className="font-heading font-extrabold text-xl text-text-heading">Matrícula en Línea — Periodo {oferta.periodo_nombre}</h3>
@@ -251,18 +251,18 @@ export default function MatriculaEstudiante() {
                 <div className="flex items-center gap-4">
                     {oferta.ya_matriculado ? (
                         oferta.estado === 'confirmada' ? (
-                            <div className="bg-emerald-50 border border-emerald-200 px-4 py-2 rounded-none flex items-center gap-2 text-emerald-800 text-sm font-bold">
+                            <div className="bg-emerald-50 border border-emerald-200 px-4 py-2 rounded-xl flex items-center gap-2 text-emerald-800 text-sm font-bold">
                                 <CheckCircle2 className="text-emerald-600" size={18} />
                                 Estado: Matrícula Confirmada
                             </div>
                         ) : (
                             <div className="bg-amber-50 border border-amber-200 px-4 py-2 rounded-none flex items-center gap-2 text-amber-800 text-sm font-bold">
                                 <Clock className="text-amber-600 animate-pulse" size={18} />
-                                Estado: Matrícula Pendiente
+                                Estado: Pendiente de Validación
                             </div>
                         )
                     ) : (
-                        <div className="bg-primary/5 border border-primary/15 px-4 py-2 rounded-none flex items-center gap-2 text-primary text-sm font-bold">
+                        <div className="bg-primary/5 border border-primary/15 px-4 py-2 rounded-xl flex items-center gap-2 text-primary text-sm font-bold">
                             <Clock size={18} />
                             Estado: Matrícula Abierta
                         </div>
@@ -271,7 +271,7 @@ export default function MatriculaEstudiante() {
             </div>
 
             {/* Panel Superior: Calendario Semanal de Horario */}
-            <div className="bg-white border border-border rounded-none p-5 shadow-xs flex flex-col gap-4">
+            <div className="bg-white border border-border rounded-none p-4 shadow-none flex flex-col gap-3">
                 <div className="flex items-center justify-between border-b border-border pb-4">
                     <div className="flex items-center gap-2">
                         <CalendarDays className="text-primary" size={22} />
@@ -335,10 +335,10 @@ export default function MatriculaEstudiante() {
 
             {/* Listado de Cursos y Secciones */}
             {oferta.ya_matriculado ? (
-                <div className="flex flex-col gap-6">
+                <div className="flex flex-col gap-3">
                     {/* Banner de confirmación y descarga */}
                     {oferta.estado === 'confirmada' ? (
-                        <div className="bg-emerald-50 border border-emerald-200 p-5 rounded-none flex flex-col md:flex-row items-center gap-4 text-emerald-900 shadow-xs">
+                        <div className="bg-emerald-50 border border-emerald-200 p-5 rounded-2xl flex flex-col md:flex-row items-center gap-4 text-emerald-900 shadow-sm">
                             <CheckCircle2 className="text-emerald-600 shrink-0" size={36} />
                             <div className="grow text-center md:text-left">
                                 <h3 className="font-heading font-extrabold text-lg leading-tight">Matrícula Registrada Oficialmente</h3>
@@ -366,7 +366,7 @@ export default function MatriculaEstudiante() {
                             </div>
                         </div>
                     ) : (
-                        <div className="bg-amber-50 border border-amber-200 p-5 rounded-none flex flex-col md:flex-row items-center gap-4 text-amber-900 shadow-xs">
+                        <div className="bg-amber-50 border border-amber-200 p-5 rounded-2xl flex flex-col md:flex-row items-center gap-4 text-amber-900 shadow-sm">
                             <Clock className="text-amber-600 animate-pulse shrink-0" size={36} />
                             <div className="grow text-center md:text-left">
                                 <h3 className="font-heading font-extrabold text-lg leading-tight">Matrícula Pendiente</h3>
@@ -385,7 +385,7 @@ export default function MatriculaEstudiante() {
                     )}
 
                     {/* Tabla de asignaturas inscritas y confirmadas */}
-                    <div className="bg-white border border-border rounded-none overflow-hidden shadow-xs">
+                    <div className="bg-white border border-border rounded-2xl overflow-hidden shadow-xs">
                         <div className="p-5 border-b border-border bg-bg-alt/50 flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <BookOpen className="text-primary" size={20} />
@@ -436,15 +436,15 @@ export default function MatriculaEstudiante() {
                     </div>
                 </div>
             ) : (
-                <form onSubmit={manejarEnvioMatricula} className="flex flex-col gap-6">
-                    <div className="flex flex-col gap-4">
-                        <h4 className="font-heading font-bold text-text-heading border-b border-border pb-2">Asignaturas Disponibles de tu Ciclo</h4>
+                <form onSubmit={manejarEnvioMatricula} className="flex flex-col gap-3">
+                    <div className="flex flex-col gap-3">
+                        <h4 className="font-heading font-bold text-text-heading border-b border-border pb-1">Asignaturas Disponibles de tu Ciclo</h4>
 
                         {oferta.cursos.map(curso => {
                             const seccionSeleccionada = seccionesElegidas.find(s => s.id_curso === curso.id_curso);
 
                             return (
-                                <div key={curso.id_curso} className="bg-white border border-border p-5 rounded-none flex flex-col gap-4 hover:border-primary/25 transition-all shadow-xs">
+                                <div key={curso.id_curso} className="bg-white border border-border p-5 rounded-2xl flex flex-col gap-4 hover:border-primary/25 transition-all shadow-xs">
                                     {/* Cabecera del Curso */}
                                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
                                         <div className="flex flex-col">
@@ -469,7 +469,7 @@ export default function MatriculaEstudiante() {
                                             return (
                                                 <div
                                                     key={seccion.id_seccion}
-                                                    className={`p-3.5 border rounded-none flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all ${esAgregada ? 'bg-primary/5 border-primary/30' : 'bg-bg-alt/20 border-border/70'}`}
+                                                    className={`p-3.5 border rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all ${esAgregada ? 'bg-primary/5 border-primary/30' : 'bg-bg-alt/20 border-border/70'}`}
                                                 >
                                                     <div className="grow flex flex-col sm:flex-row sm:items-center gap-x-6 gap-y-2">
                                                         <div className="flex flex-col shrink-0">
@@ -538,7 +538,7 @@ export default function MatriculaEstudiante() {
                     </div>
 
                     {/* Botón flotante / final de matrícula */}
-                    <div className="flex items-center justify-between p-4 border-t border-border mt-4 bg-bg-alt/25 rounded-none">
+                    <div className="flex items-center justify-between p-4 border-t border-border mt-4 bg-bg-alt/25 rounded-2xl">
                         <div className="flex flex-col">
                             <span className="text-[0.68rem] font-bold text-text-muted uppercase">Créditos de Matrícula</span>
                             <span className="text-sm font-bold text-text-heading mt-0.5">

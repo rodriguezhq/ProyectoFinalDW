@@ -67,7 +67,7 @@ export default function MisCertificados() {
   };
 
   return (
-    <div className="flex flex-col gap-6 animate-slide-up">
+    <div className="flex flex-col gap-3 lg:px-2 animate-slide-up">
       <div>
         <h3 className="flex items-center gap-2 font-heading text-[1.25rem] font-extrabold text-text-heading mb-1">
           <FileText size={20} /> Certificados y Constancias
@@ -75,7 +75,7 @@ export default function MisCertificados() {
         <p className="text-[0.88rem] text-text-muted">Solicita certificados y constancias en línea y sigue su estado.</p>
       </div>
 
-      <form onSubmit={manejarSolicitar} className="bg-white border border-border rounded-none shadow-sm p-4 flex flex-col sm:flex-row gap-3 sm:items-end">
+      <form onSubmit={manejarSolicitar} className="bg-white border border-border rounded-none shadow-none p-3 flex flex-col sm:flex-row gap-2 sm:items-end">
         <div className="flex flex-col gap-1.5 grow">
           <label htmlFor="tipo-documento" className="text-[0.78rem] font-bold text-text-muted uppercase">Tipo de documento</label>
           <select
@@ -92,13 +92,13 @@ export default function MisCertificados() {
         <button
           type="submit"
           disabled={enviando}
-          className="flex items-center justify-center gap-1.5 bg-primary text-white py-2.5 px-5 text-[0.88rem] font-bold rounded-md transition-all duration-300 hover:bg-primary-hover shadow-sm cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+          className="flex items-center justify-center gap-1.5 bg-primary text-white py-2.5 px-5 text-[0.88rem] font-bold rounded-none transition-all duration-300 hover:bg-primary-hover shadow-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
         >
           <Send size={16} /> {enviando ? 'Enviando...' : 'Solicitar'}
         </button>
       </form>
 
-      <div className="bg-white border border-border rounded-none  shadow-sm overflow-hidden">
+      <div className="bg-white border border-border rounded-none shadow-none overflow-hidden">
         {estaCargando ? (
           <div className="p-12 text-center">
             <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-3"></div>
@@ -130,7 +130,7 @@ export default function MisCertificados() {
                         {new Date(doc.fecha_solicitado).toLocaleDateString()}
                       </td>
                       <td className="p-2 border-r border-border/60 text-center">
-                        <span className={`inline-block py-0.5 px-2.5 rounded-full font-bold border ${ESTADO_ESTILOS[doc.estado] || 'bg-slate-100 text-slate-600 border-slate-200'}`}>
+                        <span className={`inline-block py-0.5 px-2 rounded-none font-bold border ${ESTADO_ESTILOS[doc.estado] || 'bg-slate-100 text-slate-600 border-slate-200'}`}>
                           {ESTADO_LABEL[doc.estado] || doc.estado}
                         </span>
                       </td>
