@@ -165,6 +165,7 @@ class EstudianteFactory(factory.alchemy.SQLAlchemyModelFactory):
     apellidos = factory.LazyFunction(lambda: f"{fake.last_name()} {fake.last_name()}")
     dni = factory.Sequence(lambda n: str(72000000 + RUN_OFFSET + n))
     telefono = factory.LazyFunction(lambda: f"9{random.randint(10000000, 99999999)}")
+    ciclo = 1
     estado = "activo"
 
     @factory.lazy_attribute
@@ -436,6 +437,37 @@ def _secciones_disponibles(ctx, especialidad_codigo, periodo):
     return list(pares_por_curso.values())
 
 
+def calcular_ciclo_estudiante(estudiante, id_periodo_actual):
+    """
+    Calcula el ciclo actual en base a las matriculas del estudiante.
+    """
+    matricula_actual = Matricula.query.filter_by(
+        id_estudiante=estudiante.id_estudiante, id_periodo=id_periodo_actual
+    ).first()
+    if matricula_actual:
+        for det in matricula_actual.detalles:
+            if det.seccion and det.seccion.ciclo:
+                return det.seccion.ciclo
+
+    matricula_pasada = (
+        Matricula.query.filter(
+            Matricula.id_estudiante == estudiante.id_estudiante,
+            Matricula.id_periodo != id_periodo_actual,
+        )
+        .order_by(Matricula.id_periodo.desc())
+        .first()
+    )
+    if matricula_pasada:
+        ciclo_max = 0
+        for det in matricula_pasada.detalles:
+            if det.seccion and det.seccion.ciclo:
+                ciclo_max = max(ciclo_max, det.seccion.ciclo)
+        if ciclo_max > 0:
+            return min(ciclo_max + 1, 10)
+
+    return 1
+
+
 def generar_estudiantes(ctx, cantidad):
     print(f"Creando {cantidad} estudiantes nuevos (con matriculas, notas y pagos)...")
     pw = generate_password_hash(DEMO_PASSWORD)
@@ -494,6 +526,10 @@ def generar_estudiantes(ctx, cantidad):
             if pares:
                 _matricular(ctx, estudiante, periodo, pares, en_curso=False)
                 pagos_creados += 1
+
+        # Calcular y persistir el ciclo del estudiante segun las matriculas generadas
+        estudiante.ciclo = calcular_ciclo_estudiante(estudiante, ctx["periodo_actual"].id_periodo)
+        db.session.commit()
 
     print(f"  -> {pagos_creados} matriculas (con su pago) generadas para los nuevos estudiantes.")
 
@@ -670,7 +706,8 @@ def run(n_docentes, n_estudiantes, n_documentos, n_auditoria, n_facultades, n_ad
     generar_admins(ctx, n_admins)
     generar_docentes(ctx, n_docentes)
     generar_estudiantes(ctx, n_estudiantes)
-    generar_silabos(ctx)
+    # Se deshabilita la generacion automatica de silabos para cumplir con la regla de que inicien sin silabo
+    # generar_silabos(ctx)
     generar_documentos(ctx, n_documentos)
     generar_auditoria(ctx, n_auditoria)
 
