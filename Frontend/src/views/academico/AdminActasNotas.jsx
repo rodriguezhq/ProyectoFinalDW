@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { obtenerEspecialidades, obtenerPeriodos } from '../../services/servicioAcademico';
-import { obtenerConsolidadoEspecialidad } from '../../services/servicioDireccion';
+import { obtenerConsolidadoEspecialidad, exportarConsolidadoEspecialidadApi } from '../../services/servicioDireccion';
 import { obtenerActasPeriodo, obtenerDetalleActa, validarActa } from '../../services/servicioActas';
 import ConsolidadoAdminTable from '../../components/administrador/ConsolidadoAdminTable';
 import { 
@@ -11,7 +11,7 @@ import {
     CheckCircle, 
     FolderCheck
 } from 'lucide-react';
-import { exportarConsolidadoCSV, exportarConsolidadoPDF } from '../../utils/exportUtils';
+import { descargarBlob } from '../../utils/exportUtils';
 
 import FiltrosActas from './components/FiltrosActas';
 import TablaActas from './components/TablaActas';
@@ -220,21 +220,36 @@ export default function AdminActasNotas() {
         : '0.0';
 
     // --- EXPORTACIONES ---
-    const exportarExcel = () => {
-        if (alumnosFiltrados.length === 0) return;
-        const espNombre = especialidades.find(e => e.id_especialidad.toString() === selectedEspecialidad)?.nombre || 'Reporte';
-        exportarConsolidadoCSV(alumnosFiltrados, espNombre);
+    const exportarExcel = async () => {
+        try {
+            setError(null);
+            setLoading(true);
+            const espNombre = especialidades.find(e => e.id_especialidad.toString() === selectedEspecialidad)?.nombre || 'Reporte';
+            const blob = await exportarConsolidadoEspecialidadApi(selectedEspecialidad, 'csv');
+            descargarBlob(blob, `Consolidado_${espNombre.replace(/\s+/g, '_')}.csv`);
+        } catch (err) {
+            console.error(err);
+            setError('Error al exportar consolidado a Excel.');
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const exportarPDF = () => {
-        if (alumnosFiltrados.length === 0) return;
-        const espNombre = especialidades.find(e => e.id_especialidad.toString() === selectedEspecialidad)?.nombre || 'Reporte';
-        exportarConsolidadoPDF(alumnosFiltrados, espNombre, {
-            totalAlumnos,
-            promedioPpaGlobal,
-            promCreditosAprobados
-        });
+    const exportarPDF = async () => {
+        try {
+            setError(null);
+            setLoading(true);
+            const espNombre = especialidades.find(e => e.id_especialidad.toString() === selectedEspecialidad)?.nombre || 'Reporte';
+            const blob = await exportarConsolidadoEspecialidadApi(selectedEspecialidad, 'pdf');
+            descargarBlob(blob, `Consolidado_${espNombre.replace(/\s+/g, '_')}.pdf`);
+        } catch (err) {
+            console.error(err);
+            setError('Error al exportar consolidado a PDF.');
+        } finally {
+            setLoading(false);
+        }
     };
+
 
     return (
         <>

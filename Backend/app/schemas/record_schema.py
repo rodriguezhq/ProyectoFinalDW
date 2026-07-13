@@ -106,3 +106,9 @@ class CohortPerformanceResponse(BaseModel):
     page: int
     per_page: int
     hay_mas: bool
+
+
+class ExportQuery(BaseModel):
+    id_especialidad: Optional[int] = Field(None, description="ID de la especialidad para filtrar")
+    formato: str = Field("csv", description="Formato del archivo: 'csv' o 'pdf'")
+

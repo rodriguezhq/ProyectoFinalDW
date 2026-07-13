@@ -8,11 +8,14 @@ from app.schemas.record_schema import (
     StudentRecordResponse,
     ConsolidatedReportResponse,
     CohortPerformanceResponse,
+    ExportQuery,
 )
 from app.schemas.common_schema import MessageResponse
 from app.utils.decorators import role_required
-from app.services import record_service
+from app.services import record_service, export_service
 from app.models.usuario import Usuario
+from app.models.especialidad import Especialidad
+
 
 records_tag = Tag(
     name="Récord Académico",
@@ -93,3 +96,80 @@ def consultar_desempeno_cohortes(query: RecordQuery):
         "per_page": query.per_page,
         "hay_mas": (query.page * query.per_page) < total,
     }, 200
+
+
+@records_bp.get(
+    "/consolidado/export",
+    summary="Exportar reporte consolidado (CSV o PDF)",
+    description="Genera y descarga el archivo de exportación de todo el consolidado de estudiantes según el formato especificado.",
+    responses={400: MessageResponse, 404: MessageResponse},
+    security=[{"jwt": []}],
+)
+@role_required("Administrador", "Direccion")
+def exportar_consolidado(query: ExportQuery):
+    """Exporta el reporte consolidado."""
+    if query.formato not in ("csv", "pdf"):
+        return {"msg": "Formato no válido. Debe ser 'csv' o 'pdf'"}, 400
+        
+    especialidad_nombre = "General"
+    if query.id_especialidad:
+        especialidad = Especialidad.query.get(query.id_especialidad)
+        if especialidad:
+            especialidad_nombre = especialidad.nombre
+            
+    reporte, total, resumen_global = record_service.obtener_reporte_consolidado(query.id_especialidad, page=None, per_page=None)
+    
+    if query.formato == "csv":
+        data_bytes = export_service.generar_consolidado_csv(reporte)
+        mimetype = "text/csv"
+        filename = f"Consolidado_{especialidad_nombre.replace(' ', '_')}.csv"
+    else:
+        data_bytes = export_service.generar_consolidado_pdf(reporte, especialidad_nombre, resumen_global)
+        mimetype = "application/pdf"
+        filename = f"Consolidado_{especialidad_nombre.replace(' ', '_')}.pdf"
+        
+    from flask import Response
+    return Response(
+        data_bytes,
+        mimetype=mimetype,
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
+
+
+@records_bp.get(
+    "/desempeno/export",
+    summary="Exportar desempeño de cohortes (CSV o PDF)",
+    description="Genera y descarga el archivo de exportación de todo el desempeño por cohortes según el formato especificado.",
+    responses={400: MessageResponse, 404: MessageResponse},
+    security=[{"jwt": []}],
+)
+@role_required("Direccion")
+def exportar_desempeno(query: ExportQuery):
+    """Exporta el reporte de desempeño por cohorte."""
+    if query.formato not in ("csv", "pdf"):
+        return {"msg": "Formato no válido. Debe ser 'csv' o 'pdf'"}, 400
+        
+    especialidad_nombre = "General"
+    if query.id_especialidad:
+        especialidad = Especialidad.query.get(query.id_especialidad)
+        if especialidad:
+            especialidad_nombre = especialidad.nombre
+            
+    desempeno, total, resumen_global = record_service.obtener_desempeno_cohortes(query.id_especialidad, page=None, per_page=None)
+    
+    if query.formato == "csv":
+        data_bytes = export_service.generar_cohortes_csv(desempeno)
+        mimetype = "text/csv"
+        filename = f"Desempeno_Cohortes_{especialidad_nombre.replace(' ', '_')}.csv"
+    else:
+        data_bytes = export_service.generar_cohortes_pdf(desempeno, especialidad_nombre, resumen_global)
+        mimetype = "application/pdf"
+        filename = f"Desempeno_Cohortes_{especialidad_nombre.replace(' ', '_')}.pdf"
+        
+    from flask import Response
+    return Response(
+        data_bytes,
+        mimetype=mimetype,
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
+

@@ -33,3 +33,24 @@ export async function obtenerConsolidadoEspecialidad(idEspecialidad = '', page =
   return respuesta.json();
 }
 
+// Exporta el consolidado de alumnos por especialidad en formato CSV o PDF
+export async function exportarConsolidadoEspecialidadApi(idEspecialidad = '', formato = 'csv') {
+  let url = `/api/records/consolidado/export?formato=${formato}`;
+  if (idEspecialidad) url += `&id_especialidad=${idEspecialidad}`;
+
+  const respuesta = await consultarApi(url, { method: 'GET' });
+  if (!respuesta.ok) throw new Error('Error al exportar el consolidado académico');
+  return respuesta.blob();
+}
+
+// Exporta el desempeño académico por cohorte en formato CSV o PDF
+export async function exportarDesempenoCohortesApi(idEspecialidad = '', formato = 'csv') {
+  let url = `/api/records/desempeno/export?formato=${formato}`;
+  if (idEspecialidad) url += `&id_especialidad=${idEspecialidad}`;
+
+  const respuesta = await consultarApi(url, { method: 'GET' });
+  if (!respuesta.ok) throw new Error('Error al exportar el desempeño por cohorte');
+  return respuesta.blob();
+}
+
+
