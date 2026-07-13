@@ -5,6 +5,7 @@ export default function TablaRegistroNotas({ notesList, onSaveGrade }) {
     // Estado local para almacenar las notas editadas de cada estudiante
     const [localGrades, setLocalGrades] = useState({});
     const [savingIds, setSavingIds] = useState({});
+    const [confirmModal, setConfirmModal] = useState(null);
 
     // Sincronizar el estado local cuando cambia la lista recibida por props
     useEffect(() => {
@@ -19,6 +20,32 @@ export default function TablaRegistroNotas({ notesList, onSaveGrade }) {
         });
         setLocalGrades(initialGrades);
     }, [notesList]);
+
+    const calcularPromedioLocal = (grades) => {
+        if (!grades) return null;
+        const p1 = grades.parcial1 !== '' ? parseFloat(grades.parcial1) : null;
+        const p2 = grades.parcial2 !== '' ? parseFloat(grades.parcial2) : null;
+        const fin = grades.final !== '' ? parseFloat(grades.final) : null;
+        const sust = grades.sustitutorio !== '' ? parseFloat(grades.sustitutorio) : null;
+
+        // Si falta alguna nota principal, no se calcula promedio
+        if (p1 === null || p2 === null || fin === null || isNaN(p1) || isNaN(p2) || isNaN(fin)) {
+            return null;
+        }
+
+        let notas = [p1, p2, fin];
+        if (sust !== null && !isNaN(sust)) {
+            // Reemplaza la nota más baja si el sustitutorio es mayor
+            const minNota = Math.min(...notas);
+            const idxMin = notas.indexOf(minNota);
+            if (sust > minNota) {
+                notas[idxMin] = sust;
+            }
+        }
+
+        const promedio = notas.reduce((acc, val) => acc + val, 0) / 3;
+        return parseFloat(promedio.toFixed(2));
+    };
 
     const handleInputChange = (idDetalle, campo, valor) => {
         // Filtrar para permitir solo números enteros o decimales en formato básico (ej: "15" o "15.5")
@@ -43,7 +70,7 @@ export default function TablaRegistroNotas({ notesList, onSaveGrade }) {
         }));
     };
 
-    const handleSave = async (idDetalle) => {
+    const handleSaveClick = (idDetalle, studentName, studentCodigo) => {
         const grades = localGrades[idDetalle];
         if (!grades) return;
 
@@ -60,6 +87,23 @@ export default function TablaRegistroNotas({ notesList, onSaveGrade }) {
             return;
         }
 
+        const promedio = calcularPromedioLocal(grades);
+        const estado = promedio !== null ? (promedio >= 10.5 ? 'aprobada' : 'desaprobada') : 'sin_nota';
+
+        setConfirmModal({
+            idDetalle,
+            studentName,
+            studentCodigo,
+            grades,
+            promedio,
+            estado
+        });
+    };
+
+    const handleConfirmSave = async () => {
+        if (!confirmModal) return;
+        const { idDetalle, grades } = confirmModal;
+        setConfirmModal(null);
         try {
             setSavingIds(prev => ({ ...prev, [idDetalle]: true }));
             await onSaveGrade(idDetalle, grades);
@@ -140,11 +184,13 @@ export default function TablaRegistroNotas({ notesList, onSaveGrade }) {
                                 const currentLocal = localGrades[idDetalle] || { parcial1: '', parcial2: '', final: '', sustitutorio: '' };
                                 const isSaving = savingIds[idDetalle] || false;
 
-                                // Color del promedio: Verde si es aprobada (>= 10.5), rojo si es desaprobada, gris si está vacía
-                                const esAprobado = item.promedio !== null && item.promedio >= 10.5;
-                                const colorPromedio = item.promedio === null
+                                const promedioLocal = calcularPromedioLocal(currentLocal);
+                                const displayPromedio = promedioLocal !== null ? promedioLocal : item.promedio;
+                                const esAprobado = displayPromedio !== null && displayPromedio >= 10.5;
+                                const colorPromedio = displayPromedio === null
                                     ? 'text-text-muted'
                                     : (esAprobado ? 'text-emerald-600 font-extrabold' : 'text-red-600 font-extrabold');
+                                const estadoLocal = promedioLocal !== null ? (promedioLocal >= 10.5 ? 'aprobada' : 'desaprobada') : item.estado;
 
                                 return (
                                     <tr key={idDetalle} className="hover:bg-bg-alt/45 transition-colors">
@@ -205,19 +251,19 @@ export default function TablaRegistroNotas({ notesList, onSaveGrade }) {
 
                                         {/* Promedio */}
                                         <td className={`p-4 text-center font-mono ${colorPromedio}`}>
-                                            {item.promedio !== null ? item.promedio.toFixed(2) : '-'}
+                                            {displayPromedio !== null ? displayPromedio.toFixed(2) : '-'}
                                         </td>
 
                                         {/* Estado */}
                                         <td className="p-4 text-center">
-                                            {renderEstadoBadge(item.estado)}
+                                            {renderEstadoBadge(estadoLocal)}
                                         </td>
 
                                         {/* Acciones */}
                                         <td className="p-4 text-center">
                                             <button
                                                 type="button"
-                                                onClick={() => handleSave(idDetalle)}
+                                                onClick={() => handleSaveClick(idDetalle, item.estudiante_nombre, item.estudiante_codigo)}
                                                 disabled={isSaving}
                                                 className="bg-primary text-white p-2 rounded-lg hover:bg-primary-hover shadow-sm transition-all disabled:opacity-50 inline-flex items-center justify-center cursor-pointer"
                                                 title="Guardar notas del estudiante"
@@ -236,6 +282,99 @@ export default function TablaRegistroNotas({ notesList, onSaveGrade }) {
                     </table>
                 </div>
             </div>
+
+            {/* Modal de Confirmación */}
+            {confirmModal && (
+                <div 
+                    className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/55 backdrop-blur-xs animate-fade-in"
+                    onClick={() => setConfirmModal(null)}
+                >
+                    <div 
+                        className="bg-white rounded-none border-2 border-border shadow-2xl max-w-md w-full flex flex-col overflow-hidden animate-scale-in"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Cabecera */}
+                        <div className="bg-slate-50 border-b border-border p-4 flex justify-between items-center rounded-none">
+                            <h3 className="font-heading font-black text-xs uppercase tracking-wider text-text-heading">
+                                Confirmar Registro de Notas
+                            </h3>
+                            <button 
+                                type="button" 
+                                onClick={() => setConfirmModal(null)}
+                                className="text-text-muted hover:text-text-heading transition-colors cursor-pointer text-sm font-bold"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        {/* Contenido */}
+                        <div className="p-5 space-y-4">
+                            <div className="bg-slate-50 border border-border p-3 rounded-none">
+                                <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider">Estudiante</p>
+                                <p className="font-bold text-text-heading text-sm mt-0.5">{confirmModal.studentName}</p>
+                                <p className="font-mono text-xs text-text-muted mt-0.5">Código: {confirmModal.studentCodigo}</p>
+                            </div>
+
+                            <div>
+                                <p className="text-[10px] text-text-muted uppercase font-bold tracking-wider mb-2">Detalle de Calificaciones</p>
+                                <div className="grid grid-cols-4 gap-2 text-center text-xs">
+                                    <div className="bg-bg-alt border border-border p-2 rounded-none">
+                                        <span className="block font-semibold text-text-muted text-[10px] uppercase">P1</span>
+                                        <span className="block font-bold text-text-heading mt-1">{confirmModal.grades.parcial1 || '-'}</span>
+                                    </div>
+                                    <div className="bg-bg-alt border border-border p-2 rounded-none">
+                                        <span className="block font-semibold text-text-muted text-[10px] uppercase">P2</span>
+                                        <span className="block font-bold text-text-heading mt-1">{confirmModal.grades.parcial2 || '-'}</span>
+                                    </div>
+                                    <div className="bg-bg-alt border border-border p-2 rounded-none">
+                                        <span className="block font-semibold text-text-muted text-[10px] uppercase">EF</span>
+                                        <span className="block font-bold text-text-heading mt-1">{confirmModal.grades.final || '-'}</span>
+                                    </div>
+                                    <div className="bg-bg-alt border border-border p-2 rounded-none">
+                                        <span className="block font-semibold text-text-muted text-[10px] uppercase">ES</span>
+                                        <span className="block font-bold text-text-heading mt-1">{confirmModal.grades.sustitutorio || '-'}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="border-t border-border pt-3 flex justify-between items-center">
+                                <div>
+                                    <span className="block text-[10px] text-text-muted uppercase font-bold tracking-wider">Promedio Estimado</span>
+                                    <span className={`text-lg font-mono font-black ${
+                                        confirmModal.promedio === null 
+                                            ? 'text-text-muted' 
+                                            : (confirmModal.promedio >= 10.5 ? 'text-emerald-600' : 'text-red-600')
+                                    }`}>
+                                        {confirmModal.promedio !== null ? confirmModal.promedio.toFixed(2) : '-'}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="block text-[10px] text-text-muted uppercase font-bold tracking-wider text-right mb-1">Estado Estimado</span>
+                                    {renderEstadoBadge(confirmModal.estado)}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Acciones */}
+                        <div className="bg-slate-50 border-t border-border p-4 flex justify-end gap-3 rounded-none">
+                            <button
+                                type="button"
+                                onClick={() => setConfirmModal(null)}
+                                className="py-1.5 px-3 bg-white border border-border hover:bg-slate-100 text-text-heading font-bold text-xs uppercase tracking-wider transition-colors rounded-none cursor-pointer"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleConfirmSave}
+                                className="py-1.5 px-4 bg-primary text-white hover:bg-primary-hover font-bold text-xs uppercase tracking-wider transition-colors rounded-none cursor-pointer flex items-center gap-1.5"
+                            >
+                                Confirmar y Guardar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
