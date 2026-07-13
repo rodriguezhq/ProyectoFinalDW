@@ -404,7 +404,7 @@ export default function MatriculaEstudiante() {
                                         <th className="py-3 px-5">Asignatura</th>
                                         <th className="py-3 px-5 text-center">Sección</th>
                                         <th className="py-3 px-5 text-center">Créditos</th>
-                                        <th className="py-3 px-5">Horario Programado</th>
+                                        <th className="py-3 px-5 min-w-[200px] sm:min-w-0">Horario Programado</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -538,7 +538,7 @@ export default function MatriculaEstudiante() {
                     </div>
 
                     {/* Botón flotante / final de matrícula */}
-                    <div className="flex items-center justify-between p-4 border-t border-border mt-4 bg-bg-alt/25 rounded-2xl">
+                    <div className="flex items-center justify-between p-4 border-t border-border mt-4 bg-bg-alt/25 rounded-none md:rounded-2xl">
                         <div className="flex flex-col">
                             <span className="text-[0.68rem] font-bold text-text-muted uppercase">Créditos de Matrícula</span>
                             <span className="text-sm font-bold text-text-heading mt-0.5">
