@@ -26,6 +26,10 @@ from reportlab.lib import colors
 
 
 def _obtener_ciclo_estudiante(estudiante, periodo_actual_id):
+    # Si el ciclo está registrado directamente en el estudiante, usarlo
+    if estudiante.ciclo is not None:
+        return estudiante.ciclo
+
     # 1. Si ya tiene matricula en el periodo actual
     matricula_actual = Matricula.query.filter_by(
         id_estudiante=estudiante.id_estudiante, id_periodo=periodo_actual_id
@@ -167,21 +171,23 @@ def obtener_oferta_academica_ctrl():
                             "docente_nombre": docente_nombre
                         })
 
-            lista_secciones_oferta.append({
-                "id_seccion": sec.id_seccion,
-                "codigo": sec.codigo,
-                "ciclo": sec.ciclo,
-                "horarios": bloques_sec
-            })
+            if len(bloques_sec) > 0:
+                lista_secciones_oferta.append({
+                    "id_seccion": sec.id_seccion,
+                    "codigo": sec.codigo,
+                    "ciclo": sec.ciclo,
+                    "horarios": bloques_sec
+                })
 
-        lista_cursos_oferta.append({
-            "id_curso": curso.id_curso,
-            "codigo": curso.codigo,
-            "nombre": curso.nombre,
-            "creditos": curso.creditos,
-            "ciclo": curso.ciclo,
-            "secciones": lista_secciones_oferta
-        })
+        if len(lista_secciones_oferta) > 0:
+            lista_cursos_oferta.append({
+                "id_curso": curso.id_curso,
+                "codigo": curso.codigo,
+                "nombre": curso.nombre,
+                "creditos": curso.creditos,
+                "ciclo": curso.ciclo,
+                "secciones": lista_secciones_oferta
+            })
 
     return {
         "ya_matriculado": False,
@@ -276,7 +282,7 @@ def registrar_matricula_estudiante_ctrl(body):
         id_estudiante=estudiante.id_estudiante,
         id_periodo=periodo_activo.id_periodo,
         fecha_matricula=datetime.now(),
-        estado="pagada"
+        estado="pendiente"
     )
     db.session.add(nueva_matricula)
     db.session.flush() # Para obtener id_matricula

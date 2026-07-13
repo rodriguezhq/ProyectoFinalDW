@@ -71,7 +71,7 @@ class DniDuplicadoError(Exception):
     pass
 
 
-def crear_usuario(username, id_rol, id_estudiante=None, id_docente=None, nombres=None, apellidos=None, correo=None, codigo=None, dni=None, id_facultad=None, id_especialidad=None):
+def crear_usuario(username, id_rol, id_estudiante=None, id_docente=None, nombres=None, apellidos=None, correo=None, codigo=None, dni=None, id_facultad=None, id_especialidad=None, ciclo=None):
     if Usuario.query.filter_by(username=username).first():
         raise UsernameDuplicadoError()
     rol = db.session.get(Rol, id_rol)
@@ -114,7 +114,8 @@ def crear_usuario(username, id_rol, id_estudiante=None, id_docente=None, nombres
             apellidos=apellidos or "",
             correo=correo,
             estado="activo",
-            id_especialidad=id_especialidad
+            id_especialidad=id_especialidad,
+            ciclo=ciclo if ciclo is not None else 1
         )
         db.session.add(nuevo_est)
         db.session.flush()
@@ -173,7 +174,7 @@ def listar_usuarios(page=1, per_page=10, rol=None):
     return paginar_query(query, page, per_page)
 
 
-def actualizar_usuario(id_usuario, estado=None, id_rol=None, nombres=None, apellidos=None, correo=None):
+def actualizar_usuario(id_usuario, estado=None, id_rol=None, nombres=None, apellidos=None, correo=None, ciclo=None):
     usuario = db.session.get(Usuario, id_usuario)
     if not usuario:
         raise UsuarioNoEncontradoError()
@@ -189,6 +190,8 @@ def actualizar_usuario(id_usuario, estado=None, id_rol=None, nombres=None, apell
         usuario.apellidos = apellidos
     if correo is not None:
         usuario.correo = correo
+    if ciclo is not None and usuario.estudiante:
+        usuario.estudiante.ciclo = ciclo
     db.session.commit()
     return usuario
 

@@ -61,6 +61,13 @@ def _nota_a_dict(nota):
             if docente:
                 break
 
+    silabo_archivo = None
+    if curso:
+        from app.models.silabo import Silabo
+        silabo_obj = Silabo.query.filter_by(id_curso=curso.id_curso).first()
+        if silabo_obj:
+            silabo_archivo = silabo_obj.archivo
+
     return {
         "id_nota": nota.id_nota,
         "parcial1": float(nota.parcial1) if nota.parcial1 is not None else None,
@@ -77,6 +84,7 @@ def _nota_a_dict(nota):
         "seccion_codigo": "A",  # Simulado
         "periodo_nombre": periodo.nombre if periodo else None,
         "docente_nombre": f"{docente.nombres} {docente.apellidos}" if docente else None,
+        "silabo_archivo": silabo_archivo,
     }
 
 

@@ -184,7 +184,7 @@ export default function SupervisarAcademicoDireccion() {
         </div>
 
         {/* Selector de Periodo */}
-        <div className="flex items-center gap-2 bg-white border border-border px-3 py-2 rounded-lg shadow-sm">
+        <div className="flex items-center gap-2 bg-white border border-border px-3 py-2 rounded-none shadow-xs">
           <Calendar size={16} className="text-text-muted" />
           <select
             value={periodoSeleccionado}
@@ -207,14 +207,14 @@ export default function SupervisarAcademicoDireccion() {
       </div>
 
       {/* Navegación de Pestañas (Tabs) */}
-      <div className="flex overflow-x-auto max-w-full whitespace-nowrap bg-bg-alt/50 p-1.5 rounded-lg gap-1 border border-border scrollbar-none">
+      <div className="flex overflow-x-auto max-w-full whitespace-nowrap bg-bg-alt/50 p-1.5 rounded-none gap-1 border border-border scrollbar-none">
         <button
           type="button"
           onClick={() => {
             setActivoTab('cargaDocente');
             setDocenteHorarioCompleto(null);
           }}
-          className={`flex items-center gap-1.5 py-2 px-5.5 text-[0.88rem] font-bold rounded-md transition-all duration-200 cursor-pointer shrink-0 ${activoTab === 'cargaDocente' ? 'bg-white text-primary shadow-sm border border-border' : 'text-text-muted hover:text-primary hover:bg-white/50'}`}
+          className={`flex items-center gap-1.5 py-2 px-5.5 text-[0.88rem] font-bold rounded-none transition-all duration-200 cursor-pointer shrink-0 ${activoTab === 'cargaDocente' ? 'bg-white text-primary shadow-xs border border-border' : 'text-text-muted hover:text-primary hover:bg-white/50'}`}
         >
           <Users size={16} /> Evaluar Carga Docente
         </button>
@@ -224,7 +224,7 @@ export default function SupervisarAcademicoDireccion() {
             setActivoTab('planEstudios');
             setCarreraDetalleCompleto(null);
           }}
-          className={`flex items-center gap-1.5 py-2 px-5.5 text-[0.88rem] font-bold rounded-md transition-all duration-200 cursor-pointer shrink-0 ${activoTab === 'planEstudios' ? 'bg-white text-primary shadow-sm border border-border' : 'text-text-muted hover:text-primary hover:bg-white/50'}`}
+          className={`flex items-center gap-1.5 py-2 px-5.5 text-[0.88rem] font-bold rounded-none transition-all duration-200 cursor-pointer shrink-0 ${activoTab === 'planEstudios' ? 'bg-white text-primary shadow-xs border border-border' : 'text-text-muted hover:text-primary hover:bg-white/50'}`}
         >
           <BookOpen size={16} /> Cumplimiento de Plan de Estudio
         </button>
@@ -239,11 +239,11 @@ export default function SupervisarAcademicoDireccion() {
             // VISTA HORARIO COMPLETO (Otra ventana / sub-pantalla interactiva)
             <div className="flex flex-col gap-6 animate-fade-in w-full">
               {/* Botón de retroceso y Cabecera del Docente */}
-              <div className="flex items-center gap-3 bg-white p-5 border border-border rounded-xl shadow-xs">
+              <div className="flex items-center gap-3 bg-white p-5 border border-border rounded-none shadow-none">
                 <button
                   type="button"
                   onClick={() => setDocenteHorarioCompleto(null)}
-                  className="p-2 hover:bg-slate-100 rounded-lg text-text-muted hover:text-text-heading transition-all cursor-pointer border border-border flex items-center justify-center"
+                  className="p-2 hover:bg-slate-100 rounded-none text-text-muted hover:text-text-heading transition-all cursor-pointer border border-border flex items-center justify-center"
                   title="Volver a la lista de docentes"
                 >
                   <ArrowLeft size={18} />
@@ -259,13 +259,13 @@ export default function SupervisarAcademicoDireccion() {
               </div>
 
               {/* Grilla Semanal Horaria de Lunes a Viernes */}
-              <div className="bg-white rounded-2xl border border-border shadow-md p-4 md:p-6 mb-4">
+              <div className="bg-white rounded-none border border-border shadow-xs p-4 md:p-6 mb-4">
                 {docenteHorarioCompleto.clases.length === 0 ? (
-                  <div className="py-12 text-center text-text-muted italic bg-slate-50 border border-border border-dashed rounded-xl">
+                  <div className="py-12 text-center text-text-muted italic bg-slate-50 border border-border border-dashed rounded-none">
                     El docente no cuenta con horarios de clases programados en este semestre académico.
                   </div>
                 ) : (
-                  <div className="overflow-x-auto border border-border rounded-xl shadow-sm bg-white">
+                  <div className="overflow-x-auto border border-border rounded-none shadow-xs bg-white">
                     <table className="w-full border-collapse min-w-[900px]">
                       <thead>
                         <tr>
@@ -278,20 +278,11 @@ export default function SupervisarAcademicoDireccion() {
                       <tbody>
                         {franjasHorarias.map((slot, index) => {
                           const horaInicioStr = slot.split(' - ')[0];
-                          const esReceso = horaInicioStr === '13:00';
 
                           return (
-                            <tr key={index} className={esReceso ? 'bg-slate-50' : ''}>
+                            <tr key={index}>
                               <td className="w-[130px] bg-bg-alt font-bold text-text-heading font-heading text-[0.85rem] p-3 border-b border-r border-border last:border-r-0 text-center align-middle">{slot}</td>
                               {diasSemana.filter(d => d !== 'Sábado').map(dia => {
-                                if (esReceso) {
-                                  return (
-                                    <td key={dia} className="bg-slate-50 text-text-muted font-bold font-heading text-[0.85rem] tracking-wider p-3 border-b border-r border-border last:border-r-0 text-center align-middle">
-                                      {dia === 'Lunes' ? <span className="flex items-center justify-center gap-1 text-slate-500"><Coffee size={14} /> RECESO / ALMUERZO</span> : ''}
-                                    </td>
-                                  );
-                                }
-
                                 const claseActiva = obtenerCursoParaSlot(dia, slot);
 
                                 if (claseActiva) {
@@ -306,7 +297,7 @@ export default function SupervisarAcademicoDireccion() {
                                         rowSpan={duracion} 
                                         className="p-1.5 border-b border-r border-border last:border-r-0 text-center text-[0.88rem] align-middle"
                                       >
-                                        <div className={`p-3 px-2.5 rounded-md flex flex-col gap-1 h-full shadow-[0_2px_6px_rgba(0,0,0,0.02)] text-left animate-fade-in ${clasesColor[colorCurso] || ''}`}>
+                                        <div className={`p-3 px-2.5 rounded-none flex flex-col gap-1 h-full shadow-[0_2px_6px_rgba(0,0,0,0.02)] text-left animate-fade-in ${clasesColor[colorCurso] || ''}`}>
                                           <span className="font-bold text-text-heading text-[0.82rem] leading-tight">{claseActiva.curso_nombre}</span>
                                           <div className="flex flex-col gap-0.5 mt-1 border-t border-black/5 pt-1.5">
                                             <span className="text-[0.65rem] font-bold uppercase tracking-wider text-slate-500">
@@ -338,7 +329,7 @@ export default function SupervisarAcademicoDireccion() {
             // LISTADO DE DOCENTES CON FILTRO POR FACULTAD
             <div className="flex flex-col gap-6">
               {/* Panel de Filtro */}
-              <div className="bg-white p-5 border border-border rounded-xl shadow-xs flex flex-col gap-4">
+              <div className="bg-white p-5 border border-border rounded-none shadow-none flex flex-col gap-4">
                 <div className="flex items-center gap-2 border-b border-border pb-3">
                   <ListFilter size={18} className="text-primary" />
                   <span className="text-[0.88rem] font-bold text-text-heading">Filtrar Docentes</span>
@@ -351,7 +342,7 @@ export default function SupervisarAcademicoDireccion() {
                     <select
                       value={filtroFacultadDocente}
                       onChange={(e) => setFiltroFacultadDocente(e.target.value)}
-                      className="p-2.5 border border-border rounded-lg text-[0.85rem] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white w-full"
+                      className="p-2.5 border border-border rounded-none text-[0.85rem] focus:outline-none focus:border-primary bg-white w-full"
                     >
                       <option value="">Todas las Facultades</option>
                       {facultades.map(f => (
@@ -363,7 +354,7 @@ export default function SupervisarAcademicoDireccion() {
               </div>
 
               {/* Listado de Docentes */}
-              <div className="bg-white border border-border rounded-xl shadow-sm overflow-hidden">
+              <div className="bg-white border border-border rounded-none shadow-xs overflow-hidden">
                 {cargandoCarga ? (
                   <div className="p-12 text-center">
                     <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-3"></div>
@@ -404,7 +395,7 @@ export default function SupervisarAcademicoDireccion() {
                               <button
                                 type="button"
                                 onClick={() => setDocenteHorarioCompleto(d)}
-                                className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded text-[0.82rem] font-bold border bg-primary/5 hover:bg-primary/10 text-primary border-primary/10 transition-all cursor-pointer shadow-3xs"
+                                className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-none text-[0.82rem] font-bold border bg-primary/5 hover:bg-primary/10 text-primary border-primary/10 transition-all cursor-pointer shadow-3xs"
                               >
                                 <Clock size={14} /> Ver Horario
                               </button>
@@ -426,11 +417,11 @@ export default function SupervisarAcademicoDireccion() {
             // VISTA COMPARATIVA COMPLETA DE MALLAS (Otra ventana / sub-pantalla interactiva)
             <div className="flex flex-col gap-6 animate-fade-in w-full">
               {/* Botón de retroceso y Cabecera de la Carrera */}
-              <div className="flex items-center gap-3 bg-white p-5 border border-border rounded-xl shadow-xs">
+              <div className="flex items-center gap-3 bg-white p-5 border border-border rounded-none shadow-none">
                 <button
                   type="button"
                   onClick={() => setCarreraDetalleCompleto(null)}
-                  className="p-2 hover:bg-slate-100 rounded-lg text-text-muted hover:text-text-heading transition-all cursor-pointer border border-border flex items-center justify-center"
+                  className="p-2 hover:bg-slate-100 rounded-none text-text-muted hover:text-text-heading transition-all cursor-pointer border border-border flex items-center justify-center"
                   title="Volver a los planes de estudio"
                 >
                   <ArrowLeft size={18} />
@@ -449,7 +440,7 @@ export default function SupervisarAcademicoDireccion() {
               <div className="flex flex-col gap-8 w-full">
                 
                 {/* 1. Malla Curricular Oficial */}
-                <div className="bg-white rounded-2xl border border-border shadow-md p-6 flex flex-col gap-4 overflow-hidden">
+                <div className="bg-white rounded-none border border-border shadow-xs p-6 flex flex-col gap-4 overflow-hidden">
                   <div>
                     <h5 className="font-heading font-extrabold text-[1rem] text-text-heading flex items-center gap-2 border-b border-border pb-3">
                       <Map size={18} className="text-primary" /> Diagrama 1: Malla Curricular Oficial (Plan de Estudios completo)
@@ -457,7 +448,7 @@ export default function SupervisarAcademicoDireccion() {
                     <p className="text-[0.8rem] text-text-muted mt-1">Estructura curricular oficial con todas las asignaturas requeridas y sus créditos por ciclo.</p>
                   </div>
 
-                  <div className="grow overflow-auto p-4 bg-slate-50 select-none rounded-xl border border-border">
+                  <div className="grow overflow-auto p-4 bg-slate-50 select-none rounded-none border border-border">
                     {cursosCarrera.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-10 text-text-muted italic gap-2 text-[0.85rem]">
                         <span className="flex items-center gap-1.5"><AlertTriangle size={16} /> No hay cursos asociados a esta carrera académica.</span>
@@ -468,17 +459,17 @@ export default function SupervisarAcademicoDireccion() {
                           const cursosDelCiclo = cursosCarrera.filter(c => c.ciclo === cicloNum);
                           return (
                             <div key={cicloNum} className="flex flex-col gap-4 w-[180px] shrink-0 items-center">
-                              <div className="bg-primary/5 text-primary text-center py-2 px-3 rounded-lg border border-primary/10 w-full font-heading font-extrabold text-[0.8rem] tracking-tight uppercase shadow-3xs">
+                              <div className="bg-primary/5 text-primary text-center py-2 px-3 rounded-none border border-primary/10 w-full font-heading font-extrabold text-[0.8rem] tracking-tight uppercase shadow-3xs">
                                 {cicloNum}° Ciclo
                               </div>
                               <div className="flex flex-col gap-4 w-full grow justify-start">
                                 {cursosDelCiclo.map(cur => (
                                   <div
                                     key={cur.id_curso}
-                                    className="bg-white border border-border rounded-lg p-3 shadow-3xs hover:border-primary/20 flex flex-col gap-1.5 w-full text-left"
+                                    className="bg-white border border-border rounded-none p-3 shadow-3xs hover:border-primary/20 flex flex-col gap-1.5 w-full text-left"
                                   >
                                     <div className="flex justify-between items-start gap-1">
-                                      <span className="font-mono text-[0.68rem] font-bold text-primary bg-primary-light px-1.5 py-0.5 rounded leading-none">
+                                      <span className="font-mono text-[0.68rem] font-bold text-primary bg-primary-light px-1.5 py-0.5 rounded-none leading-none">
                                         {cur.codigo}
                                       </span>
                                       <span className="text-[0.68rem] font-extrabold text-slate-500 font-mono shrink-0">
@@ -491,7 +482,7 @@ export default function SupervisarAcademicoDireccion() {
                                   </div>
                                 ))}
                                 {cursosDelCiclo.length === 0 && (
-                                  <div className="border border-dashed border-slate-200 rounded-lg py-4 text-center text-[0.72rem] text-slate-400 italic">
+                                  <div className="border border-dashed border-slate-200 rounded-none py-4 text-center text-[0.72rem] text-slate-400 italic">
                                     Sin cursos
                                   </div>
                                 )}
@@ -505,7 +496,7 @@ export default function SupervisarAcademicoDireccion() {
                 </div>
 
                 {/* 2. Malla de Cursos Aperturados */}
-                <div className="bg-white rounded-2xl border border-border shadow-md p-6 flex flex-col gap-4 overflow-hidden">
+                <div className="bg-white rounded-none border border-border shadow-xs p-6 flex flex-col gap-4 overflow-hidden">
                   <div>
                     <h5 className="font-heading font-extrabold text-[1rem] text-text-heading flex items-center gap-2 border-b border-border pb-3">
                       <BookOpen size={18} className="text-emerald-600" /> Diagrama 2: Asignaturas Aperturadas en el Semestre (Cumplimiento Real)
@@ -513,7 +504,7 @@ export default function SupervisarAcademicoDireccion() {
                     <p className="text-[0.8rem] text-text-muted mt-1">Cursos que cuentan con al menos una sección académica activa e inscrita en el periodo de matrícula vigente.</p>
                   </div>
 
-                  <div className="grow overflow-auto p-4 bg-slate-50 select-none rounded-xl border border-border">
+                  <div className="grow overflow-auto p-4 bg-slate-50 select-none rounded-none border border-border">
                     {cargandoSecciones ? (
                       <div className="py-12 text-center">
                         <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-3"></div>
@@ -529,7 +520,7 @@ export default function SupervisarAcademicoDireccion() {
                           const cursosAperturadosDelCiclo = cursosAperturadosDeCarrera.filter(c => c.ciclo === cicloNum);
                           return (
                             <div key={cicloNum} className="flex flex-col gap-4 w-[180px] shrink-0 items-center">
-                              <div className="bg-emerald-50 text-emerald-700 text-center py-2 px-3 rounded-lg border border-emerald-100 w-full font-heading font-extrabold text-[0.8rem] tracking-tight uppercase shadow-3xs">
+                              <div className="bg-emerald-50 text-emerald-700 text-center py-2 px-3 rounded-none border border-emerald-100 w-full font-heading font-extrabold text-[0.8rem] tracking-tight uppercase shadow-3xs">
                                 {cicloNum}° Ciclo
                               </div>
                               <div className="flex flex-col gap-4 w-full grow justify-start">
@@ -537,13 +528,13 @@ export default function SupervisarAcademicoDireccion() {
                                   return (
                                     <div
                                       key={cur.id_curso}
-                                      className="bg-white border-2 border-emerald-100 rounded-lg p-3 shadow-3xs flex flex-col gap-1.5 w-full text-left"
+                                      className="bg-white border-2 border-emerald-100 rounded-none p-3 shadow-3xs flex flex-col gap-1.5 w-full text-left"
                                     >
                                       <div className="flex justify-between items-start gap-1">
-                                        <span className="font-mono text-[0.68rem] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded leading-none border border-emerald-100/50">
+                                        <span className="font-mono text-[0.68rem] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-none leading-none border border-emerald-100/50">
                                           {cur.codigo}
                                         </span>
-                                        <span className="text-[0.68rem] font-extrabold text-emerald-600 bg-emerald-50/50 px-1 py-0.5 rounded font-mono shrink-0">
+                                        <span className="text-[0.68rem] font-extrabold text-emerald-600 bg-emerald-50/50 px-1 py-0.5 rounded-none font-mono shrink-0">
                                           {cur.creditos} CR
                                         </span>
                                       </div>
@@ -554,7 +545,7 @@ export default function SupervisarAcademicoDireccion() {
                                   );
                                 })}
                                 {cursosAperturadosDelCiclo.length === 0 && (
-                                  <div className="border border-dashed border-slate-200 rounded-lg py-4 text-center text-[0.72rem] text-slate-400 italic">
+                                  <div className="border border-dashed border-slate-200 rounded-none py-4 text-center text-[0.72rem] text-slate-400 italic">
                                     Sin apertura
                                   </div>
                                 )}
@@ -573,7 +564,7 @@ export default function SupervisarAcademicoDireccion() {
             // LISTADO DE CARRERAS A ANCHO COMPLETO
             <div className="flex flex-col gap-6 w-full">
               {/* Panel de Filtro */}
-              <div className="bg-white p-5 border border-border rounded-xl shadow-xs flex flex-col gap-4">
+              <div className="bg-white p-5 border border-border rounded-none shadow-none flex flex-col gap-4">
                 <div className="flex items-center gap-2 border-b border-border pb-3">
                   <ListFilter size={18} className="text-primary" />
                   <span className="text-[0.88rem] font-bold text-text-heading">Filtrar Carreras / Planes</span>
@@ -588,7 +579,7 @@ export default function SupervisarAcademicoDireccion() {
                       onChange={(e) => {
                         setFiltroFacultadCarrera(e.target.value);
                       }}
-                      className="p-2.5 border border-border rounded-lg text-[0.85rem] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white w-full"
+                      className="p-2.5 border border-border rounded-none text-[0.85rem] focus:outline-none focus:border-primary bg-white w-full"
                     >
                       <option value="">Todas las Facultades</option>
                       {facultades.map(f => (
@@ -600,7 +591,7 @@ export default function SupervisarAcademicoDireccion() {
               </div>
 
               {/* Tabla de Carreras a Ancho Completo */}
-              <div className="bg-white border border-border rounded-xl shadow-sm overflow-hidden w-full">
+              <div className="bg-white border border-border rounded-none shadow-xs overflow-hidden w-full">
                 <div className="p-4 bg-bg-alt border-b border-border font-heading font-extrabold text-[0.88rem] text-text-heading">
                   Programas de Estudio Registrados
                 </div>
@@ -635,7 +626,7 @@ export default function SupervisarAcademicoDireccion() {
                               <button
                                 type="button"
                                 onClick={() => setCarreraDetalleCompleto(e)}
-                                className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded text-[0.82rem] font-bold border bg-primary/5 hover:bg-primary/10 text-primary border-primary/10 transition-all cursor-pointer shadow-3xs"
+                                className="inline-flex items-center gap-1.5 py-1.5 px-3 rounded-none text-[0.82rem] font-bold border bg-primary/5 hover:bg-primary/10 text-primary border-primary/10 transition-all cursor-pointer shadow-3xs"
                               >
                                 <Map size={14} /> Ver Detalle
                               </button>

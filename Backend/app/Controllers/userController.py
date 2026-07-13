@@ -33,12 +33,14 @@ def _serializar_usuario(u):
     facultad_nombre = None
     id_especialidad = None
     especialidad_nombre = None
+    ciclo = None
     
     if u.estudiante:
         id_especialidad = u.estudiante.id_especialidad
         especialidad_nombre = u.estudiante.especialidad.nombre if u.estudiante.especialidad else None
         id_facultad = u.estudiante.especialidad.id_facultad if u.estudiante.especialidad else None
         facultad_nombre = u.estudiante.especialidad.facultad.nombre if (u.estudiante.especialidad and u.estudiante.especialidad.facultad) else None
+        ciclo = u.estudiante.ciclo
     elif u.docente:
         id_facultad = u.docente.id_facultad
         facultad_nombre = u.docente.facultad.nombre if u.docente.facultad else None
@@ -56,6 +58,7 @@ def _serializar_usuario(u):
         facultad_nombre=facultad_nombre,
         id_especialidad=id_especialidad,
         especialidad_nombre=especialidad_nombre,
+        ciclo=ciclo,
     ).model_dump()
 
 
@@ -77,6 +80,7 @@ def crear_usuario_ctrl(body):
             body.dni,
             body.id_facultad,
             body.id_especialidad,
+            ciclo=body.ciclo,
         )
     except UsernameDuplicadoError:
         return {"msg": "Ese username ya está en uso"}, 409
@@ -139,7 +143,8 @@ def actualizar_usuario_ctrl(id_usuario, body):
             id_rol=body.id_rol,
             nombres=body.nombres,
             apellidos=body.apellidos,
-            correo=body.correo
+            correo=body.correo,
+            ciclo=body.ciclo,
         )
     except UsuarioNoEncontradoError:
         return {"msg": "Usuario no encontrado"}, 404

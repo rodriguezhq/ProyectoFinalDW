@@ -123,7 +123,7 @@ export default function DetalleCursoDocente() {
             </button>
 
             {/* Cabecera del Curso */}
-            <div className="bg-white border border-border p-6 rounded-xl shadow-xs space-y-4">
+            <div className="bg-white border border-border p-6 rounded-none shadow-none space-y-4">
                 <div className="flex flex-wrap justify-between items-center gap-3">
                     <div className="space-y-1">
                         <span className="text-xs font-mono font-bold text-primary uppercase tracking-wider">
@@ -134,10 +134,10 @@ export default function DetalleCursoDocente() {
                         </h1>
                     </div>
                     <div className="flex items-center gap-2">
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-extrabold bg-primary/10 text-primary border border-primary/20">
+                        <span className="inline-flex items-center px-3 py-1 rounded-none text-xs font-extrabold bg-primary/10 text-primary border border-primary/20">
                             Ciclo {curso.ciclo}
                         </span>
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-extrabold bg-slate-50 text-text-muted border border-border">
+                        <span className="inline-flex items-center px-3 py-1 rounded-none text-xs font-extrabold bg-slate-50 text-text-muted border border-border">
                             {curso.creditos} Créditos
                         </span>
                     </div>
@@ -155,12 +155,12 @@ export default function DetalleCursoDocente() {
                     <div>
                         <span className="uppercase text-[0.68rem] text-text-muted block">Estado del Periodo</span>
                         {esPeriodoActivo ? (
-                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 mt-1">
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-none text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 mt-1">
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
                                 Activo / Abierto
                             </span>
                         ) : (
-                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-text-muted border border-border mt-1">
+                            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-none text-xs font-bold bg-slate-100 text-text-muted border border-border mt-1">
                                 Cerrado / Lectura
                             </span>
                         )}
@@ -170,7 +170,7 @@ export default function DetalleCursoDocente() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Panel de Calificaciones */}
-                <div className="bg-white border border-border p-6 rounded-xl shadow-xs space-y-6 flex flex-col justify-between">
+                <div className="bg-white border border-border p-6 rounded-none shadow-none space-y-6 flex flex-col justify-between">
                     <div className="space-y-4">
                         <div className="flex items-center gap-2.5 text-primary border-b border-border pb-3">
                             <Award size={20} />
@@ -190,7 +190,7 @@ export default function DetalleCursoDocente() {
                             <button
                                 type="button"
                                 onClick={() => navegar(`/docente/cursos/${id_curso}/calificaciones?id_periodo=${idPeriodo}`)}
-                                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-primary text-white hover:bg-primary-hover rounded-lg font-bold text-sm shadow-md transition-all cursor-pointer"
+                                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-primary text-white hover:bg-primary-hover rounded-none font-bold text-sm shadow-xs transition-all cursor-pointer"
                             >
                                 <Sparkles size={16} />
                                 Ingresar Calificaciones
@@ -199,7 +199,7 @@ export default function DetalleCursoDocente() {
                             <button
                                 type="button"
                                 onClick={() => navegar(`/docente/cursos/${id_curso}/calificaciones?id_periodo=${idPeriodo}`)}
-                                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white border border-border hover:border-primary hover:text-primary rounded-lg font-bold text-sm shadow-xs transition-all cursor-pointer"
+                                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-white border border-border hover:border-primary hover:text-primary rounded-none font-bold text-sm shadow-xs transition-all cursor-pointer"
                             >
                                 Ver Calificaciones (Solo Lectura)
                             </button>
@@ -208,7 +208,7 @@ export default function DetalleCursoDocente() {
                 </div>
 
                 {/* Panel del Sílabo */}
-                <div className="bg-white border border-border p-6 rounded-xl shadow-xs space-y-6">
+                <div className="bg-white border border-border p-6 rounded-none shadow-none space-y-6">
                     <div className="flex items-center gap-2.5 text-primary border-b border-border pb-3">
                         <FileText size={20} />
                         <h2 className="font-heading font-extrabold text-text-heading text-lg">
@@ -217,7 +217,7 @@ export default function DetalleCursoDocente() {
                     </div>
 
                     {/* Estado del Sílabo */}
-                    <div className="bg-bg-alt/75 p-4 rounded-xl border border-border flex items-center gap-3">
+                    <div className="bg-bg-alt/75 p-4 rounded-none border border-border flex items-center gap-3">
                         {silabo ? (
                             <>
                                 <CheckCircle2 className="text-emerald-600 shrink-0" size={24} />
@@ -231,7 +231,7 @@ export default function DetalleCursoDocente() {
                                     href={obtenerUrlDescarga(silabo.archivo)}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center justify-center gap-1.5 py-1.5 px-3 bg-white border border-border hover:border-primary hover:text-primary text-xs font-bold rounded-lg shadow-xs transition-all"
+                                    className="flex items-center justify-center gap-1.5 py-1.5 px-3 bg-white border border-border hover:border-primary hover:text-primary text-xs font-bold rounded-none shadow-xs transition-all"
                                 >
                                     <Download size={14} />
                                     Descargar
@@ -255,7 +255,7 @@ export default function DetalleCursoDocente() {
                                 {silabo ? 'Actualizar Sílabo (PDF)' : 'Subir Sílabo (PDF)'}
                             </label>
 
-                            <div className="border-2 border-dashed border-border/80 hover:border-primary/50 rounded-xl p-6 text-center cursor-pointer relative bg-bg-alt/25 transition-all">
+                            <div className="border-2 border-dashed border-border/80 hover:border-primary/50 rounded-none p-6 text-center cursor-pointer relative bg-bg-alt/25 transition-all">
                                 <input
                                     type="file"
                                     accept=".pdf"
@@ -276,7 +276,7 @@ export default function DetalleCursoDocente() {
                                 <button
                                     type="submit"
                                     disabled={subiendoSilabo}
-                                    className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs shadow-md transition-all cursor-pointer disabled:opacity-50"
+                                    className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-none font-bold text-xs shadow-xs transition-all cursor-pointer disabled:opacity-50"
                                 >
                                     {subiendoSilabo ? (
                                         <>
@@ -293,7 +293,7 @@ export default function DetalleCursoDocente() {
                         </form>
                     ) : (
                         !silabo && (
-                            <div className="p-4 bg-slate-50 border border-border rounded-xl text-center">
+                            <div className="p-4 bg-slate-50 border border-border rounded-none text-center">
                                 <p className="text-sm font-medium text-text-muted">
                                     No se cargó el sílabo para esta asignatura en este periodo.
                                 </p>

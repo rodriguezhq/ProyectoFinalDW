@@ -80,6 +80,48 @@ export function useDisenoHorario(idPeriodo, idFacultad, idEspecialidad, filtroCi
       return;
     }
 
+    // Validar que se cumpla la cantidad de horas mínimas (teóricas + prácticas) por curso en cada sección
+    const seccionesPorGrupo = {};
+    secciones.forEach(sec => {
+      const claveGrupo = `${sec.seccion || 'A'}_${sec.id_curso}`;
+      if (!seccionesPorGrupo[claveGrupo]) {
+        seccionesPorGrupo[claveGrupo] = [];
+      }
+      seccionesPorGrupo[claveGrupo].push(sec);
+    });
+
+    const horasDisponibles = [
+      '07:00', '08:00', '09:00', '10:00', '11:00', '12:00', '13:00',
+      '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'
+    ];
+
+    for (const claveGrupo in seccionesPorGrupo) {
+      const bloques = seccionesPorGrupo[claveGrupo];
+      if (bloques.length === 0) continue;
+
+      const idCurso = bloques[0].id_curso;
+      const seccionNombre = bloques[0].seccion || 'A';
+
+      const curso = cursos.find(c => c.id_curso === idCurso);
+      if (!curso) continue;
+
+      const horasAsignadas = bloques.reduce((acum, sec) => {
+        const inicioIdx = horasDisponibles.indexOf(sec.horaInicio);
+        const finIdx = horasDisponibles.indexOf(sec.horaFin);
+        const dif = (inicioIdx !== -1 && finIdx !== -1) ? (finIdx - inicioIdx) : 0;
+        return acum + dif;
+      }, 0);
+
+      const horasRequeridas = (curso.horas_teoria || 0) + (curso.horas_practica || 0);
+      if (horasAsignadas < horasRequeridas) {
+        toast.error(`En la Sección ${seccionNombre}, el curso "${curso.nombre}" tiene programadas ${horasAsignadas} horas, pero requiere un mínimo de ${horasRequeridas} horas (Teoría: ${curso.horas_teoria}, Práctica: ${curso.horas_practica}).`);
+        return;
+      } else if (horasAsignadas > horasRequeridas) {
+        toast.error(`En la Sección ${seccionNombre}, el curso "${curso.nombre}" tiene programadas ${horasAsignadas} horas, superando el límite máximo permitido de ${horasRequeridas} horas (Teoría: ${curso.horas_teoria}, Práctica: ${curso.horas_practica}).`);
+        return;
+      }
+    }
+
     setEstaGuardando(true);
     try {
       const payload = {

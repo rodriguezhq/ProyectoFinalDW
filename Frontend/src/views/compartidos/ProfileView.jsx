@@ -83,32 +83,32 @@ export default function ProfileView() {
     const userCode = profile?.codigo || `2026${1000 + (profile?.id_usuario || authUser?.id_usuario || 1)}`;
 
     return (
-        <div className="mx-auto py-1 px-0.5 animate-fade-in">
+        <div className="mx-auto py-1 px-0.5 lg:px-2 animate-fade-in">
             {/* Header Badge/Title */}
-            <div className="mb-3">
+            <div className="mb-2">
                 <p className="text-text-muted mt-1">
                     Gestiona tu información personal y configuración de seguridad.
                 </p>
             </div>
 
             {error && (
-                <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-none text-red-700 text-sm font-medium">
+                <div className="mb-3 p-4 bg-red-50 border-l-4 border-red-500 rounded-none text-red-700 text-sm font-medium">
                     {error}
                 </div>
             )}
 
             {successMessage && (
-                <div className="mb-6 p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-none text-emerald-700 text-sm font-medium flex items-center gap-2">
+                <div className="mb-3 p-4 bg-emerald-50 border-l-4 border-emerald-500 rounded-none text-emerald-700 text-sm font-medium flex items-center gap-2">
                     <CheckCircle2 size={18} />
                     {successMessage}
                 </div>
             )}
 
             {/* Profile Content Layout (Flat) */}
-            <div className="space-y-6">
+            <div className="space-y-3">
                 {/* Header Information Section */}
-                <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-border">
-                    <div className="w-20 h-20 rounded-full bg-primary text-white text-3xl font-bold flex items-center justify-center shadow-sm shrink-0 border border-primary/10">
+                <div className="flex flex-col sm:flex-row items-center gap-3 pb-3 border-b border-border">
+                    <div className="w-20 h-20 rounded-none bg-primary text-white text-3xl font-bold flex items-center justify-center shadow-none shrink-0 border border-primary/10">
                         {profile?.nombres ? profile.nombres.charAt(0) : 'U'}
                     </div>
                     <div className="text-center sm:text-left">
@@ -116,11 +116,11 @@ export default function ProfileView() {
                             {profile?.nombres || ''} {profile?.apellidos || 'Usuario'}
                         </h2>
                         <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2 mt-1.5">
-                            <span className="font-mono text-xs font-semibold bg-bg-alt text-text-muted px-2.5 py-0.5 rounded-md border border-border">
+                            <span className="font-mono text-xs font-semibold bg-bg-alt text-text-muted px-2.5 py-0.5 rounded-none border border-border">
                                 @{profile?.username || 'username'}
                             </span>
-                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-none text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                <span className="w-1.5 h-1.5 rounded-none bg-emerald-500 animate-pulse"></span>
                                 Activo
                             </span>
                         </div>
@@ -149,7 +149,7 @@ export default function ProfileView() {
                 <div className="pt-2">
                     {activeTab === 'view' ? (
                         /* View Mode */
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">
                             <div>
                                 <span className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Código Universitario</span>
                                 <span className="font-mono font-semibold text-text-heading text-base bg-bg-alt px-3 py-2.5 rounded-none border border-border block">
@@ -178,22 +178,31 @@ export default function ProfileView() {
                                 </span>
                             </div>
 
-                            <div className="md:col-span-2">
+                            {role === 'Estudiante' && (
+                                <div>
+                                    <span className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Ciclo Académico</span>
+                                    <span className="font-semibold text-text-heading text-base bg-bg-alt px-3 py-2.5 rounded-none border border-border block">
+                                        {profile?.ciclo ? `${profile.ciclo}° Ciclo` : '-'}
+                                    </span>
+                                </div>
+                            )}
+
+                            <div className={role === 'Estudiante' ? "" : "md:col-span-2"}>
                                 <span className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Institución</span>
-                                <span className="font-semibold text-text-heading text-base bg-bg-alt px-3 py-2.5 rounded-none border border-border block">
+                                <span className="font-semibold text-text-heading text-base bg-bg-alt px-3 py-2.5 rounded-none border border-border block truncate">
                                     Universidad Nacional del Centro del Perú
                                 </span>
                             </div>
                         </div>
                     ) : (
                         /* Edit Mode Form */
-                        <form onSubmit={handleUpdate} className="space-y-6 max-w-xl">
+                        <form onSubmit={handleUpdate} className="space-y-3 max-w-xl">
                             {/* Input Teléfono */}
                             <div>
                                 <label htmlFor="telefono" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                                     Teléfono / Celular
                                 </label>
-                                <div className="relative rounded-none shadow-sm">
+                                <div className="relative rounded-none shadow-none">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-muted">
                                         <Phone size={18} />
                                     </div>
@@ -210,19 +219,19 @@ export default function ProfileView() {
                                 <p className="text-xs text-text-muted mt-1.5">Solo disponible para roles de Estudiante o Docente.</p>
                             </div>
 
-                            <div className="bg-bg-alt p-5 rounded-none border border-border space-y-4">
-                                <h3 className="font-heading font-bold text-sm text-text-heading flex items-center gap-1.5 border-b border-border pb-3">
+                            <div className="bg-bg-alt p-4 rounded-none border border-border space-y-3">
+                                <h3 className="font-heading font-bold text-sm text-text-heading flex items-center gap-1.5 border-b border-border pb-2">
                                     <Lock size={16} className="text-primary" />
                                     Cambiar Contraseña
                                 </h3>
 
-                                <div className="space-y-4">
+                                <div className="space-y-3">
                                     {/* Contraseña Actual */}
                                     <div>
                                         <label htmlFor="current-pass" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                                             Contraseña Actual
                                         </label>
-                                        <div className="relative rounded-none shadow-sm">
+                                        <div className="relative rounded-none shadow-none">
                                             <input
                                                 type={showPassword ? 'text' : 'password'}
                                                 id="current-pass"
@@ -239,7 +248,7 @@ export default function ProfileView() {
                                         <label htmlFor="new-pass" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                                             Nueva Contraseña
                                         </label>
-                                        <div className="relative rounded-none shadow-sm">
+                                        <div className="relative rounded-none shadow-none">
                                             <input
                                                 type={showPassword ? 'text' : 'password'}
                                                 id="new-pass"
@@ -263,7 +272,7 @@ export default function ProfileView() {
                                         <label htmlFor="confirm-pass" className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-2">
                                             Confirmar Nueva Contraseña
                                         </label>
-                                        <div className="relative rounded-none shadow-sm">
+                                        <div className="relative rounded-none shadow-none">
                                             <input
                                                 type={showPassword ? 'text' : 'password'}
                                                 id="confirm-pass"
@@ -282,7 +291,7 @@ export default function ProfileView() {
                                 <button
                                     type="submit"
                                     disabled={isSaving}
-                                    className="flex items-center gap-2 bg-primary hover:bg-primary-hover disabled:bg-primary/50 text-white font-semibold py-2 px-5 rounded-none text-sm shadow-sm transition-all duration-150 cursor-pointer focus:outline-none"
+                                    className="flex items-center gap-2 bg-primary hover:bg-primary-hover disabled:bg-primary/50 text-white font-semibold py-2 px-5 rounded-none text-sm shadow-none transition-all duration-150 cursor-pointer focus:outline-none"
                                 >
                                     {isSaving ? (
                                         <>

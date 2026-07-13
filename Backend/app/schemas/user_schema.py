@@ -27,6 +27,7 @@ class UsuarioCreateBody(BaseModel):
     dni: str | None = None
     id_facultad: int | None = None
     id_especialidad: int | None = None
+    ciclo: int | None = None
 
 
 class UsuarioCreateResponse(BaseModel):
@@ -42,6 +43,7 @@ class UsuarioUpdateBody(BaseModel):
     nombres: str | None = None
     apellidos: str | None = None
     correo: str | None = None
+    ciclo: int | None = None
 
 
 class UsuarioResponse(BaseModel):
@@ -57,6 +59,7 @@ class UsuarioResponse(BaseModel):
     facultad_nombre: str | None = None
     id_especialidad: int | None = None
     especialidad_nombre: str | None = None
+    ciclo: int | None = None
 
 
 class UsuarioListResponse(BaseModel):

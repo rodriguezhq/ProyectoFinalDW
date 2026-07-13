@@ -36,6 +36,7 @@ export default function Usuarios({ rolFiltrado }) {
   const [dniPersona, setDniPersona] = useState('');
   const [idFacultad, setIdFacultad] = useState('');
   const [idEspecialidad, setIdEspecialidad] = useState('');
+  const [ciclo, setCiclo] = useState('1');
 
   // Modal especial de contraseña temporal
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
@@ -57,6 +58,7 @@ export default function Usuarios({ rolFiltrado }) {
     setDniPersona('');
     setIdFacultad('');
     setIdEspecialidad('');
+    setCiclo('1');
     setEstado('Activo');
     setModalOpen(true);
   };
@@ -73,6 +75,7 @@ export default function Usuarios({ rolFiltrado }) {
     setDniPersona('');
     setIdFacultad(usuario.id_facultad ? String(usuario.id_facultad) : '');
     setIdEspecialidad(usuario.id_especialidad ? String(usuario.id_especialidad) : '');
+    setCiclo(usuario.ciclo ? String(usuario.ciclo) : '1');
     setEstado(usuario.estado || 'Activo');
     setModalOpen(true);
   };
@@ -118,6 +121,7 @@ export default function Usuarios({ rolFiltrado }) {
         payload.codigo = codigoPersona.trim().toUpperCase();
         payload.dni = dniPersona.trim();
         payload.id_especialidad = espIdInt;
+        payload.ciclo = parseInt(ciclo);
       }
 
       // Si es Docente, agregar campos obligatorios
@@ -153,6 +157,10 @@ export default function Usuarios({ rolFiltrado }) {
         apellidos: apellidos.trim() || null,
         correo: correo.trim() || null
       };
+
+      if (nombreRolSeleccionado === 'Estudiante') {
+        payload.ciclo = parseInt(ciclo);
+      }
 
       try {
         await modificarUsuarioExistente(editingId, payload);
@@ -212,6 +220,7 @@ export default function Usuarios({ rolFiltrado }) {
                       <>
                         <th className="p-2 border-r border-border/60 text-left">Facultad</th>
                         <th className="p-2 border-r border-border/60 text-left">Carrera</th>
+                        <th className="p-2 border-r border-border/60 text-center w-20">Ciclo</th>
                       </>
                     )}
                     {rolFiltrado === 'Docente' && (
@@ -238,6 +247,7 @@ export default function Usuarios({ rolFiltrado }) {
                           <>
                             <td className="p-2 border-r border-border/60 text-text-muted font-medium">{usuario.facultad_nombre || '-'}</td>
                             <td className="p-2 border-r border-border/60 font-semibold text-primary">{usuario.especialidad_nombre || '-'}</td>
+                            <td className="p-2 border-r border-border/60 text-center font-bold text-text-heading">{usuario.ciclo ? `${usuario.ciclo}°` : '-'}</td>
                           </>
                         )}
                         {rolFiltrado === 'Docente' && (
@@ -436,6 +446,25 @@ export default function Usuarios({ rolFiltrado }) {
                       <option value="">-- Seleccione una Carrera --</option>
                       {especialidadesFiltradas.map(esp => (
                         <option key={esp.id_especialidad} value={esp.id_especialidad}>{esp.nombre}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Ciclo (Solo Estudiante) */}
+                {nombreRolSeleccionado === 'Estudiante' && (
+                  <div className="flex flex-col gap-1.5 animate-slide-up">
+                    <label htmlFor="user-ciclo" className="text-[0.82rem] font-bold text-text-muted uppercase">
+                      Ciclo Académico
+                    </label>
+                    <select
+                      id="user-ciclo"
+                      value={ciclo}
+                      onChange={(e) => setCiclo(e.target.value)}
+                      className="p-2.5 border border-border bg-white rounded-md focus:outline-none focus:border-primary text-[0.88rem] cursor-pointer"
+                    >
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(c => (
+                        <option key={c} value={c}>{c}° Ciclo</option>
                       ))}
                     </select>
                   </div>

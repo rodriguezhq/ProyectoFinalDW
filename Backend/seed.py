@@ -204,27 +204,32 @@ def seed():
     est_cristhian = Estudiante(
         codigo="2021100001", dni="70111222", nombres="Cristhian", apellidos="Martinez",
         correo="cristhian.martinez@uncp.edu.pe", telefono="987111222",
-        fecha_nacimiento=date(2003, 5, 12), estado="activo", id_especialidad=esp_is.id_especialidad
+        fecha_nacimiento=date(2003, 5, 12), estado="activo", id_especialidad=esp_is.id_especialidad,
+        ciclo=9
     )
     est_scoot = Estudiante(
         codigo="2021100002", dni="70222333", nombres="Scoot", apellidos="Fernandez",
         correo="scoot.fernandez@uncp.edu.pe", telefono="987222333",
-        fecha_nacimiento=date(2003, 8, 20), estado="activo", id_especialidad=esp_is.id_especialidad
+        fecha_nacimiento=date(2003, 8, 20), estado="activo", id_especialidad=esp_is.id_especialidad,
+        ciclo=9
     )
     est_maria = Estudiante(
         codigo="2021100003", dni="70333444", nombres="Maria", apellidos="Huaman Rojas",
         correo="maria.huaman@uncp.edu.pe", telefono="987333444",
-        fecha_nacimiento=date(2002, 3, 3), estado="activo", id_especialidad=esp_is.id_especialidad
+        fecha_nacimiento=date(2002, 3, 3), estado="activo", id_especialidad=esp_is.id_especialidad,
+        ciclo=3
     )
     est_pedro = Estudiante(
         codigo="2020100015", dni="70444555", nombres="Pedro", apellidos="Salazar Lima",
         correo="pedro.salazar@uncp.edu.pe", telefono="987444555",
-        fecha_nacimiento=date(2001, 11, 27), estado="activo", id_especialidad=esp_is.id_especialidad
+        fecha_nacimiento=date(2001, 11, 27), estado="activo", id_especialidad=esp_is.id_especialidad,
+        ciclo=3
     )
     est_juan = Estudiante(
         codigo="2026100099", dni="70555666", nombres="Juan", apellidos="Perez Quispe",
         correo="juan.perez@uncp.edu.pe", telefono="987555666",
-        fecha_nacimiento=date(2007, 4, 15), estado="activo", id_especialidad=esp_is.id_especialidad
+        fecha_nacimiento=date(2007, 4, 15), estado="activo", id_especialidad=esp_is.id_especialidad,
+        ciclo=7
     )
     db.session.add_all([est_cristhian, est_scoot, est_maria, est_pedro, est_juan])
     db.session.commit()
@@ -642,16 +647,8 @@ def seed():
     db.session.commit()
 
     # ---------- Silabos ----------
-    print("Creando silabos...")
-    db.session.add_all([
-        Silabo(archivo="/silabos/daw301_2026-1.pdf", fecha_subida=datetime(2026, 2, 15, 9, 0),
-               estado="aprobado", id_curso=curso_daw.id_curso),
-        Silabo(archivo="/silabos/isw301_2026-1.pdf", fecha_subida=datetime(2026, 2, 16, 9, 0),
-               estado="aprobado", id_curso=curso_isw.id_curso),
-        Silabo(archivo="/silabos/msu101_2026-1.pdf", fecha_subida=datetime(2026, 2, 17, 9, 0),
-               estado="pendiente", id_curso=curso_ms.id_curso),
-    ])
-    db.session.commit()
+    # No se crean sílabos en el seed para que todos los cursos inicien sin sílabo asignado
+    print("Omitiendo la creación de sílabos...")
 
     # ---------- Documentos (certificados/constancias) ----------
     print("Creando documentos...")
