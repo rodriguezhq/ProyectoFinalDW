@@ -12,7 +12,7 @@ def generar_consolidado_csv(reporte):
     output = io.StringIO()
     # Unicode BOM for Excel UTF-8 compatibility
     output.write('\ufeff')
-    writer = csv.writer(output, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    writer = csv.writer(output, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     
     # Headers
     writer.writerow([
@@ -171,7 +171,7 @@ def generar_cohortes_csv(desempeno):
     output = io.StringIO()
     # Unicode BOM for Excel UTF-8 compatibility
     output.write('\ufeff')
-    writer = csv.writer(output, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+    writer = csv.writer(output, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     
     # Headers
     writer.writerow([
