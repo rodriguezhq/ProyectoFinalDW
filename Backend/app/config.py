@@ -34,6 +34,11 @@ class DevelopmentConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = False
+    # En produccion el frontend (Vercel) y el backend viven en dominios
+    # distintos: la cookie JWT debe poder viajar cross-site (SameSite=None)
+    # y eso obliga a enviarla solo por HTTPS (Secure).
+    JWT_COOKIE_SECURE = True
+    JWT_COOKIE_SAMESITE = "None"
 
 
 class TestingConfig(Config):

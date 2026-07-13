@@ -18,7 +18,17 @@ def create_app(env="development"):
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
-    cors.init_app(app, supports_credentials=True)
+    # Con cookies (supports_credentials) el navegador exige un origin explicito,
+    # no sirve '*': se permite el frontend configurado + los puertos de dev.
+    cors.init_app(
+        app,
+        supports_credentials=True,
+        origins=[
+            app.config["FRONTEND_URL"],
+            "http://localhost:5173",
+            "http://localhost:5174",
+        ],
+    )
     limiter.init_app(app)
 
     from app import models  # noqa: F401
