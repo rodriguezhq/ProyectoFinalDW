@@ -40,6 +40,11 @@ export default function VistaPanel({ isDirection = false }) {
   const [datosGrafico, setDatosGrafico] = useState([]);
   const [bitacora, setBitacora] = useState([]);
 
+  const claseContenedor = esDireccion ? "rounded-none shadow-xs" : "rounded-xl shadow-sm";
+  const claseBoton = esDireccion ? "rounded-none" : "rounded-lg";
+  const claseBadge = esDireccion ? "rounded-none" : "rounded";
+  const claseBarra = esDireccion ? "rounded-none" : "rounded-full";
+
   // Función para formatear el tiempo transcurrido o la fecha de manera legible
   function formatearTiempo(fechaTexto) {
     if (!fechaTexto) return '';
@@ -267,23 +272,23 @@ export default function VistaPanel({ isDirection = false }) {
       <div className="flex flex-col gap-8 animate-pulse">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-white rounded-xl border border-border p-6 shadow-sm flex flex-col gap-4 h-36">
-              <div className="h-4 bg-slate-200 rounded w-2/3"></div>
-              <div className="h-8 bg-slate-200 rounded w-1/3 mt-2"></div>
-              <div className="h-3 bg-slate-200 rounded w-5/6 mt-2"></div>
+            <div key={i} className={`bg-white border border-border p-6 flex flex-col gap-4 h-36 ${claseContenedor}`}>
+              <div className={`h-4 bg-slate-200 w-2/3 ${claseBadge}`}></div>
+              <div className={`h-8 bg-slate-200 w-1/3 mt-2 ${claseBadge}`}></div>
+              <div className={`h-3 bg-slate-200 w-5/6 mt-2 ${claseBadge}`}></div>
             </div>
           ))}
         </div>
         <div className="grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-6">
-          <div className="bg-white rounded-xl border border-border p-8 shadow-md h-80 flex flex-col gap-4">
-            <div className="h-5 bg-slate-200 rounded w-1/3"></div>
-            <div className="h-3 bg-slate-200 rounded w-1/2"></div>
-            <div className="h-full bg-slate-100 rounded mt-4"></div>
+          <div className={`bg-white border border-border p-8 h-80 flex flex-col gap-4 ${claseContenedor}`}>
+            <div className={`h-5 bg-slate-200 w-1/3 ${claseBadge}`}></div>
+            <div className={`h-3 bg-slate-200 w-1/2 ${claseBadge}`}></div>
+            <div className={`h-full bg-slate-100 mt-4 ${claseBadge}`}></div>
           </div>
-          <div className="bg-white rounded-xl border border-border p-8 shadow-md h-80 flex flex-col gap-4">
-            <div className="h-5 bg-slate-200 rounded w-1/3"></div>
-            <div className="h-3 bg-slate-200 rounded w-1/2"></div>
-            <div className="h-full bg-slate-100 rounded mt-4"></div>
+          <div className={`bg-white border border-border p-8 h-80 flex flex-col gap-4 ${claseContenedor}`}>
+            <div className={`h-5 bg-slate-200 w-1/3 ${claseBadge}`}></div>
+            <div className={`h-3 bg-slate-200 w-1/2 ${claseBadge}`}></div>
+            <div className={`h-full bg-slate-100 mt-4 ${claseBadge}`}></div>
           </div>
         </div>
       </div>
@@ -293,12 +298,12 @@ export default function VistaPanel({ isDirection = false }) {
   // Renderizado de la Pantalla de Error (Premium UI)
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-8 flex flex-col items-center justify-center gap-4 text-center max-w-lg mx-auto my-12 shadow-sm">
+      <div className={`bg-red-50 border border-red-200 text-red-700 p-8 flex flex-col items-center justify-center gap-4 text-center max-w-lg mx-auto my-12 ${claseContenedor}`}>
         <h4 className="font-heading text-lg font-bold">Error de Conexión</h4>
         <p className="text-sm leading-relaxed text-red-600">{error}</p>
         <button 
           onClick={cargarDatosDashboard}
-          className="mt-2 flex items-center gap-2 px-5 py-2.5 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 active:scale-95 transition-all shadow"
+          className={`mt-2 flex items-center gap-2 px-5 py-2.5 bg-red-600 text-white font-medium hover:bg-red-700 active:scale-95 transition-all shadow ${claseBoton}`}
         >
           <RefreshCw size={16} /> Reintentar Carga
         </button>
@@ -311,14 +316,14 @@ export default function VistaPanel({ isDirection = false }) {
     <div className="flex flex-col gap-8 animate-slide-up">
       
       {/* Indicador del Periodo Académico Activo */}
-      <div className="flex justify-between items-center bg-slate-50 border border-border rounded-xl px-6 py-4 shadow-sm">
+      <div className={`flex justify-between items-center bg-slate-50 border border-border px-6 py-4 ${claseContenedor}`}>
         <div className="flex flex-col text-left">
           <span className="text-xs text-text-muted font-bold uppercase tracking-wider">Periodo Académico Actual</span>
           <span className="text-lg font-extrabold text-text-heading">{periodoActivo ? periodoActivo.nombre : 'Sin Periodo Activo'}</span>
         </div>
         <button 
           onClick={cargarDatosDashboard} 
-          className="p-2 rounded-lg hover:bg-slate-200 border border-slate-200 bg-white transition-colors"
+          className={`p-2 hover:bg-slate-200 border border-slate-200 bg-white transition-colors ${claseBoton}`}
           title="Actualizar datos"
         >
           <RefreshCw size={18} className="text-text-muted" />
@@ -329,12 +334,12 @@ export default function VistaPanel({ isDirection = false }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         
         {/* Tarjeta 1 */}
-        <div className="bg-white rounded-xl border border-border p-6 shadow-sm flex flex-col gap-3 transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-md border-t-4 border-t-primary">
+        <div className={`bg-white border border-border p-6 flex flex-col gap-3 transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-md border-t-4 border-t-primary ${claseContenedor}`}>
           <div className="flex justify-between items-start gap-2">
             <span className="text-[0.85rem] font-bold text-text-muted uppercase tracking-wider leading-tight text-left">
               {esDireccion ? 'Promedio Ponderado Acumulado' : 'Total Alumnos Matriculados'}
             </span>
-            <span className="flex items-center gap-0.5 text-[0.75rem] font-bold py-0.5 px-1.5 rounded bg-emerald-100 text-emerald-600">
+            <span className={`flex items-center gap-0.5 text-[0.75rem] font-bold py-0.5 px-1.5 bg-emerald-100 text-emerald-600 ${claseBadge}`}>
               <TrendingUp size={12} /> {esDireccion ? 'General' : 'Activos'}
             </span>
           </div>
@@ -349,14 +354,14 @@ export default function VistaPanel({ isDirection = false }) {
         </div>
         
         {/* Tarjeta 2 */}
-        <div className="bg-white rounded-xl border border-border p-6 shadow-sm flex flex-col gap-3 transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-md border-t-4 border-t-accent">
+        <div className={`bg-white border border-border p-6 flex flex-col gap-3 transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-md border-t-4 border-t-accent ${claseContenedor}`}>
           <div className="flex justify-between items-start gap-2">
             <span className="text-[0.85rem] font-bold text-text-muted uppercase tracking-wider leading-tight text-left">
               {esDireccion ? 'Tasa de Aprobación General' : 'Validaciones Pendientes'}
             </span>
-            <span className={`flex items-center gap-0.5 text-[0.75rem] font-bold py-0.5 px-1.5 rounded ${
+            <span className={`flex items-center gap-0.5 text-[0.75rem] font-bold py-0.5 px-1.5 ${
               esDireccion || metricas.validacionesPendientes === 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'
-            }`}>
+            } ${claseBadge}`}>
               {esDireccion ? <><TrendingUp size={12} /> %</> : <><Clock size={12} /> Por revisar</>}
             </span>
           </div>
@@ -371,12 +376,12 @@ export default function VistaPanel({ isDirection = false }) {
         </div>
 
         {/* Tarjeta 3 */}
-        <div className="bg-white rounded-xl border border-border p-6 shadow-sm flex flex-col gap-3 transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-md border-t-4 border-t-blue-500">
+        <div className={`bg-white border border-border p-6 flex flex-col gap-3 transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-md border-t-4 border-t-blue-500 ${claseContenedor}`}>
           <div className="flex justify-between items-start gap-2">
             <span className="text-[0.85rem] font-bold text-text-muted uppercase tracking-wider leading-tight text-left">
               {esDireccion ? 'Carga Horaria Docente' : 'Tasas de Pago Registradas'}
             </span>
-            <span className="flex items-center gap-0.5 text-[0.75rem] font-bold py-0.5 px-1.5 rounded bg-slate-100 text-slate-500">
+            <span className={`flex items-center gap-0.5 text-[0.75rem] font-bold py-0.5 px-1.5 bg-slate-100 text-slate-500 ${claseBadge}`}>
               {esDireccion ? <Minus size={12} /> : <><TrendingUp size={12} /> Recaudado</>}
             </span>
           </div>
@@ -391,12 +396,12 @@ export default function VistaPanel({ isDirection = false }) {
         </div>
 
         {/* Tarjeta 4 */}
-        <div className="bg-white rounded-xl border border-border p-6 shadow-sm flex flex-col gap-3 transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-md border-t-4 border-t-emerald-500">
+        <div className={`bg-white border border-border p-6 flex flex-col gap-3 transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-md border-t-4 border-t-emerald-500 ${claseContenedor}`}>
           <div className="flex justify-between items-start gap-2">
             <span className="text-[0.85rem] font-bold text-text-muted uppercase tracking-wider leading-tight text-left">
               {esDireccion ? 'Certificados Emitidos' : 'Secciones Aperturadas'}
             </span>
-            <span className="flex items-center gap-0.5 text-[0.75rem] font-bold py-0.5 px-1.5 rounded bg-emerald-100 text-emerald-600">
+            <span className={`flex items-center gap-0.5 text-[0.75rem] font-bold py-0.5 px-1.5 bg-emerald-100 text-emerald-600 ${claseBadge}`}>
               <TrendingUp size={12} /> Total
             </span>
           </div>
@@ -415,7 +420,7 @@ export default function VistaPanel({ isDirection = false }) {
       <div className="grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-6">
         
         {/* Gráfico Customizado en CSS */}
-        <div className="bg-white rounded-xl border border-border p-6 md:p-8 shadow-md">
+        <div className={`bg-white border border-border p-6 md:p-8 shadow-md ${claseContenedor}`}>
           <h3 className="flex items-center gap-2 font-heading text-[1.25rem] font-extrabold text-text-heading mb-1 text-left">
             <BarChart3 size={20} /> {esDireccion ? 'Rendimiento Académico por Especialidad' : 'Distribución por Estado de Matrícula'}
           </h3>
@@ -427,9 +432,9 @@ export default function VistaPanel({ isDirection = false }) {
               datosGrafico.map((item, index) => (
                 <div key={index} className="grid grid-cols-[140px_1fr_50px] gap-4 items-center">
                   <span className="text-[0.88rem] font-semibold text-text-heading text-left truncate" title={item.nombre}>{item.nombre}</span>
-                  <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
+                  <div className={`h-3 bg-slate-200 overflow-hidden ${claseBarra}`}>
                     <div 
-                      className={`h-full rounded-full transition-all duration-1000 animate-slide-right ${
+                      className={`h-full transition-all duration-1000 animate-slide-right ${claseBarra} ${
                         index % 4 === 0 ? 'bg-primary' : index % 4 === 1 ? 'bg-accent' : index % 4 === 2 ? 'bg-blue-500' : 'bg-emerald-500'
                       }`} 
                       style={{ width: `${item.porcentaje}%` }}
@@ -445,9 +450,9 @@ export default function VistaPanel({ isDirection = false }) {
               datosGrafico.map((item, index) => (
                 <div key={index} className="grid grid-cols-[140px_1fr_50px] gap-4 items-center">
                   <span className="text-[0.88rem] font-semibold text-text-heading text-left truncate">{item.nombre}</span>
-                  <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
+                  <div className={`h-3 bg-slate-200 overflow-hidden ${claseBarra}`}>
                     <div 
-                      className={`h-full rounded-full transition-all duration-1000 animate-slide-right ${item.claseColor}`} 
+                      className={`h-full transition-all duration-1000 animate-slide-right ${claseBarra} ${item.claseColor}`} 
                       style={{ width: `${item.porcentaje}%` }}
                     ></div>
                   </div>
@@ -461,7 +466,7 @@ export default function VistaPanel({ isDirection = false }) {
         </div>
 
         {/* Solicitudes / Bitácora Recientes */}
-        <div className="bg-white rounded-xl border border-border p-6 md:p-8 shadow-md">
+        <div className={`bg-white border border-border p-6 md:p-8 shadow-md ${claseContenedor}`}>
           <h3 className="flex items-center gap-2 font-heading text-[1.25rem] font-extrabold text-text-heading mb-1 text-left">
             <History size={20} /> {esDireccion ? 'Control de Auditoría y Bitácora' : 'Solicitudes de Matrícula Recientes'}
           </h3>
@@ -482,7 +487,7 @@ export default function VistaPanel({ isDirection = false }) {
                     }`}></span>
                     <div className="flex flex-col gap-1 text-left">
                       <span className="text-[0.88rem] text-text-main leading-relaxed font-medium">
-                        <strong>{item.usuario_username || 'Usuario'}:</strong> {item.accion} en la tabla <span className="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded text-slate-600">{item.tabla}</span>
+                        <strong>{item.usuario_username || 'Usuario'}:</strong> {item.accion} en la tabla <span className={`font-mono text-xs bg-slate-100 px-1 py-0.5 text-slate-600 ${claseBadge}`}>{item.tabla}</span>
                       </span>
                       <span className="text-[0.75rem] text-text-muted">{formatearTiempo(item.fecha)}</span>
                     </div>

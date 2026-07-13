@@ -223,13 +223,13 @@ export default function MatriculaEstudiante() {
 
     if (!oferta) {
         return (
-            <div className="max-w-2xl mx-auto mt-8 p-6 bg-red-50 border border-red-200 rounded-xl text-center text-red-800">
+            <div className="max-w-2xl mx-auto mt-8 p-6 bg-red-50 border border-red-200 rounded-none text-center text-red-800">
                 <AlertTriangle className="mx-auto text-red-600 mb-3" size={32} />
                 <h3 className="font-bold text-lg mb-1">Error de Sistema</h3>
                 <p className="text-sm">No se pudo cargar la oferta académica en este momento.</p>
                 <button
                     onClick={cargarOferta}
-                    className="mt-4 px-4 py-2 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition-colors"
+                    className="mt-4 px-4 py-2 bg-red-600 text-white font-bold rounded-none hover:bg-red-700 transition-colors"
                 >
                     Reintentar
                 </button>
@@ -251,18 +251,18 @@ export default function MatriculaEstudiante() {
                 <div className="flex items-center gap-4">
                     {oferta.ya_matriculado ? (
                         oferta.estado === 'confirmada' ? (
-                            <div className="bg-emerald-50 border border-emerald-200 px-4 py-2 rounded-xl flex items-center gap-2 text-emerald-800 text-sm font-bold">
+                            <div className="bg-emerald-50 border border-emerald-200 px-4 py-2 rounded-none flex items-center gap-2 text-emerald-800 text-sm font-bold">
                                 <CheckCircle2 className="text-emerald-600" size={18} />
                                 Estado: Matrícula Confirmada
                             </div>
                         ) : (
-                            <div className="bg-amber-50 border border-amber-200 px-4 py-2 rounded-xl flex items-center gap-2 text-amber-800 text-sm font-bold">
+                            <div className="bg-amber-50 border border-amber-200 px-4 py-2 rounded-none flex items-center gap-2 text-amber-800 text-sm font-bold">
                                 <Clock className="text-amber-600 animate-pulse" size={18} />
                                 Estado: Matrícula Pendiente
                             </div>
                         )
                     ) : (
-                        <div className="bg-primary/5 border border-primary/15 px-4 py-2 rounded-xl flex items-center gap-2 text-primary text-sm font-bold">
+                        <div className="bg-primary/5 border border-primary/15 px-4 py-2 rounded-none flex items-center gap-2 text-primary text-sm font-bold">
                             <Clock size={18} />
                             Estado: Matrícula Abierta
                         </div>
@@ -317,7 +317,7 @@ export default function MatriculaEstudiante() {
                                                             <span className="text-[0.62rem] opacity-75 mt-0.5">Secc. {bloque.seccionCodigo}</span>
                                                         </div>
                                                     ) : (
-                                                        <div className="w-full h-1 opacity-20 bg-current rounded-full" />
+                                                        <div className="w-full h-1 opacity-20 bg-current rounded-none" />
                                                     )}
                                                 </td>
                                             );
@@ -338,7 +338,7 @@ export default function MatriculaEstudiante() {
                 <div className="flex flex-col gap-6">
                     {/* Banner de confirmación y descarga */}
                     {oferta.estado === 'confirmada' ? (
-                        <div className="bg-emerald-50 border border-emerald-200 p-5 rounded-2xl flex flex-col md:flex-row items-center gap-4 text-emerald-900 shadow-sm">
+                        <div className="bg-emerald-50 border border-emerald-200 p-5 rounded-none flex flex-col md:flex-row items-center gap-4 text-emerald-900 shadow-xs">
                             <CheckCircle2 className="text-emerald-600 shrink-0" size={36} />
                             <div className="grow text-center md:text-left">
                                 <h3 className="font-heading font-extrabold text-lg leading-tight">Matrícula Registrada Oficialmente</h3>
@@ -349,7 +349,7 @@ export default function MatriculaEstudiante() {
                                     href={`${obtenerUrlFichaPdf(oferta.id_matricula)}?tipo=pre`}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-emerald-200 text-emerald-800 font-bold text-sm shadow-xs hover:bg-emerald-100/50 transition-all duration-200 cursor-pointer"
+                                    className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-emerald-200 text-emerald-800 font-bold text-sm shadow-xs hover:bg-emerald-100/50 transition-all duration-200 cursor-pointer rounded-none"
                                 >
                                     <Download size={16} />
                                     Descargar Pre-Ficha
@@ -358,7 +358,7 @@ export default function MatriculaEstudiante() {
                                     href={obtenerUrlFichaPdf(oferta.id_matricula)}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white font-bold text-sm shadow-sm hover:bg-emerald-700 transition-all duration-200 cursor-pointer"
+                                    className="flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 text-white font-bold text-sm shadow-xs hover:bg-emerald-700 transition-all duration-200 cursor-pointer rounded-none"
                                 >
                                     <Download size={16} />
                                     Descargar Ficha Oficial
@@ -366,7 +366,7 @@ export default function MatriculaEstudiante() {
                             </div>
                         </div>
                     ) : (
-                        <div className="bg-amber-50 border border-amber-200 p-5 rounded-2xl flex flex-col md:flex-row items-center gap-4 text-amber-900 shadow-sm">
+                        <div className="bg-amber-50 border border-amber-200 p-5 rounded-none flex flex-col md:flex-row items-center gap-4 text-amber-900 shadow-xs">
                             <Clock className="text-amber-600 animate-pulse shrink-0" size={36} />
                             <div className="grow text-center md:text-left">
                                 <h3 className="font-heading font-extrabold text-lg leading-tight">Matrícula Pendiente</h3>
@@ -376,7 +376,7 @@ export default function MatriculaEstudiante() {
                                 href={`${obtenerUrlFichaPdf(oferta.id_matricula)}?tipo=pre`}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-600 text-white font-bold text-sm shadow-sm hover:bg-amber-700 transition-all duration-200 shrink-0 cursor-pointer w-full sm:w-auto"
+                                className="flex items-center justify-center gap-2 px-4 py-2.5 bg-amber-600 text-white font-bold text-sm shadow-xs hover:bg-amber-700 transition-all duration-200 shrink-0 cursor-pointer w-full sm:w-auto rounded-none"
                             >
                                 <Download size={16} />
                                 Descargar Pre-Ficha PDF
@@ -385,13 +385,13 @@ export default function MatriculaEstudiante() {
                     )}
 
                     {/* Tabla de asignaturas inscritas y confirmadas */}
-                    <div className="bg-white border border-border rounded-2xl overflow-hidden shadow-xs">
+                    <div className="bg-white border border-border rounded-none overflow-hidden shadow-xs">
                         <div className="p-5 border-b border-border bg-bg-alt/50 flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <BookOpen className="text-primary" size={20} />
                                 <h4 className="font-heading font-bold text-text-heading">Asignaturas Matriculadas y Confirmadas</h4>
                             </div>
-                            <span className="text-[0.75rem] font-extrabold px-3 py-1 bg-primary/10 text-primary uppercase tracking-wider rounded-full">
+                            <span className="text-[0.75rem] font-extrabold px-3 py-1 bg-primary/10 text-primary uppercase tracking-wider rounded-none">
                                 Total Créditos: {totalCreditosElegidos}
                             </span>
                         </div>
@@ -444,7 +444,7 @@ export default function MatriculaEstudiante() {
                             const seccionSeleccionada = seccionesElegidas.find(s => s.id_curso === curso.id_curso);
 
                             return (
-                                <div key={curso.id_curso} className="bg-white border border-border p-5 rounded-2xl flex flex-col gap-4 hover:border-primary/25 transition-all shadow-xs">
+                                <div key={curso.id_curso} className="bg-white border border-border p-5 rounded-none flex flex-col gap-4 hover:border-primary/25 transition-all shadow-xs">
                                     {/* Cabecera del Curso */}
                                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border">
                                         <div className="flex flex-col">
@@ -469,7 +469,7 @@ export default function MatriculaEstudiante() {
                                             return (
                                                 <div
                                                     key={seccion.id_seccion}
-                                                    className={`p-3.5 border rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all ${esAgregada ? 'bg-primary/5 border-primary/30' : 'bg-bg-alt/20 border-border/70'}`}
+                                                    className={`p-3.5 border rounded-none flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all ${esAgregada ? 'bg-primary/5 border-primary/30' : 'bg-bg-alt/20 border-border/70'}`}
                                                 >
                                                     <div className="grow flex flex-col sm:flex-row sm:items-center gap-x-6 gap-y-2">
                                                         <div className="flex flex-col shrink-0">
@@ -502,7 +502,7 @@ export default function MatriculaEstudiante() {
                                                             <button
                                                                 type="button"
                                                                 onClick={() => removerSeccion(curso.id_curso)}
-                                                                className="flex items-center gap-1.5 px-4 py-2 border border-red-200 text-red-600 font-bold text-xs bg-red-50 hover:bg-red-100 hover:text-red-700 transition-all cursor-pointer"
+                                                                className="flex items-center gap-1.5 px-4 py-2 border border-red-200 text-red-600 font-bold text-xs bg-red-50 hover:bg-red-100 hover:text-red-700 transition-all cursor-pointer rounded-none"
                                                             >
                                                                 <Trash2 size={14} />
                                                                 Remover Curso
@@ -512,7 +512,7 @@ export default function MatriculaEstudiante() {
                                                                 type="button"
                                                                 disabled={tieneCruce}
                                                                 onClick={() => agregarSeccion(curso, seccion)}
-                                                                className={`flex items-center gap-1.5 px-4 py-2 font-bold text-xs transition-all ${tieneCruce ? 'bg-bg-alt text-text-light border border-border/80 cursor-not-allowed' : 'bg-primary text-white hover:bg-primary-dark cursor-pointer'}`}
+                                                                className={`flex items-center gap-1.5 px-4 py-2 font-bold text-xs transition-all rounded-none ${tieneCruce ? 'bg-bg-alt text-text-light border border-border/80 cursor-not-allowed' : 'bg-primary text-white hover:bg-primary-dark cursor-pointer'}`}
                                                             >
                                                                 {tieneCruce ? (
                                                                     <>
@@ -538,7 +538,7 @@ export default function MatriculaEstudiante() {
                     </div>
 
                     {/* Botón flotante / final de matrícula */}
-                    <div className="flex items-center justify-between p-4 border-t border-border mt-4 bg-bg-alt/25 rounded-none md:rounded-2xl">
+                    <div className="flex items-center justify-between p-4 border-t border-border mt-4 bg-bg-alt/25 rounded-none">
                         <div className="flex flex-col">
                             <span className="text-[0.68rem] font-bold text-text-muted uppercase">Créditos de Matrícula</span>
                             <span className="text-sm font-bold text-text-heading mt-0.5">
@@ -549,7 +549,7 @@ export default function MatriculaEstudiante() {
                         <button
                             type="submit"
                             disabled={procesando || seccionesElegidas.length === 0}
-                            className={`flex items-center gap-2 px-6 py-3 font-bold shadow-md transition-all duration-300 ${seccionesElegidas.length === 0 ? 'bg-bg-alt text-text-light cursor-not-allowed shadow-none' : 'bg-primary text-white hover:bg-primary-dark hover:shadow-lg cursor-pointer'}`}
+                            className={`flex items-center gap-2 px-6 py-3 font-bold shadow-xs transition-all duration-300 rounded-none ${seccionesElegidas.length === 0 ? 'bg-bg-alt text-text-light cursor-not-allowed shadow-none' : 'bg-primary text-white hover:bg-primary-dark hover:shadow-md cursor-pointer'}`}
                         >
                             {procesando ? (
                                 <>

@@ -156,7 +156,7 @@ export default function SupervisarMatriculasDireccion() {
         </div>
 
         {/* Selector de Periodo */}
-        <div className="flex items-center gap-2 bg-white border border-border px-3 py-2 rounded-lg shadow-sm">
+        <div className="flex items-center gap-2 bg-white border border-border px-3 py-2 rounded-none shadow-xs">
           <Calendar size={16} className="text-text-muted" />
           <select
             value={periodoSeleccionado}
@@ -180,18 +180,18 @@ export default function SupervisarMatriculasDireccion() {
         </div>
       </div>
 
-      <div className="flex overflow-x-auto max-w-full whitespace-nowrap bg-bg-alt/50 p-1.5 rounded-lg gap-1 border border-border scrollbar-none">
+      <div className="flex overflow-x-auto max-w-full whitespace-nowrap bg-bg-alt/50 p-1.5 rounded-none gap-1 border border-border scrollbar-none">
         <button
           type="button"
           onClick={() => setActivoTab('estadisticas')}
-          className={`flex items-center gap-1.5 py-2 px-5.5 text-[0.88rem] font-bold rounded-md transition-all duration-200 cursor-pointer shrink-0 ${activoTab === 'estadisticas' ? 'bg-white text-primary shadow-sm border border-border' : 'text-text-muted hover:text-primary hover:bg-white/50'}`}
+          className={`flex items-center gap-1.5 py-2 px-5.5 text-[0.88rem] font-bold rounded-none transition-all duration-200 cursor-pointer shrink-0 ${activoTab === 'estadisticas' ? 'bg-white text-primary shadow-xs border border-border' : 'text-text-muted hover:text-primary hover:bg-white/50'}`}
         >
           <TrendingUp size={16} /> Estadísticas Generales
         </button>
         <button
           type="button"
           onClick={() => setActivoTab('listado')}
-          className={`flex items-center gap-1.5 py-2 px-5.5 text-[0.88rem] font-bold rounded-md transition-all duration-200 cursor-pointer shrink-0 ${activoTab === 'listado' ? 'bg-white text-primary shadow-sm border border-border' : 'text-text-muted hover:text-primary hover:bg-white/50'}`}
+          className={`flex items-center gap-1.5 py-2 px-5.5 text-[0.88rem] font-bold rounded-none transition-all duration-200 cursor-pointer shrink-0 ${activoTab === 'listado' ? 'bg-white text-primary shadow-xs border border-border' : 'text-text-muted hover:text-primary hover:bg-white/50'}`}
         >
           <BookOpen size={16} /> Listado de Matrículas
         </button>
@@ -202,69 +202,69 @@ export default function SupervisarMatriculasDireccion() {
         {activoTab === 'estadisticas' && (
           <div className="flex flex-col gap-6">
             {cargandoEstads ? (
-              <div className="p-12 text-center bg-white border border-border rounded-xl">
+              <div className="p-12 text-center bg-white border border-border rounded-none">
                 <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-3"></div>
                 <p className="text-[0.88rem] text-text-muted">Procesando estadísticas del periodo...</p>
               </div>
             ) : !estadisticas ? (
-              <div className="p-12 text-center text-text-muted bg-white border border-border rounded-xl">
+              <div className="p-12 text-center text-text-muted bg-white border border-border rounded-none">
                 No hay información disponible para este periodo académico.
               </div>
             ) : (
               <>
                 {/* Panel de Indicadores (KPIs) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="bg-white p-5 border border-border rounded-xl shadow-xs flex items-center justify-between">
+                  <div className="bg-white p-5 border border-border rounded-none shadow-none flex items-center justify-between">
                     <div>
                       <span className="text-[0.8rem] font-bold text-text-muted uppercase">Total Solicitudes</span>
                       <h4 className="text-[1.75rem] font-heading font-extrabold text-text-heading mt-1">
                         {estadisticas.total_matriculados}
                       </h4>
                     </div>
-                    <div className="w-12 h-12 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                    <div className="w-12 h-12 rounded-none bg-slate-100 flex items-center justify-center text-slate-600">
                       <BookOpen size={24} />
                     </div>
                   </div>
 
-                  <div className="bg-white p-5 border border-border rounded-xl shadow-xs flex items-center justify-between">
+                  <div className="bg-white p-5 border border-border rounded-none shadow-none flex items-center justify-between">
                     <div>
                       <span className="text-[0.8rem] font-bold text-text-muted uppercase">Pendientes</span>
                       <h4 className="text-[1.75rem] font-heading font-extrabold text-blue-600 mt-1">
                         {estadisticas.por_estado.pendiente || 0}
                       </h4>
                     </div>
-                    <div className="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
+                    <div className="w-12 h-12 rounded-none bg-blue-50 flex items-center justify-center text-blue-600">
                       <AlertCircle size={24} />
                     </div>
                   </div>
 
-                  <div className="bg-white p-5 border border-border rounded-xl shadow-xs flex items-center justify-between">
+                  <div className="bg-white p-5 border border-border rounded-none shadow-none flex items-center justify-between">
                     <div>
                       <span className="text-[0.8rem] font-bold text-text-muted uppercase">Confirmadas</span>
                       <h4 className="text-[1.75rem] font-heading font-extrabold text-emerald-600 mt-1">
                         {estadisticas.por_estado.confirmada || 0}
                       </h4>
                     </div>
-                    <div className="w-12 h-12 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+                    <div className="w-12 h-12 rounded-none bg-emerald-50 flex items-center justify-center text-emerald-600">
                       <CheckCircle2 size={24} />
                     </div>
                   </div>
 
-                  <div className="bg-white p-5 border border-border rounded-xl shadow-xs flex items-center justify-between">
+                  <div className="bg-white p-5 border border-border rounded-none shadow-none flex items-center justify-between">
                     <div>
                       <span className="text-[0.8rem] font-bold text-text-muted uppercase">Rechazadas</span>
                       <h4 className="text-[1.75rem] font-heading font-extrabold text-red-600 mt-1">
                         {estadisticas.por_estado.rechazada || 0}
                       </h4>
                     </div>
-                    <div className="w-12 h-12 rounded-lg bg-red-50 flex items-center justify-center text-red-600">
+                    <div className="w-12 h-12 rounded-none bg-red-50 flex items-center justify-center text-red-600">
                       <XCircle size={24} />
                     </div>
                   </div>
                 </div>
 
                 {/* Gráficas / Barras de Especialidades */}
-                <div className="bg-white border border-border rounded-xl p-6 shadow-sm">
+                <div className="bg-white border border-border rounded-none p-6 shadow-xs">
                   <h4 className="font-heading font-extrabold text-[1rem] text-text-heading mb-4">
                     Distribución de Alumnos Matriculados por Especialidad
                   </h4>
@@ -285,9 +285,9 @@ export default function SupervisarMatriculasDireccion() {
                                 <b>{cantidad}</b> ({porcentaje}%)
                               </span>
                             </div>
-                            <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                            <div className="w-full bg-slate-100 h-2.5 rounded-none overflow-hidden">
                               <div 
-                                className="bg-primary h-full rounded-full transition-all duration-500" 
+                                className="bg-primary h-full rounded-none transition-all duration-500" 
                                 style={{ width: `${porcentaje}%` }}
                               ></div>
                             </div>
@@ -305,7 +305,7 @@ export default function SupervisarMatriculasDireccion() {
         {activoTab === 'listado' && (
           <div className="flex flex-col gap-6">
             {/* Panel de Filtros */}
-            <div className="bg-white p-5 border border-border rounded-xl shadow-xs flex flex-col gap-4">
+            <div className="bg-white p-5 border border-border rounded-none shadow-none flex flex-col gap-4">
               <div className="flex items-center gap-2 border-b border-border pb-3">
                 <ListFilter size={18} className="text-primary" />
                 <span className="text-[0.88rem] font-bold text-text-heading">Filtros de Búsqueda Avanzada</span>
@@ -322,7 +322,7 @@ export default function SupervisarMatriculasDireccion() {
                       setFiltroFacultad(e.target.value);
                       setFiltroEspecialidad(''); // Resetear carrera al cambiar facultad
                     }}
-                    className="p-2.5 border border-border rounded-lg text-[0.85rem] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white"
+                    className="p-2.5 border border-border rounded-none text-[0.85rem] focus:outline-none focus:border-primary bg-white"
                   >
                     <option value="">Todas las Facultades</option>
                     {facultades.map(f => (
@@ -339,7 +339,7 @@ export default function SupervisarMatriculasDireccion() {
                   <select
                     value={filtroEspecialidad}
                     onChange={(e) => setFiltroEspecialidad(e.target.value)}
-                    className="p-2.5 border border-border rounded-lg text-[0.85rem] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white"
+                    className="p-2.5 border border-border rounded-none text-[0.85rem] focus:outline-none focus:border-primary bg-white"
                   >
                     <option value="">Todas las Especialidades</option>
                     {especialidadesFiltradas.map(e => (
@@ -356,7 +356,7 @@ export default function SupervisarMatriculasDireccion() {
                   <select
                     value={filtroCiclo}
                     onChange={(e) => setFiltroCiclo(e.target.value)}
-                    className="p-2.5 border border-border rounded-lg text-[0.85rem] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary bg-white"
+                    className="p-2.5 border border-border rounded-none text-[0.85rem] focus:outline-none focus:border-primary bg-white"
                   >
                     <option value="">Todos los Ciclos</option>
                     {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(c => (
@@ -368,7 +368,7 @@ export default function SupervisarMatriculasDireccion() {
             </div>
 
             {/* Tabla de Matrículas */}
-            <div className="bg-white border border-border rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-white border border-border rounded-none shadow-xs overflow-hidden">
               {cargandoLista ? (
                 <div className="p-12 text-center">
                   <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-3"></div>
@@ -413,7 +413,7 @@ export default function SupervisarMatriculasDireccion() {
                               {new Date(m.fecha_matricula).toLocaleDateString('es-PE')}
                             </td>
                             <td className="p-4 text-center">
-                              <span className={`inline-block py-1 px-3.5 rounded-full text-[0.78rem] font-bold border ${
+                              <span className={`inline-block py-1 px-3.5 rounded-none text-[0.78rem] font-bold border ${
                                 esConfirmada 
                                   ? 'bg-emerald-50 text-emerald-700 border-emerald-100' 
                                   : m.estado === 'rechazada'
@@ -428,7 +428,7 @@ export default function SupervisarMatriculasDireccion() {
                                 href={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${urlFicha}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className={`inline-flex items-center gap-1.5 py-1.5 px-3 rounded text-[0.82rem] font-bold border transition-all cursor-pointer ${
+                                className={`inline-flex items-center gap-1.5 py-1.5 px-3 rounded-none text-[0.82rem] font-bold border transition-all cursor-pointer ${
                                   esConfirmada 
                                     ? 'bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-600 border-emerald-500/10'
                                     : 'bg-primary/5 hover:bg-primary/10 text-primary border-primary/10'
