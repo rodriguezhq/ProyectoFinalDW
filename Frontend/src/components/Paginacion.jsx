@@ -1,6 +1,23 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+// Ventana de páginas visibles: siempre la primera, la última y la actual ±1,
+// con '…' en los huecos, para que muchas páginas no desborden la fila.
+function paginasVisibles(pagina, totalPaginas) {
+  if (totalPaginas <= 7) {
+    return Array.from({ length: totalPaginas }, (_, i) => i + 1);
+  }
+  const nucleo = [pagina - 1, pagina, pagina + 1]
+    .filter(n => n > 1 && n < totalPaginas);
+  const paginas = [1, ...nucleo, totalPaginas];
+  const conHuecos = [];
+  paginas.forEach((n, i) => {
+    if (i > 0 && n - paginas[i - 1] > 1) conHuecos.push('…');
+    conHuecos.push(n);
+  });
+  return conHuecos;
+}
+
 // Paginación numerada reutilizable: "Mostrando X de Y — página P de N" + botones ‹ 1 2 3 ›
 export default function Paginacion({ cantidadMostrada, total, pagina, totalPaginas, irAPagina }) {
   if (totalPaginas <= 1) {
@@ -28,19 +45,28 @@ export default function Paginacion({ cantidadMostrada, total, pagina, totalPagin
         >
           <ChevronLeft size={14} />
         </button>
-        {Array.from({ length: totalPaginas }, (_, i) => i + 1).map(numeroPagina => (
-          <button
-            key={numeroPagina}
-            type="button"
-            onClick={() => irAPagina(numeroPagina)}
-            className={`flex items-center justify-center min-w-8 h-8 px-2 border text-[0.8rem] font-bold rounded-none transition-all cursor-pointer ${
-              numeroPagina === pagina
-                ? 'bg-primary text-white border-primary'
-                : 'bg-white text-text-heading border-border hover:bg-slate-100'
-            }`}
-          >
-            {numeroPagina}
-          </button>
+        {paginasVisibles(pagina, totalPaginas).map((numeroPagina, i) => (
+          numeroPagina === '…' ? (
+            <span
+              key={`hueco-${i}`}
+              className="flex items-center justify-center min-w-8 h-8 px-1 text-[0.8rem] font-bold text-text-muted select-none"
+            >
+              …
+            </span>
+          ) : (
+            <button
+              key={numeroPagina}
+              type="button"
+              onClick={() => irAPagina(numeroPagina)}
+              className={`flex items-center justify-center min-w-8 h-8 px-2 border text-[0.8rem] font-bold rounded-none transition-all cursor-pointer ${
+                numeroPagina === pagina
+                  ? 'bg-primary text-white border-primary'
+                  : 'bg-white text-text-heading border-border hover:bg-slate-100'
+              }`}
+            >
+              {numeroPagina}
+            </button>
+          )
         ))}
         <button
           type="button"
