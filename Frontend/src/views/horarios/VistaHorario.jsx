@@ -66,20 +66,10 @@ export default function VistaHorario({ isTeacher = false }) {
           <tbody>
             {franjasHorarias.map((slot, index) => {
               const horaInicioStr = slot.split(' - ')[0];
-              const esReceso = horaInicioStr === '13:00';
-
               return (
-                <tr key={index} className={esReceso ? 'bg-amber-50' : ''}>
+                <tr key={index}>
                   <td className="w-[130px] bg-bg-alt font-bold text-text-heading font-heading text-[0.85rem] p-3 border-b border-r border-border last:border-r-0 text-center align-middle">{slot}</td>
                   {diasSemana.map(dia => {
-                    if (esReceso) {
-                      return (
-                        <td key={dia} className="bg-amber-50 text-amber-600 font-bold font-heading text-[0.85rem] tracking-wider p-3 border-b border-r border-border last:border-r-0 text-center align-middle">
-                          {dia === 'Lunes' ? <span className="flex items-center justify-center gap-1"><Coffee size={14} /> RECESO / ALMUERZO</span> : ''}
-                        </td>
-                      );
-                    }
-
                     const cursoActivo = obtenerCursoParaSlot(dia, slot);
 
                     if (cursoActivo) {

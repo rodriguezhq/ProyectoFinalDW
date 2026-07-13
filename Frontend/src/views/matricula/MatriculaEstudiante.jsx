@@ -258,7 +258,7 @@ export default function MatriculaEstudiante() {
                         ) : (
                             <div className="bg-amber-50 border border-amber-200 px-4 py-2 rounded-xl flex items-center gap-2 text-amber-800 text-sm font-bold">
                                 <Clock className="text-amber-600 animate-pulse" size={18} />
-                                Estado: Pendiente de Validación
+                                Estado: Matrícula Pendiente
                             </div>
                         )
                     ) : (
@@ -369,8 +369,8 @@ export default function MatriculaEstudiante() {
                         <div className="bg-amber-50 border border-amber-200 p-5 rounded-2xl flex flex-col md:flex-row items-center gap-4 text-amber-900 shadow-sm">
                             <Clock className="text-amber-600 animate-pulse shrink-0" size={36} />
                             <div className="grow text-center md:text-left">
-                                <h3 className="font-heading font-extrabold text-lg leading-tight">Solicitud en Proceso de Validación</h3>
-                                <p className="text-sm text-amber-800 mt-1">Tu matrícula se encuentra pendiente de validación por el Administrador. Ya puedes descargar tu Constancia de Pre-Matrícula.</p>
+                                <h3 className="font-heading font-extrabold text-lg leading-tight">Matrícula Pendiente</h3>
+                                <p className="text-sm text-amber-800 mt-1">Tu matrícula se encuentra pendiente, el administrador la revisará pronto. Ya puedes descargar tu Constancia de Pre-Matrícula.</p>
                             </div>
                             <a
                                 href={`${obtenerUrlFichaPdf(oferta.id_matricula)}?tipo=pre`}

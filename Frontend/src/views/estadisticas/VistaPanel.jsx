@@ -1,191 +1,520 @@
-import React from 'react';
-import { TrendingUp, TrendingDown, Minus, BarChart3, History } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { TrendingUp, TrendingDown, Minus, BarChart3, History, RefreshCw, Clock } from 'lucide-react';
+
+// Importación de los servicios de la API
+import { 
+  obtenerPeriodos, 
+  obtenerSecciones, 
+  obtenerCargaDocente 
+} from '../../services/servicioAcademico';
+import { 
+  obtenerAuditoria, 
+  obtenerDesempenoCohortes 
+} from '../../services/servicioDireccion';
+import { 
+  obtenerTodosLosDocumentos 
+} from '../../services/servicioCertificados';
+import { 
+  listarMatriculasAdmin 
+} from '../../services/servicioMatriculaAdmin';
 
 export default function VistaPanel({ isDirection = false }) {
   const esDireccion = isDirection;
 
+  // Estados de la aplicación (todos en español)
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(null);
+  const [periodoActivo, setPeriodoActivo] = useState(null);
+  
+  const [metricas, setMetricas] = useState({
+    ppaGlobal: 0,
+    tasaAprobacion: 0,
+    cargaDocente: 0,
+    certificadosEmitidos: 0,
+    totalMatriculados: 0,
+    validacionesPendientes: 0,
+    tasasPago: 0,
+    seccionesAperturadas: 0,
+  });
+
+  const [datosGrafico, setDatosGrafico] = useState([]);
+  const [bitacora, setBitacora] = useState([]);
+
+  // Función para formatear el tiempo transcurrido o la fecha de manera legible
+  function formatearTiempo(fechaTexto) {
+    if (!fechaTexto) return '';
+    
+    // Normalizar formato de fecha reemplazando el espacio por la 'T' para navegadores
+    const fechaEstandar = fechaTexto.replace(' ', 'T');
+    const fecha = new Date(fechaEstandar);
+    const ahora = new Date();
+    
+    if (isNaN(fecha.getTime())) return fechaTexto;
+    
+    const difMs = ahora - fecha;
+    const difMinutos = Math.floor(difMs / 60000);
+    
+    if (difMinutos < 1) return 'Hace unos instantes';
+    if (difMinutos < 60) return `Hace ${difMinutos} min`;
+    
+    const difHoras = Math.floor(difMinutos / 60);
+    if (difHoras < 24) return `Hace ${difHoras} hora${difHoras > 1 ? 's' : ''}`;
+    
+    return fecha.toLocaleDateString('es-PE', {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  // Carga de datos asíncrona desde el backend
+  async function cargarDatosDashboard() {
+    try {
+      setCargando(true);
+      setError(null);
+
+      // 1. Obtener todos los periodos académicos y determinar cuál es el activo
+      const respuestaPeriodos = await obtenerPeriodos();
+      const listaPeriodos = respuestaPeriodos.periodos || [];
+      const activo = listaPeriodos.find(p => p.estado === 'activo') || listaPeriodos[0];
+      setPeriodoActivo(activo);
+
+      const idPeriodoActivo = activo ? activo.id_periodo : null;
+
+      if (esDireccion) {
+        // --- PANEL DE DIRECCIÓN ESTRATÉGICA ---
+        
+        // Cargar desempeño de cohortes (para promedio acumulado, tasa aprobación y gráfico)
+        let desempeno = [];
+        let ppaGlobal = 0;
+        let tasaAprobacion = 0;
+        try {
+          const respuestaDesempeno = await obtenerDesempenoCohortes('', 1, 1000);
+          desempeno = respuestaDesempeno.desempeno || [];
+          if (respuestaDesempeno.resumen_global) {
+            ppaGlobal = respuestaDesempeno.resumen_global.promedio_ppa_global || 0;
+            tasaAprobacion = respuestaDesempeno.resumen_global.tasa_aprobacion_global || 0;
+          }
+        } catch (err) {
+          console.error("Error al obtener desempeño para dirección:", err);
+        }
+
+        // Cargar carga docente (promedio de horas asignadas)
+        let promedioCargaDocente = 0;
+        if (idPeriodoActivo) {
+          try {
+            const respuestaCarga = await obtenerCargaDocente(idPeriodoActivo);
+            const listaCarga = respuestaCarga.carga || [];
+            if (listaCarga.length > 0) {
+              const sumaHoras = listaCarga.reduce((sum, item) => sum + (item.total_horas || 0), 0);
+              promedioCargaDocente = Math.round((sumaHoras / listaCarga.length) * 10) / 10;
+            }
+          } catch (err) {
+            console.error("Error al obtener carga docente:", err);
+          }
+        }
+
+        // Cargar certificados emitidos (filtrado de todos los documentos)
+        let totalCertificados = 0;
+        try {
+          const respuestaDocs = await obtenerTodosLosDocumentos(1, 1000);
+          const documentos = respuestaDocs.documentos || [];
+          totalCertificados = documentos.filter(d => d.estado === 'emitido').length;
+        } catch (err) {
+          console.error("Error al obtener documentos para dirección:", err);
+        }
+
+        // Cargar bitácora de auditoría reciente (las últimas 4 operaciones)
+        let auditoriaReciente = [];
+        try {
+          const respuestaAuditoria = await obtenerAuditoria('', '', 1, 4);
+          auditoriaReciente = respuestaAuditoria.auditorias || [];
+        } catch (err) {
+          console.error("Error al obtener bitácora de auditoría:", err);
+        }
+
+        // Procesar rendimiento académico por especialidad para la gráfica
+        const agrupadoEspecialidades = {};
+        desempeno.forEach(item => {
+          const especialidad = item.especialidad_nombre;
+          if (especialidad) {
+            if (!agrupadoEspecialidades[especialidad]) {
+              agrupadoEspecialidades[especialidad] = { sumaPromedio: 0, conteo: 0 };
+            }
+            agrupadoEspecialidades[especialidad].sumaPromedio += item.promedio_ponderado_promedio || 0;
+            agrupadoEspecialidades[especialidad].conteo += 1;
+          }
+        });
+
+        // Convertir el mapeo en una lista adecuada para pintar el gráfico
+        const listadoGrafico = Object.keys(agrupadoEspecialidades).map(esp => {
+          const datosEsp = agrupadoEspecialidades[esp];
+          const promedio = datosEsp.conteo > 0 ? Math.round((datosEsp.sumaPromedio / datosEsp.conteo) * 10) / 10 : 0;
+          return {
+            nombre: esp,
+            valor: promedio,
+            // Porcentaje referencial para el ancho de la barra (base vigesimal 0-20)
+            porcentaje: Math.min(100, Math.max(10, (promedio / 20) * 100))
+          };
+        });
+
+        // Si no hay datos, poblar con nombres vacíos pero estructura válida
+        if (listadoGrafico.length === 0) {
+          listadoGrafico.push(
+            { nombre: "Ing. Sistemas", valor: 0, porcentaje: 10 },
+            { nombre: "Ing. Civil", valor: 0, porcentaje: 10 }
+          );
+        }
+
+        setMetricas({
+          ppaGlobal,
+          tasaAprobacion,
+          cargaDocente: promedioCargaDocente,
+          certificadosEmitidos: totalCertificados,
+          totalMatriculados: 0,
+          validacionesPendientes: 0,
+          tasasPago: 0,
+          seccionesAperturadas: 0
+        });
+        setDatosGrafico(listadoGrafico);
+        setBitacora(auditoriaReciente);
+
+      } else {
+        // --- PANEL DE ADMINISTRACIÓN DE CONTROL ---
+        
+        // Cargar todas las matrículas del periodo activo
+        let matriculas = [];
+        if (idPeriodoActivo) {
+          try {
+            const respuestaMatriculas = await listarMatriculasAdmin(idPeriodoActivo);
+            matriculas = respuestaMatriculas.matriculas || [];
+          } catch (err) {
+            console.error("Error al obtener matrículas para administrador:", err);
+          }
+        }
+
+        // Cargar todas las secciones aperturadas del periodo activo
+        let totalSecciones = 0;
+        if (idPeriodoActivo) {
+          try {
+            const respuestaSecciones = await obtenerSecciones('', '', idPeriodoActivo);
+            totalSecciones = (respuestaSecciones.secciones || []).length;
+          } catch (err) {
+            console.error("Error al obtener secciones para administrador:", err);
+          }
+        }
+
+        const validacionesPendientes = matriculas.filter(m => m.estado === 'pendiente').length;
+        const totalPagos = matriculas.reduce((sum, m) => sum + (m.pago && m.pago.estado === 'confirmado' ? m.pago.monto : 0), 0);
+
+        // Agrupar matrículas por estado para el gráfico
+        const conteoEstados = { pendiente: 0, confirmada: 0, rechazada: 0 };
+        matriculas.forEach(m => {
+          if (m.estado === 'pendiente') {
+            conteoEstados.pendiente += 1;
+          } else if (m.estado === 'confirmada' || m.estado === 'pagada' || m.estado === 'validada') {
+            conteoEstados.confirmada += 1;
+          } else if (m.estado === 'rechazada' || m.estado === 'desaprobada') {
+            conteoEstados.rechazada += 1;
+          }
+        });
+
+        const totalGeneralMatriculas = matriculas.length || 1;
+        const porcentajeConfirmadas = (conteoEstados.confirmada / totalGeneralMatriculas) * 100;
+        const porcentajePendientes = (conteoEstados.pendiente / totalGeneralMatriculas) * 100;
+        const porcentajeRechazadas = (conteoEstados.rechazada / totalGeneralMatriculas) * 100;
+
+        const graficoMatriculas = [
+          { nombre: 'Confirmadas', valor: `${Math.round(porcentajeConfirmadas)}%`, porcentaje: Math.max(10, porcentajeConfirmadas), claseColor: 'bg-primary' },
+          { nombre: 'Pendientes', valor: `${Math.round(porcentajePendientes)}%`, porcentaje: Math.max(10, porcentajePendientes), claseColor: 'bg-accent' },
+          { nombre: 'Rechazadas', valor: `${Math.round(porcentajeRechazadas)}%`, porcentaje: Math.max(10, porcentajeRechazadas), claseColor: 'bg-red-500' }
+        ];
+
+        setMetricas({
+          ppaGlobal: 0,
+          tasaAprobacion: 0,
+          cargaDocente: 0,
+          certificadosEmitidos: 0,
+          totalMatriculados: matriculas.length,
+          validacionesPendientes,
+          tasasPago: totalPagos,
+          seccionesAperturadas: totalSecciones
+        });
+        setDatosGrafico(graficoMatriculas);
+
+        // Bitácora de solicitudes de matrícula recientes (últimas 4)
+        const solicitudesRecientes = matriculas.slice(0, 4);
+        setBitacora(solicitudesRecientes);
+      }
+
+    } catch (err) {
+      console.error("Error general en el dashboard:", err);
+      setError("Ocurrió un error al conectar con el servidor para cargar las estadísticas.");
+    } finally {
+      setCargando(false);
+    }
+  }
+
+  // Efecto que corre al montar la vista o cuando cambia el rol/prop de dirección
+  useEffect(() => {
+    cargarDatosDashboard();
+  }, [esDireccion]);
+
+  // Renderizado del Skeleton de Carga (Premium UI)
+  if (cargando) {
+    return (
+      <div className="flex flex-col gap-8 animate-pulse">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-white rounded-xl border border-border p-6 shadow-sm flex flex-col gap-4 h-36">
+              <div className="h-4 bg-slate-200 rounded w-2/3"></div>
+              <div className="h-8 bg-slate-200 rounded w-1/3 mt-2"></div>
+              <div className="h-3 bg-slate-200 rounded w-5/6 mt-2"></div>
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-6">
+          <div className="bg-white rounded-xl border border-border p-8 shadow-md h-80 flex flex-col gap-4">
+            <div className="h-5 bg-slate-200 rounded w-1/3"></div>
+            <div className="h-3 bg-slate-200 rounded w-1/2"></div>
+            <div className="h-full bg-slate-100 rounded mt-4"></div>
+          </div>
+          <div className="bg-white rounded-xl border border-border p-8 shadow-md h-80 flex flex-col gap-4">
+            <div className="h-5 bg-slate-200 rounded w-1/3"></div>
+            <div className="h-3 bg-slate-200 rounded w-1/2"></div>
+            <div className="h-full bg-slate-100 rounded mt-4"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Renderizado de la Pantalla de Error (Premium UI)
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-8 flex flex-col items-center justify-center gap-4 text-center max-w-lg mx-auto my-12 shadow-sm">
+        <h4 className="font-heading text-lg font-bold">Error de Conexión</h4>
+        <p className="text-sm leading-relaxed text-red-600">{error}</p>
+        <button 
+          onClick={cargarDatosDashboard}
+          className="mt-2 flex items-center gap-2 px-5 py-2.5 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 active:scale-95 transition-all shadow"
+        >
+          <RefreshCw size={16} /> Reintentar Carga
+        </button>
+      </div>
+    );
+  }
+
+  // Renderizado Principal del Dashboard
   return (
     <div className="flex flex-col gap-8 animate-slide-up">
+      
+      {/* Indicador del Periodo Académico Activo */}
+      <div className="flex justify-between items-center bg-slate-50 border border-border rounded-xl px-6 py-4 shadow-sm">
+        <div className="flex flex-col text-left">
+          <span className="text-xs text-text-muted font-bold uppercase tracking-wider">Periodo Académico Actual</span>
+          <span className="text-lg font-extrabold text-text-heading">{periodoActivo ? periodoActivo.nombre : 'Sin Periodo Activo'}</span>
+        </div>
+        <button 
+          onClick={cargarDatosDashboard} 
+          className="p-2 rounded-lg hover:bg-slate-200 border border-slate-200 bg-white transition-colors"
+          title="Actualizar datos"
+        >
+          <RefreshCw size={18} className="text-text-muted" />
+        </button>
+      </div>
+
       {/* Cuadrícula de Tarjetas de Métricas */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        
+        {/* Tarjeta 1 */}
         <div className="bg-white rounded-xl border border-border p-6 shadow-sm flex flex-col gap-3 transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-md border-t-4 border-t-primary">
           <div className="flex justify-between items-start gap-2">
-            <span className="text-[0.85rem] font-bold text-text-muted uppercase tracking-wider leading-tight">
+            <span className="text-[0.85rem] font-bold text-text-muted uppercase tracking-wider leading-tight text-left">
               {esDireccion ? 'Promedio Ponderado Acumulado' : 'Total Alumnos Matriculados'}
             </span>
             <span className="flex items-center gap-0.5 text-[0.75rem] font-bold py-0.5 px-1.5 rounded bg-emerald-100 text-emerald-600">
-              <TrendingUp size={12} /> {esDireccion ? '4.2%' : '8.5%'}
+              <TrendingUp size={12} /> {esDireccion ? 'General' : 'Activos'}
             </span>
           </div>
-          <div className="font-heading text-[2.25rem] font-extrabold text-text-heading leading-none">
-            {esDireccion ? '14.62' : '1,248'}
+          <div className="font-heading text-[2.25rem] font-extrabold text-text-heading leading-none text-left">
+            {esDireccion ? metricas.ppaGlobal.toFixed(2) : metricas.totalMatriculados.toLocaleString()}
           </div>
-          <p className="text-[0.78rem] text-text-muted leading-relaxed">
+          <p className="text-[0.78rem] text-text-muted leading-relaxed text-left">
             {esDireccion 
               ? 'Promedio general ponderado de estudiantes de pregrado.' 
-              : 'Estudiantes con matrícula aprobada en el periodo 2026-I.'}
+              : `Estudiantes registrados en el periodo académico ${periodoActivo ? periodoActivo.nombre : ''}.`}
           </p>
         </div>
         
+        {/* Tarjeta 2 */}
         <div className="bg-white rounded-xl border border-border p-6 shadow-sm flex flex-col gap-3 transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-md border-t-4 border-t-accent">
           <div className="flex justify-between items-start gap-2">
-            <span className="text-[0.85rem] font-bold text-text-muted uppercase tracking-wider leading-tight">
+            <span className="text-[0.85rem] font-bold text-text-muted uppercase tracking-wider leading-tight text-left">
               {esDireccion ? 'Tasa de Aprobación General' : 'Validaciones Pendientes'}
             </span>
-            <span className="flex items-center gap-0.5 text-[0.75rem] font-bold py-0.5 px-1.5 rounded bg-emerald-100 text-emerald-600">
-              {esDireccion ? <><TrendingUp size={12} /> 1.8%</> : <><TrendingDown size={12} /> 15%</>}
+            <span className={`flex items-center gap-0.5 text-[0.75rem] font-bold py-0.5 px-1.5 rounded ${
+              esDireccion || metricas.validacionesPendientes === 0 ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'
+            }`}>
+              {esDireccion ? <><TrendingUp size={12} /> %</> : <><Clock size={12} /> Por revisar</>}
             </span>
           </div>
-          <div className="font-heading text-[2.25rem] font-extrabold text-text-heading leading-none">
-            {esDireccion ? '79.4%' : '23'}
+          <div className="font-heading text-[2.25rem] font-extrabold text-text-heading leading-none text-left">
+            {esDireccion ? `${metricas.tasaAprobacion.toFixed(1)}%` : metricas.validacionesPendientes}
           </div>
-          <p className="text-[0.78rem] text-text-muted leading-relaxed">
+          <p className="text-[0.78rem] text-text-muted leading-relaxed text-left">
             {esDireccion 
-              ? 'Alumnos que pasaron satisfactoriamente sus asignaturas.' 
+              ? 'Porcentaje de aprobaciones de los cursos calificados.' 
               : 'Fichas de matrícula en espera de confirmación de requisitos.'}
           </p>
         </div>
 
+        {/* Tarjeta 3 */}
         <div className="bg-white rounded-xl border border-border p-6 shadow-sm flex flex-col gap-3 transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-md border-t-4 border-t-blue-500">
           <div className="flex justify-between items-start gap-2">
-            <span className="text-[0.85rem] font-bold text-text-muted uppercase tracking-wider leading-tight">
+            <span className="text-[0.85rem] font-bold text-text-muted uppercase tracking-wider leading-tight text-left">
               {esDireccion ? 'Carga Horaria Docente' : 'Tasas de Pago Registradas'}
             </span>
             <span className="flex items-center gap-0.5 text-[0.75rem] font-bold py-0.5 px-1.5 rounded bg-slate-100 text-slate-500">
-              {esDireccion ? <Minus size={12} /> : <><TrendingUp size={12} /> 92%</>}
+              {esDireccion ? <Minus size={12} /> : <><TrendingUp size={12} /> Recaudado</>}
             </span>
           </div>
-          <div className="font-heading text-[2.25rem] font-extrabold text-text-heading leading-none">
-            {esDireccion ? '18.5 hrs' : 'S/. 184.2K'}
+          <div className="font-heading text-[2.25rem] font-extrabold text-text-heading leading-none text-left">
+            {esDireccion ? `${metricas.cargaDocente} hrs` : `S/. ${(metricas.tasasPago / 1000).toFixed(1)}K`}
           </div>
-          <p className="text-[0.78rem] text-text-muted leading-relaxed">
+          <p className="text-[0.78rem] text-text-muted leading-relaxed text-left">
             {esDireccion 
               ? 'Promedio de horas lectivas semanales por docente asignado.' 
-              : 'Monto recaudado de pagos verificados por caja institucional.'}
+              : `Monto total recaudado por concepto de matrícula en caja (S/. ${metricas.tasasPago.toLocaleString()}).`}
           </p>
         </div>
 
+        {/* Tarjeta 4 */}
         <div className="bg-white rounded-xl border border-border p-6 shadow-sm flex flex-col gap-3 transition-all duration-300 hover:-translate-y-1 hover:border-primary/25 hover:shadow-md border-t-4 border-t-emerald-500">
           <div className="flex justify-between items-start gap-2">
-            <span className="text-[0.85rem] font-bold text-text-muted uppercase tracking-wider leading-tight">
+            <span className="text-[0.85rem] font-bold text-text-muted uppercase tracking-wider leading-tight text-left">
               {esDireccion ? 'Certificados Emitidos' : 'Secciones Aperturadas'}
             </span>
             <span className="flex items-center gap-0.5 text-[0.75rem] font-bold py-0.5 px-1.5 rounded bg-emerald-100 text-emerald-600">
-              <TrendingUp size={12} /> {esDireccion ? '12%' : '4'}
+              <TrendingUp size={12} /> Total
             </span>
           </div>
-          <div className="font-heading text-[2.25rem] font-extrabold text-text-heading leading-none">
-            {esDireccion ? '348' : '74'}
+          <div className="font-heading text-[2.25rem] font-extrabold text-text-heading leading-none text-left">
+            {esDireccion ? metricas.certificadosEmitidos : metricas.seccionesAperturadas}
           </div>
-          <p className="text-[0.78rem] text-text-muted leading-relaxed">
+          <p className="text-[0.78rem] text-text-muted leading-relaxed text-left">
             {esDireccion 
               ? 'Documentos académicos validados e impresos con código QR.' 
-              : 'Aulas programadas para el ciclo en curso en diversas facultades.'}
+              : 'Aulas y secciones programadas para el periodo actual.'}
           </p>
         </div>
       </div>
 
       {/* Gráficos y Bitácora */}
       <div className="grid grid-cols-1 xl:grid-cols-[1.2fr_0.8fr] gap-6">
+        
         {/* Gráfico Customizado en CSS */}
         <div className="bg-white rounded-xl border border-border p-6 md:p-8 shadow-md">
-          <h3 className="flex items-center gap-2 font-heading text-[1.25rem] font-extrabold text-text-heading mb-1">
-            <BarChart3 size={20} /> {esDireccion ? 'Rendimiento Académico por Especialidad' : 'Estado de Trámites y Matrículas'}
+          <h3 className="flex items-center gap-2 font-heading text-[1.25rem] font-extrabold text-text-heading mb-1 text-left">
+            <BarChart3 size={20} /> {esDireccion ? 'Rendimiento Académico por Especialidad' : 'Distribución por Estado de Matrícula'}
           </h3>
-          <p className="text-[0.88rem] text-text-muted mb-7">Resumen visual de los indicadores críticos del periodo lectivo.</p>
+          <p className="text-[0.88rem] text-text-muted mb-7 text-left">Resumen visual de los indicadores críticos del periodo lectivo.</p>
           
           <div className="flex flex-col gap-5">
-            <div className="grid grid-cols-[120px_1fr_50px] gap-4 items-center">
-              <span className="text-[0.88rem] font-semibold text-text-heading">Ing. Sistemas</span>
-              <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
-                <div className="h-full rounded-full transition-all duration-1000 animate-slide-right bg-primary" style={{ width: '85%' }}></div>
-              </div>
-              <span className="text-[0.88rem] font-bold text-text-heading text-right">
-                {esDireccion ? '15.4' : '85%'}
-              </span>
-            </div>
-            <div className="grid grid-cols-[120px_1fr_50px] gap-4 items-center">
-              <span className="text-[0.88rem] font-semibold text-text-heading">Ing. Civil</span>
-              <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
-                <div className="h-full rounded-full transition-all duration-1000 animate-slide-right bg-accent" style={{ width: '70%' }}></div>
-              </div>
-              <span className="text-[0.88rem] font-bold text-text-heading text-right">
-                {esDireccion ? '14.1' : '70%'}
-              </span>
-            </div>
-            <div className="grid grid-cols-[120px_1fr_50px] gap-4 items-center">
-              <span className="text-[0.88rem] font-semibold text-text-heading">Ing. Química</span>
-              <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
-                <div className="h-full rounded-full transition-all duration-1000 animate-slide-right bg-blue-500" style={{ width: '78%' }}></div>
-              </div>
-              <span className="text-[0.88rem] font-bold text-text-heading text-right">
-                {esDireccion ? '14.8' : '78%'}
-              </span>
-            </div>
-            <div className="grid grid-cols-[120px_1fr_50px] gap-4 items-center">
-              <span className="text-[0.88rem] font-semibold text-text-heading">Ing. Eléctrica</span>
-              <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
-                <div className="h-full rounded-full transition-all duration-1000 animate-slide-right bg-emerald-500" style={{ width: '62%' }}></div>
-              </div>
-              <span className="text-[0.88rem] font-bold text-text-heading text-right">
-                {esDireccion ? '13.2' : '62%'}
-              </span>
-            </div>
+            {esDireccion ? (
+              // Gráfico para Dirección: Promedio de Rendimiento Ponderado por Carrera
+              datosGrafico.map((item, index) => (
+                <div key={index} className="grid grid-cols-[140px_1fr_50px] gap-4 items-center">
+                  <span className="text-[0.88rem] font-semibold text-text-heading text-left truncate" title={item.nombre}>{item.nombre}</span>
+                  <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full transition-all duration-1000 animate-slide-right ${
+                        index % 4 === 0 ? 'bg-primary' : index % 4 === 1 ? 'bg-accent' : index % 4 === 2 ? 'bg-blue-500' : 'bg-emerald-500'
+                      }`} 
+                      style={{ width: `${item.porcentaje}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-[0.88rem] font-bold text-text-heading text-right">
+                    {item.valor.toFixed(2)}
+                  </span>
+                </div>
+              ))
+            ) : (
+              // Gráfico para Administrador: Porcentaje de Matrículas por Estado
+              datosGrafico.map((item, index) => (
+                <div key={index} className="grid grid-cols-[140px_1fr_50px] gap-4 items-center">
+                  <span className="text-[0.88rem] font-semibold text-text-heading text-left truncate">{item.nombre}</span>
+                  <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full transition-all duration-1000 animate-slide-right ${item.claseColor}`} 
+                      style={{ width: `${item.porcentaje}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-[0.88rem] font-bold text-text-heading text-right">
+                    {item.valor}
+                  </span>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
         {/* Solicitudes / Bitácora Recientes */}
         <div className="bg-white rounded-xl border border-border p-6 md:p-8 shadow-md">
-          <h3 className="flex items-center gap-2 font-heading text-[1.25rem] font-extrabold text-text-heading mb-1">
-            <History size={20} /> {esDireccion ? 'Control de Auditoría y Bitácora' : 'Solicitudes Recientes'}
+          <h3 className="flex items-center gap-2 font-heading text-[1.25rem] font-extrabold text-text-heading mb-1 text-left">
+            <History size={20} /> {esDireccion ? 'Control de Auditoría y Bitácora' : 'Solicitudes de Matrícula Recientes'}
           </h3>
-          <p className="text-[0.88rem] text-text-muted mb-7">Registro inmediato de operaciones críticas en el sistema.</p>
+          <p className="text-[0.88rem] text-text-muted mb-7 text-left">Registro inmediato de operaciones críticas en el sistema.</p>
 
           <div className="flex flex-col gap-6 relative after:content-[''] after:absolute after:top-1.5 after:bottom-1.5 after:left-[5px] after:w-[2px] after:bg-slate-200">
-            <div className="flex gap-4 items-start relative">
-              <span className="w-3 h-3 rounded-full border-2 border-white shrink-0 mt-1.5 z-10 bg-emerald-500 shadow-[0_0_0_2px_#A7F3D0]"></span>
-              <div className="flex flex-col gap-1 text-left">
-                <span className="text-[0.88rem] text-text-main leading-relaxed font-medium">
-                  {esDireccion 
-                    ? 'Firma autorizada para el Certificado de Notas de la alumna María Huamán.' 
-                    : 'Pago registrado por concepto de matrícula — Estudiante Scoot F.'}
-                </span>
-                <span className="text-[0.75rem] text-text-muted">Hace 5 minutos</span>
-              </div>
-            </div>
-            <div className="flex gap-4 items-start relative">
-              <span className="w-3 h-3 rounded-full border-2 border-white shrink-0 mt-1.5 z-10 bg-blue-500 shadow-[0_0_0_2px_#BFDBFE]"></span>
-              <div className="flex flex-col gap-1 text-left">
-                <span className="text-[0.88rem] text-text-main leading-relaxed font-medium">
-                  {esDireccion 
-                    ? 'Carga de sílabos aprobada para la asignatura Estructuras de Datos.' 
-                    : 'Nueva solicitud de matrícula registrada — Alumno Cristhian R.'}
-                </span>
-                <span className="text-[0.75rem] text-text-muted">Hace 20 minutos</span>
-              </div>
-            </div>
-            <div className="flex gap-4 items-start relative">
-              <span className="w-3 h-3 rounded-full border-2 border-white shrink-0 mt-1.5 z-10 bg-amber-500 shadow-[0_0_0_2px_#FDE68A]"></span>
-              <div className="flex flex-col gap-1 text-left">
-                <span className="text-[0.88rem] text-text-main leading-relaxed font-medium">
-                  {esDireccion 
-                    ? 'Auditoría: Acceso administrativo detectado desde IP 192.168.1.10.' 
-                    : 'Ficha de matrícula generada y firmada en PDF.'}
-                </span>
-                <span className="text-[0.75rem] text-text-muted">Hace 1 hora</span>
-              </div>
-            </div>
-            <div className="flex gap-4 items-start relative">
-              <span className="w-3 h-3 rounded-full border-2 border-white shrink-0 mt-1.5 z-10 bg-red-500 shadow-[0_0_0_2px_#FCA5A5]"></span>
-              <div className="flex flex-col gap-1 text-left">
-                <span className="text-[0.88rem] text-text-main leading-relaxed font-medium">
-                  {esDireccion 
-                    ? 'Intento fallido de modificación de notas detectado en Seccion A.' 
-                    : 'Validación de requisitos rechazada (documento pendiente).'}
-                </span>
-                <span className="text-[0.75rem] text-text-muted">Hace 3 horas</span>
-              </div>
-            </div>
+            {esDireccion ? (
+              // Bitácora de Auditoría para Dirección
+              bitacora.length > 0 ? (
+                bitacora.map((item, i) => (
+                  <div key={i} className="flex gap-4 items-start relative">
+                    <span className={`w-3 h-3 rounded-full border-2 border-white shrink-0 mt-1.5 z-10 shadow-[0_0_0_2px] ${
+                      item.accion.includes('error') || item.accion.includes('fallido')
+                        ? 'bg-red-500 shadow-red-200' 
+                        : item.accion.includes('login') 
+                        ? 'bg-blue-500 shadow-blue-200' 
+                        : 'bg-emerald-500 shadow-emerald-200'
+                    }`}></span>
+                    <div className="flex flex-col gap-1 text-left">
+                      <span className="text-[0.88rem] text-text-main leading-relaxed font-medium">
+                        <strong>{item.usuario_username || 'Usuario'}:</strong> {item.accion} en la tabla <span className="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded text-slate-600">{item.tabla}</span>
+                      </span>
+                      <span className="text-[0.75rem] text-text-muted">{formatearTiempo(item.fecha)}</span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center text-text-muted text-sm py-4">No se han registrado auditorías recientes.</div>
+              )
+            ) : (
+              // Solicitudes Recientes para Administrador
+              bitacora.length > 0 ? (
+                bitacora.map((item, i) => (
+                  <div key={i} className="flex gap-4 items-start relative">
+                    <span className={`w-3 h-3 rounded-full border-2 border-white shrink-0 mt-1.5 z-10 shadow-[0_0_0_2px] ${
+                      item.estado === 'pendiente' 
+                        ? 'bg-accent shadow-amber-200' 
+                        : item.estado === 'rechazada' 
+                        ? 'bg-red-500 shadow-red-200' 
+                        : 'bg-primary shadow-emerald-200'
+                    }`}></span>
+                    <div className="flex flex-col gap-1 text-left">
+                      <span className="text-[0.88rem] text-text-main leading-relaxed font-medium">
+                        Matrícula de {item.estudiante_nombre} ({item.estudiante_codigo}) en estado <strong>{item.estado}</strong> con {item.total_creditos} créditos.
+                      </span>
+                      <span className="text-[0.75rem] text-text-muted">{formatearTiempo(item.fecha_matricula)}</span>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center text-text-muted text-sm py-4">No hay solicitudes de matrícula en este periodo.</div>
+              )
+            )}
           </div>
         </div>
       </div>

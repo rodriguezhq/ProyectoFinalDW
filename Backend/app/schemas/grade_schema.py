@@ -31,6 +31,7 @@ class GradeItem(BaseModel):
     seccion_codigo: Optional[str] = None
     periodo_nombre: Optional[str] = None
     docente_nombre: Optional[str] = None
+    silabo_archivo: Optional[str] = None
 
 
 class GradeResponse(BaseModel):

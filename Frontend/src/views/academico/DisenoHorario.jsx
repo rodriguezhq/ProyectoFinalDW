@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { toast } from 'sonner';
-import { Calendar, Save, BookOpen, Lightbulb, AlertTriangle, X, Pencil } from 'lucide-react';
+import { Calendar, Save, BookOpen, Lightbulb, AlertTriangle, X, Pencil, User, GraduationCap } from 'lucide-react';
 import { useDisenoHorario } from '../../hooks/academico/useDisenoHorario';
+import { clasesColor } from '../../constants/horarios';
 
 export default function DisenoHorario() {
   // Parámetros seleccionados del panel de control
@@ -10,6 +11,8 @@ export default function DisenoHorario() {
   const [idEspecialidad, setIdEspecialidad] = useState('');
   const [filtroCiclo, setFiltroCiclo] = useState(''); // Filtro por ciclo académico (1 al 10)
   const [filtroSeccion, setFiltroSeccion] = useState('A');
+
+  const estaRedimensionandoRef = useRef(false);
 
   // Obtener estados y funciones del hook personalizado de diseño
   const {
@@ -47,6 +50,20 @@ export default function DisenoHorario() {
   ];
 
   const diasSemana = ['LUNES', 'MARTES', 'MIERCOLES', 'JUEVES', 'VIERNES'];
+
+  const mapaNombresDias = {
+    'LUNES': 'Lunes',
+    'MARTES': 'Martes',
+    'MIERCOLES': 'Miércoles',
+    'JUEVES': 'Jueves',
+    'VIERNES': 'Viernes'
+  };
+
+  const obtenerColorCurso = (idCurso) => {
+    const colores = ['azul', 'purpura', 'verde', 'naranja', 'turquesa', 'rosado'];
+    const indice = (idCurso || 0) % colores.length;
+    return colores[indice];
+  };
 
   // Verificar si el periodo seleccionado está activo (permite edición)
   const esPeriodoActivo = () => {
@@ -185,6 +202,7 @@ export default function DisenoHorario() {
   const iniciarRedimension = (e, index) => {
     e.preventDefault();
     e.stopPropagation();
+    estaRedimensionandoRef.current = true;
     
     const sec = secciones[index];
     const startY = e.pageY;
@@ -223,6 +241,9 @@ export default function DisenoHorario() {
     const alSoltarMouse = () => {
       window.removeEventListener('mousemove', alMoverMouse);
       window.removeEventListener('mouseup', alSoltarMouse);
+      setTimeout(() => {
+        estaRedimensionandoRef.current = false;
+      }, 100);
     };
 
     window.addEventListener('mousemove', alMoverMouse);
@@ -232,6 +253,7 @@ export default function DisenoHorario() {
   const iniciarRedimensionSuperior = (e, index) => {
     e.preventDefault();
     e.stopPropagation();
+    estaRedimensionandoRef.current = true;
     
     const sec = secciones[index];
     const startY = e.pageY;
@@ -270,6 +292,9 @@ export default function DisenoHorario() {
     const alSoltarMouse = () => {
       window.removeEventListener('mousemove', alMoverMouse);
       window.removeEventListener('mouseup', alSoltarMouse);
+      setTimeout(() => {
+        estaRedimensionandoRef.current = false;
+      }, 100);
     };
 
     window.addEventListener('mousemove', alMoverMouse);
@@ -291,6 +316,7 @@ export default function DisenoHorario() {
   };
 
   const iniciarEdicionBloque = (index, sec) => {
+    if (estaRedimensionandoRef.current) return;
     if (!esPeriodoActivo()) return;
     setBloqueAEditar({ index, ...sec });
     setEditDocente(sec.id_docente || '');
@@ -545,33 +571,36 @@ export default function DisenoHorario() {
               ) : (
                 <div className="min-w-[800px] flex flex-col select-none">
                   {/* Grid Cabecera */}
-                  <div className="grid grid-cols-[80px_repeat(5,1fr)] gap-2 mb-2">
-                    <div className="text-center font-bold text-[0.78rem] text-text-muted uppercase">Hora</div>
-                    {diasSemana.map(dia => (
-                      <div key={dia} className="text-center font-heading font-extrabold text-[0.88rem] text-primary bg-primary-light py-2 rounded-lg border border-primary/10">
-                        {dia}
+                  <div className="grid grid-cols-[80px_repeat(5,1fr)] gap-0.5 border-b border-border bg-bg-alt rounded-t-xl overflow-hidden">
+                    <div className="text-center font-heading font-bold text-[0.78rem] text-text-heading p-3 border-r border-border">Hora</div>
+                    {diasSemana.map((dia, idx) => (
+                      <div 
+                        key={dia} 
+                        className={`text-center font-heading font-bold text-[0.85rem] text-text-heading p-3 border-r border-border ${idx === diasSemana.length - 1 ? 'border-r-0' : ''}`}
+                      >
+                        {mapaNombresDias[dia] || dia}
                       </div>
                     ))}
                   </div>
 
                   {/* Grid Cuerpo */}
-                  <div className="relative grid grid-cols-[80px_repeat(5,1fr)] grid-rows-[repeat(15,minmax(50px,auto))] gap-2 h-[550px] overflow-y-auto border border-slate-100 rounded-xl p-2 bg-slate-50/50 scrollbar-thin">
+                  <div className="relative grid grid-cols-[80px_repeat(5,1fr)] grid-rows-[repeat(15,minmax(50px,auto))] gap-x-0.5 gap-y-0 border border-t-0 border-border rounded-b-xl p-0 bg-white h-[550px] overflow-y-auto scrollbar-thin">
                     {horasDisponibles.slice(0, -1).map((hora, idx) => (
                       <React.Fragment key={hora}>
                         <div 
                           style={{ gridColumn: 1, gridRowStart: idx + 2 }}
-                          className="text-right pr-2 text-[0.78rem] font-bold font-mono text-slate-400 flex flex-col items-end justify-between h-full border-r border-slate-200 select-none"
+                          className="bg-bg-alt font-bold text-text-heading font-heading text-[0.82rem] p-2 pr-3 border-b border-r border-border flex flex-col items-end justify-between h-full select-none"
                         >
-                          <span className="-mt-1.5">{hora}</span>
+                          <span className="-mt-1 font-mono">{hora}</span>
                           {idx === horasDisponibles.length - 2 && (
-                            <span className="-mb-1.5">{horasDisponibles[idx + 1]}</span>
+                            <span className="-mb-1 font-mono">{horasDisponibles[idx + 1]}</span>
                           )}
                         </div>
                         {diasSemana.map((dia, dIdx) => (
                           <div
                             key={dIdx}
                             style={{ gridColumn: dIdx + 2, gridRowStart: idx + 2 }}
-                            className="border-b border-dashed border-slate-200/60 min-h-[50px] transition-colors duration-150 hover:bg-primary/5"
+                            className={`border-b border-r border-dashed border-border/80 min-h-[50px] transition-colors duration-150 hover:bg-primary/5 ${dIdx === diasSemana.length - 1 ? 'border-r-0' : ''}`}
                             onDragOver={(evento) => {
                               if (esPeriodoActivo()) {
                                 evento.preventDefault();
@@ -588,6 +617,12 @@ export default function DisenoHorario() {
                       if ((sec.seccion || 'A') !== filtroSeccion) return null;
                       const gridPos = obtenerGridRowSpan(sec.horaInicio, sec.horaFin);
                       const col = obtenerGridCol(sec.dia);
+                      const colorCurso = obtenerColorCurso(sec.id_curso);
+                      const claseColor = clasesColor[colorCurso] || 'bg-slate-50 border-l-4 border-slate-600 text-slate-800';
+
+                      // Buscar el docente asignado
+                      const docenteAsignado = docentes.find(d => d.id_docente === parseInt(sec.id_docente));
+                      const nombreDocente = docenteAsignado ? `${docenteAsignado.apellidos}, ${docenteAsignado.nombres.charAt(0)}.` : 'Sin docente';
 
                       return (
                         <div
@@ -598,14 +633,14 @@ export default function DisenoHorario() {
                             gridRowEnd: gridPos.gridRowEnd
                           }}
                           onClick={() => iniciarEdicionBloque(index, sec)}
-                          className="bg-white border-2 border-primary/20 hover:border-primary/40 rounded-xl p-3 shadow-md transition-all flex flex-col justify-between items-stretch gap-1.5 group relative animate-scale-in cursor-pointer hover:shadow-lg"
+                          className={`rounded-lg p-3 shadow-md hover:shadow-lg transition-all flex flex-col justify-between items-stretch gap-1.5 group relative animate-scale-in cursor-pointer border border-border/40 z-10 ${claseColor}`}
                         >
                           <div className="flex justify-between items-start gap-1">
-                            <span className="font-mono text-[0.68rem] font-extrabold text-primary bg-primary-light px-2 py-0.5 rounded truncate max-w-[70px]">
+                            <span className="font-mono text-[0.62rem] font-extrabold px-1.5 py-0.5 rounded bg-white/40 text-current truncate max-w-[70px]" title={sec.codigo}>
                               {sec.codigo}
                             </span>
-                            <span className="text-[0.68rem] font-mono font-bold text-slate-400">
-                              {sec.horaInicio}-{sec.horaFin}
+                            <span className="text-[0.65rem] font-bold font-mono opacity-80">
+                              {sec.horaInicio} - {sec.horaFin}
                             </span>
                             {esPeriodoActivo() && (
                               <button
@@ -614,7 +649,7 @@ export default function DisenoHorario() {
                                   e.stopPropagation();
                                   removerSeccion(index);
                                 }}
-                                className="text-red-500 hover:text-red-700 font-bold text-[0.88rem] shrink-0 ml-1 cursor-pointer"
+                                className="text-red-500 hover:text-red-700 font-bold text-[0.88rem] shrink-0 ml-1 cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
                                 title="Remover de la programación"
                               >
                                 ×
@@ -622,10 +657,14 @@ export default function DisenoHorario() {
                             )}
                           </div>
 
-                          <div className="flex-1 flex items-center justify-center text-center">
-                            <h5 className="text-[0.78rem] font-bold text-text-heading leading-snug break-words" title={sec.curso_nombre}>
+                          <div className="flex-1 flex flex-col justify-center gap-1 my-1">
+                            <h5 className="text-[0.82rem] font-extrabold leading-tight break-words text-current" title={sec.curso_nombre}>
                               {sec.curso_nombre}
                             </h5>
+                            <span className="flex items-center gap-1 text-[0.68rem] font-medium opacity-90 truncate">
+                              <GraduationCap size={12} className="shrink-0" />
+                              {nombreDocente}
+                            </span>
                           </div>
 
                           {/* Manejador de redimensión (arrastrar borde superior) */}

@@ -23,7 +23,7 @@ export default function ValidarMatriculasAdmin() {
 
     // Estados de filtros
     const [filtroPeriodo, setFiltroPeriodo] = useState('');
-    const [filtroEstado, setFiltroEstado] = useState('pendiente');
+    const [filtroEstado, setFiltroEstado] = useState('');
     const [filtroCiclo, setFiltroCiclo] = useState('');
     const [filtroEspecialidad, setFiltroEspecialidad] = useState('');
 
@@ -147,6 +147,7 @@ export default function ValidarMatriculasAdmin() {
                             onChange={(e) => setFiltroEstado(e.target.value)}
                             className="w-full px-3 py-2 bg-bg-alt/25 border border-border rounded-lg text-xs font-semibold text-text-heading focus:border-primary focus:outline-none"
                         >
+                            <option value="">Todas las Matrículas</option>
                             <option value="pendiente">Pendientes de Validación</option>
                             <option value="confirmada">Confirmadas (Con o Sin Pago)</option>
                             <option value="rechazada">Rechazadas</option>

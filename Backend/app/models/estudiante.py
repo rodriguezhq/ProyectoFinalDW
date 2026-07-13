@@ -13,6 +13,7 @@ class Estudiante(db.Model):
     telefono = db.Column(db.String(20), nullable=True)
     fecha_nacimiento = db.Column(db.Date, nullable=True)
     estado = db.Column(db.String(20), nullable=False, default="activo")
+    ciclo = db.Column(db.Integer, nullable=True, default=1)
     id_especialidad = db.Column(
         db.Integer, db.ForeignKey("especialidad.id_especialidad"), nullable=False
     )

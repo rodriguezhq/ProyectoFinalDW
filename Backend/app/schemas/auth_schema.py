@@ -31,4 +31,5 @@ class ProfileResponse(BaseModel):
     rol: str | None
     id_estudiante: int | None = None
     id_docente: int | None = None
+    ciclo: int | None = None
 

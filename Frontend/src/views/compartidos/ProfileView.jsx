@@ -178,9 +178,18 @@ export default function ProfileView() {
                                 </span>
                             </div>
 
-                            <div className="md:col-span-2">
+                            {role === 'Estudiante' && (
+                                <div>
+                                    <span className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Ciclo Académico</span>
+                                    <span className="font-semibold text-text-heading text-base bg-bg-alt px-3 py-2.5 rounded-none border border-border block">
+                                        {profile?.ciclo ? `${profile.ciclo}° Ciclo` : '-'}
+                                    </span>
+                                </div>
+                            )}
+
+                            <div className={role === 'Estudiante' ? "" : "md:col-span-2"}>
                                 <span className="block text-xs font-bold text-text-muted uppercase tracking-wider mb-1">Institución</span>
-                                <span className="font-semibold text-text-heading text-base bg-bg-alt px-3 py-2.5 rounded-none border border-border block">
+                                <span className="font-semibold text-text-heading text-base bg-bg-alt px-3 py-2.5 rounded-none border border-border block truncate">
                                     Universidad Nacional del Centro del Perú
                                 </span>
                             </div>

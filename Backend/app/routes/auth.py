@@ -46,6 +46,7 @@ def obtener_perfil():
         return {"msg": "Usuario no encontrado"}, 404
         
     telefono = user.estudiante.telefono if user.estudiante else (user.docente.telefono if user.docente else None)
+    ciclo = user.estudiante.ciclo if user.estudiante else None
     return {
         "id_usuario": user.id_usuario,
         "username": user.username,
@@ -55,7 +56,8 @@ def obtener_perfil():
         "telefono": telefono,
         "rol": user.rol.nombre if user.rol else None,
         "id_estudiante": user.id_estudiante,
-        "id_docente": user.id_docente
+        "id_docente": user.id_docente,
+        "ciclo": ciclo
     }, 200
 
 
@@ -92,6 +94,7 @@ def actualizar_perfil(body: ProfileUpdateBody):
     db.session.commit()
 
     telefono = user.estudiante.telefono if user.estudiante else (user.docente.telefono if user.docente else None)
+    ciclo = user.estudiante.ciclo if user.estudiante else None
     return {
         "id_usuario": user.id_usuario,
         "username": user.username,
@@ -101,6 +104,7 @@ def actualizar_perfil(body: ProfileUpdateBody):
         "telefono": telefono,
         "rol": user.rol.nombre if user.rol else None,
         "id_estudiante": user.id_estudiante,
-        "id_docente": user.id_docente
+        "id_docente": user.id_docente,
+        "ciclo": ciclo
     }, 200
 

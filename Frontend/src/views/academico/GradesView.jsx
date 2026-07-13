@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import PerfilService from '../../services/PerfilService';
 import { obtenerNotasEstudiante } from '../../services/servicioNotas';
-import { FileSpreadsheet, Loader2, Award, BookOpen, AlertCircle } from 'lucide-react';
+import { FileSpreadsheet, Loader2, Award, BookOpen, AlertCircle, Download } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function GradesView() {
@@ -223,6 +223,7 @@ export default function GradesView() {
                                             <th className="p-4 text-center bg-bg-alt w-[90px]">Ex. Sust.</th>
                                             <th className="p-4 text-center bg-bg-alt w-[90px]">Promedio</th>
                                             <th className="p-4 text-center bg-bg-alt w-[110px]">Estado</th>
+                                            <th className="p-4 text-center bg-bg-alt w-[120px]">Sílabo</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-border bg-white">
@@ -260,6 +261,23 @@ export default function GradesView() {
                                                     </td>
                                                     <td className="p-4 text-center">
                                                         {renderEstadoBadge(item.estado)}
+                                                    </td>
+                                                    <td className="p-4 text-center">
+                                                        {item.silabo_archivo ? (
+                                                            <a
+                                                                href={`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/${item.silabo_archivo}`}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 border border-primary/20 text-primary hover:bg-primary hover:text-white rounded-lg text-xs font-bold transition-all shadow-xs cursor-pointer"
+                                                            >
+                                                                <Download size={13} />
+                                                                Descargar
+                                                            </a>
+                                                        ) : (
+                                                            <span className="text-xs text-text-light italic font-normal">
+                                                                No disponible
+                                                            </span>
+                                                        )}
                                                     </td>
                                                 </tr>
                                             );
