@@ -83,9 +83,10 @@ def obtener_record_estudiante(id_estudiante):
     # Construir lista de periodos
     periodos_list = []
     
-    # Ordenar periodos cronológicamente (PeriodoAcademico no tiene fecha_inicio,
-    # pero id_periodo refleja el orden de creación/cronológico igual)
-    for periodo in sorted(periodos_dict.keys(), key=lambda p: p.id_periodo):
+    # Ordenar periodos cronológicamente por nombre: el formato "YYYY-R" ordena
+    # bien lexicográficamente ("2025-I" < "2025-II" < "2026-I"). No se usa
+    # id_periodo porque un periodo histórico puede crearse después (id mayor).
+    for periodo in sorted(periodos_dict.keys(), key=lambda p: p.nombre):
         items = periodos_dict[periodo]
         cursos_periodo = [x[0] for x in items]
         

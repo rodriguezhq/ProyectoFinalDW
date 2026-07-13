@@ -45,7 +45,47 @@ API REST de sistema academico con Flask
     python seed.py
     ```
 
-6. iniciar el servidor
+    > **Nota:** `seed.py` recrea todas las tablas desde cero (borra lo que haya),
+    > asi que despues de correrlo hay que re-marcar la migracion actual:
+    >
+    > ```bash
+    > flask db stamp b3bfae78c500
+    > ```
+
+6. (Opcional) Poblar con datos masivos — `factories.py`
+
+    Genera volumen realista encima del baseline del seed (requiere haber
+    corrido `seed.py` primero). **Solo agrega datos, nunca borra**, y se puede
+    re-ejecutar las veces que se quiera sin duplicar ni chocar con corridas
+    anteriores:
+
+    ```bash
+    python factories.py
+    ```
+
+    Valores por defecto: 3 facultades nuevas (con especialidad, malla de 20
+    cursos con prerrequisitos, secciones y horarios), 5 periodos historicos
+    cerrados (2023-I a 2025-I), 10 docentes, 70 estudiantes (cada uno con sus
+    matriculas desde su año de ingreso, notas y pagos), 4 usuarios de
+    Administracion/Direccion, silabos para todos los cursos, 60 documentos y
+    250 registros de auditoria.
+
+    Cantidades configurables:
+
+    ```bash
+    python factories.py --estudiantes 100 --docentes 15 --documentos 80 --auditoria 300 --facultades 5 --admins 6
+    ```
+
+    Todos los usuarios generados usan la contraseña `Password123!`.
+
+    Con los valores por defecto la BD queda con: 7 periodos, 5 facultades,
+    5 especialidades, 75 cursos, ~265 secciones y horarios, ~337 matriculas,
+    ~1290 detalles con su nota, ~336 pagos, 62 documentos, ~254 auditorias
+    y ~104 usuarios. Los datos respetan todas las relaciones y restricciones
+    (sin choques de horario entre cursos matriculados ni docentes en dos
+    sitios a la vez).
+
+7. iniciar el servidor
 
     ```bash
     python run.py
@@ -97,3 +137,4 @@ http://localhost:5000/openapi/scalar
 - **PyMySQL** — Conector MySQL
 - **marshmallow** — Serialización/validación
 - **python-dotenv** — Variables de entorno
+- **factory_boy + Faker** — Generación de datos masivos de prueba (`factories.py`)

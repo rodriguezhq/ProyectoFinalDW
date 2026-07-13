@@ -573,11 +573,16 @@ def _serializar_matricula_admin(matricula):
                 if b.get("id_curso") == d.id_curso and (b.get("seccion") or 'A') == d.seccion.codigo
             ]
             for b in bloques:
+                docente_nombre = ""
+                if b.get("id_docente"):
+                    docente = db.session.get(Docente, int(b.get("id_docente")))
+                    if docente:
+                        docente_nombre = f"{docente.nombres} {docente.apellidos}"
                 horarios_lista.append({
                     "dia": b.get("dia", ""),
                     "horaInicio": b.get("horaInicio", ""),
                     "horaFin": b.get("horaFin", ""),
-                    "docente_nombre": b.get("docente", "")
+                    "docente_nombre": docente_nombre
                 })
 
         cursos_serialized.append({
