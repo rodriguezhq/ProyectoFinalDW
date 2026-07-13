@@ -2,11 +2,18 @@ from pydantic import BaseModel, Field
 from flask_openapi3.blueprint import APIBlueprint
 from flask_openapi3.models.tag import Tag
 from app.Controllers import periodController
-from app.schemas.period_schema import PeriodoCreateBody, PeriodoResponse, PeriodoListResponse
+from app.schemas.period_schema import (
+    PeriodoCreateBody,
+    PeriodoResponse,
+    PeriodoListResponse,
+)
 from app.schemas.common_schema import MessageResponse
 from app.utils.decorators import role_required
 
-period_tag = Tag(name="Periodos Académicos", description="Gestión administrativa de los semestres y periodos de estudio")
+period_tag = Tag(
+    name="Periodos Académicos",
+    description="Gestión administrativa de los semestres y periodos de estudio",
+)
 period_bp = APIBlueprint("period", __name__, abp_tags=[period_tag])
 
 
@@ -18,7 +25,6 @@ class PeriodoPath(BaseModel):
     "/",
     summary="Crear nuevo periodo académico",
     responses={201: PeriodoResponse, 409: MessageResponse},
-    security=[{"jwt": []}],
 )
 @role_required("Administrador")
 def crear_periodo(body: PeriodoCreateBody):
@@ -62,7 +68,9 @@ def activar_periodo(path: PeriodoPath):
 @role_required("Administrador")
 def establecer_matricula_principal(path: PeriodoPath):
     """Establece el periodo especificado como el periodo principal para la matricula de los estudiantes."""
-    response, status = periodController.establecer_matricula_principal_ctrl(path.id_periodo)
+    response, status = periodController.establecer_matricula_principal_ctrl(
+        path.id_periodo
+    )
     return response, status
 
 

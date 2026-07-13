@@ -75,14 +75,14 @@ export default function MisCertificados() {
         <p className="text-[0.88rem] text-text-muted">Solicita certificados y constancias en línea y sigue su estado.</p>
       </div>
 
-      <form onSubmit={manejarSolicitar} className="bg-white border border-border rounded-xl shadow-sm p-4 flex flex-col sm:flex-row gap-3 sm:items-end">
+      <form onSubmit={manejarSolicitar} className="bg-white border border-border rounded-none shadow-sm p-4 flex flex-col sm:flex-row gap-3 sm:items-end">
         <div className="flex flex-col gap-1.5 grow">
           <label htmlFor="tipo-documento" className="text-[0.78rem] font-bold text-text-muted uppercase">Tipo de documento</label>
           <select
             id="tipo-documento"
             value={tipoDocumento}
             onChange={(e) => setTipoDocumento(e.target.value)}
-            className="p-2.5 border border-border rounded-md focus:outline-none focus:border-primary text-[0.88rem] bg-white cursor-pointer"
+            className="p-2.5 border border-border rounded-none focus:outline-none focus:border-primary text-[0.88rem] bg-white cursor-pointer"
           >
             {TIPOS_DOCUMENTO.map(tipo => (
               <option key={tipo} value={tipo}>{tipo}</option>
@@ -98,7 +98,7 @@ export default function MisCertificados() {
         </button>
       </form>
 
-      <div className="bg-white border border-border rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-white border border-border rounded-none  shadow-sm overflow-hidden">
         {estaCargando ? (
           <div className="p-12 text-center">
             <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-3"></div>

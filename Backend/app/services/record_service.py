@@ -132,11 +132,14 @@ def obtener_record_estudiante(id_estudiante):
 
 
 def _paginar_lista(items, page=1, per_page=10):
+    if page is None or per_page is None:
+        return items, len(items)
     page = max(1, page)
     per_page = max(1, per_page)
     total = len(items)
     inicio = (page - 1) * per_page
     return items[inicio:inicio + per_page], total
+
 
 
 def obtener_reporte_consolidado(id_especialidad=None, page=1, per_page=10):

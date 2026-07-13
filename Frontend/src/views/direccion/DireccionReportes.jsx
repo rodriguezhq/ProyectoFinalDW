@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { obtenerEspecialidades } from '../../services/servicioAcademico';
-import { obtenerDesempenoCohortes, obtenerConsolidadoEspecialidad } from '../../services/servicioDireccion';
+import { obtenerDesempenoCohortes, obtenerConsolidadoEspecialidad, exportarConsolidadoEspecialidadApi, exportarDesempenoCohortesApi } from '../../services/servicioDireccion';
 import TablaCohortes from './components/TablaCohortes';
 import TablaConsolidado from './components/TablaConsolidado';
 import { RefreshCw, BarChart3, Users, Award, AlertCircle, Loader2, FileSpreadsheet, FileText } from 'lucide-react';
-import { exportarConsolidadoCSV, exportarConsolidadoPDF, exportarCohortesCSV, exportarCohortesPDF } from '../../utils/exportUtils';
+import { descargarBlob } from '../../utils/exportUtils';
 
 
 const POR_PAGINA = 10;
@@ -87,35 +87,47 @@ export default function DireccionReportes() {
     };
 
     // --- ACCIÓN: EXPORTAR A EXCEL (CSV) ---
-    const exportarExcel = () => {
-        const espNombre = especialidades.find(e => e.id_especialidad.toString() === selectedEspecialidad)?.nombre || 'Reporte';
-        if (activeTab === 'cohortes') {
-            exportarCohortesCSV(cohortesData, espNombre);
-        } else {
-            exportarConsolidadoCSV(consolidadoData, espNombre);
+    const exportarExcel = async () => {
+        try {
+            setError(null);
+            setLoading(true);
+            const espNombre = especialidades.find(e => e.id_especialidad.toString() === selectedEspecialidad)?.nombre || 'Reporte';
+            if (activeTab === 'cohortes') {
+                const blob = await exportarDesempenoCohortesApi(selectedEspecialidad, 'csv');
+                descargarBlob(blob, `Desempeno_Cohortes_${espNombre.replace(/\s+/g, '_')}.csv`);
+            } else {
+                const blob = await exportarConsolidadoEspecialidadApi(selectedEspecialidad, 'csv');
+                descargarBlob(blob, `Consolidado_${espNombre.replace(/\s+/g, '_')}.csv`);
+            }
+        } catch (err) {
+            console.error(err);
+            setError('Error al exportar reporte a Excel.');
+        } finally {
+            setLoading(false);
         }
     };
 
     // --- ACCIÓN: EXPORTAR A PDF (IMPRESIÓN) ---
-    // Nota: el PDF/Excel solo exporta la pagina actualmente cargada, pero los
-    // KPI del resumen (totales, promedios) vienen del backend y reflejan
-    // TODO el reporte, no solo esa pagina.
-    const exportarPDF = () => {
-        const espNombre = especialidades.find(e => e.id_especialidad.toString() === selectedEspecialidad)?.nombre || 'Reporte';
-        if (activeTab === 'cohortes') {
-            exportarCohortesPDF(cohortesData, espNombre, {
-                totalEstudiantes: resumenGlobal?.total_alumnos ?? 0,
-                promedioGlobal: resumenGlobal?.promedio_ppa_global != null ? resumenGlobal.promedio_ppa_global.toFixed(2) : '-',
-                tasaAprobacionGlobal: resumenGlobal?.tasa_aprobacion_global != null ? resumenGlobal.tasa_aprobacion_global.toFixed(1) : '-'
-            });
-        } else {
-            exportarConsolidadoPDF(consolidadoData, espNombre, {
-                totalAlumnos: resumenGlobal?.total_alumnos ?? 0,
-                promedioPpaGlobal: resumenGlobal?.promedio_ppa_global != null ? resumenGlobal.promedio_ppa_global.toFixed(2) : '0.00',
-                promCreditosAprobados: resumenGlobal?.promedio_creditos_aprobados != null ? resumenGlobal.promedio_creditos_aprobados.toFixed(1) : '0.0'
-            });
+    const exportarPDF = async () => {
+        try {
+            setError(null);
+            setLoading(true);
+            const espNombre = especialidades.find(e => e.id_especialidad.toString() === selectedEspecialidad)?.nombre || 'Reporte';
+            if (activeTab === 'cohortes') {
+                const blob = await exportarDesempenoCohortesApi(selectedEspecialidad, 'pdf');
+                descargarBlob(blob, `Desempeno_Cohortes_${espNombre.replace(/\s+/g, '_')}.pdf`);
+            } else {
+                const blob = await exportarConsolidadoEspecialidadApi(selectedEspecialidad, 'pdf');
+                descargarBlob(blob, `Consolidado_${espNombre.replace(/\s+/g, '_')}.pdf`);
+            }
+        } catch (err) {
+            console.error(err);
+            setError('Error al exportar reporte a PDF.');
+        } finally {
+            setLoading(false);
         }
     };
+
 
 
     return (

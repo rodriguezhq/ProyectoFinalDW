@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { 
-    ChevronLeft, 
-    BookOpen, 
-    FileSpreadsheet, 
-    Loader2, 
-    RefreshCw, 
-    Save, 
-    AlertTriangle, 
-    CheckCircle2 
+import {
+    ChevronLeft,
+    BookOpen,
+    FileSpreadsheet,
+    Loader2,
+    RefreshCw,
+    Save,
+    AlertTriangle,
+    CheckCircle2
 } from 'lucide-react';
 import { obtenerDetalleCursoDocente, obtenerEstudiantesCursoDocente } from '../../services/servicioCursos';
 import { registrarNotas } from '../../services/servicioNotas';
@@ -24,7 +24,7 @@ export default function IngresarCalificacionesDocente() {
     const [nominaEstudiantes, setNominaEstudiantes] = useState([]);
     const [cargandoDatos, setCargandoDatos] = useState(true);
     const [cargandoTabla, setCargandoTabla] = useState(false);
-    
+
     // Estado local para los inputs de calificaciones de los estudiantes
     const [calificacionesLocales, setCalificacionesLocales] = useState({});
     const [idsGuardando, setIdsGuardando] = useState({});
@@ -43,7 +43,7 @@ export default function IngresarCalificacionesDocente() {
             setCargandoDatos(true);
             const datosDetalle = await obtenerDetalleCursoDocente(id_curso, idPeriodo);
             setDetalleCurso(datosDetalle);
-            
+
             const estudiantesNotas = await obtenerEstudiantesCursoDocente(id_curso, idPeriodo);
             setNominaEstudiantes(estudiantesNotas);
             inicializarCalificacionesLocales(estudiantesNotas);
@@ -87,7 +87,7 @@ export default function IngresarCalificacionesDocente() {
     const manejarCambioInput = (idDetalle, campo, valor) => {
         // Permitir solo números y punto decimal
         const valorLimpio = valor.replace(/[^0-9.]/g, '');
-        
+
         // Evitar múltiples puntos decimales
         const partes = valorLimpio.split('.');
         if (partes.length > 2) return;
@@ -138,7 +138,7 @@ export default function IngresarCalificacionesDocente() {
             setIdsGuardando(prev => ({ ...prev, [idDetalle]: true }));
             const respuesta = await registrarNotas(idDetalle, notas);
             toast.success(respuesta.msg || 'Notas guardadas correctamente.');
-            
+
             // Recargar datos para recalcular promedios
             const estudiantesActualizados = await obtenerEstudiantesCursoDocente(id_curso, idPeriodo);
             setNominaEstudiantes(estudiantesActualizados);
@@ -194,7 +194,7 @@ export default function IngresarCalificacionesDocente() {
     const esPeriodoActivo = periodo.activo;
 
     return (
-        <div className="mx-auto py-2 px-4 sm:px-6 lg:px-8 space-y-6 animate-fade-in">
+        <div className="mx-auto py-2 px-4 sm:px-6 lg:px-2 space-y-6 animate-fade-in">
             {/* Botón de Retorno */}
             <button
                 type="button"
@@ -216,7 +216,7 @@ export default function IngresarCalificacionesDocente() {
                     </p>
                 </div>
                 {esPeriodoActivo && (
-                    <button 
+                    <button
                         type="button"
                         onClick={sincronizarCalificaciones}
                         disabled={cargandoTabla}
@@ -271,7 +271,7 @@ export default function IngresarCalificacionesDocente() {
                                 * Las notas son sobre un sistema vigesimal (0 - 20).
                             </span>
                         )}
-                        
+
                         <div className="w-full overflow-x-auto border border-border rounded-xl shadow-xs">
                             <div className="overflow-y-auto max-h-[480px] min-w-[900px]">
                                 <table className="w-full text-left border-collapse text-[0.88rem]">
@@ -295,8 +295,8 @@ export default function IngresarCalificacionesDocente() {
                                             const guardando = idsGuardando[idDetalle] || false;
 
                                             const notaAprobada = item.promedio !== null && item.promedio >= 10.5;
-                                            const claseColorPromedio = item.promedio === null 
-                                                ? 'text-text-muted' 
+                                            const claseColorPromedio = item.promedio === null
+                                                ? 'text-text-muted'
                                                 : (notaAprobada ? 'text-emerald-600 font-extrabold' : 'text-red-600 font-extrabold');
 
                                             return (
@@ -307,7 +307,7 @@ export default function IngresarCalificacionesDocente() {
                                                     <td className="p-4 font-bold text-text-heading">
                                                         {item.estudiante_nombre}
                                                     </td>
-                                                    
+
                                                     {/* Parcial 1 */}
                                                     <td className="p-4 text-center">
                                                         {esPeriodoActivo ? (
@@ -325,7 +325,7 @@ export default function IngresarCalificacionesDocente() {
                                                             </span>
                                                         )}
                                                     </td>
-                                                    
+
                                                     {/* Parcial 2 */}
                                                     <td className="p-4 text-center">
                                                         {esPeriodoActivo ? (
@@ -343,7 +343,7 @@ export default function IngresarCalificacionesDocente() {
                                                             </span>
                                                         )}
                                                     </td>
-                                                    
+
                                                     {/* Examen Final */}
                                                     <td className="p-4 text-center">
                                                         {esPeriodoActivo ? (
@@ -361,7 +361,7 @@ export default function IngresarCalificacionesDocente() {
                                                             </span>
                                                         )}
                                                     </td>
-                                                    
+
                                                     {/* Examen Sustitutorio */}
                                                     <td className="p-4 text-center">
                                                         {esPeriodoActivo ? (
@@ -379,17 +379,17 @@ export default function IngresarCalificacionesDocente() {
                                                             </span>
                                                         )}
                                                     </td>
-                                                    
+
                                                     {/* Promedio */}
                                                     <td className={`p-4 text-center font-mono ${claseColorPromedio}`}>
                                                         {item.promedio !== null ? item.promedio.toFixed(2) : '-'}
                                                     </td>
-                                                    
+
                                                     {/* Estado */}
                                                     <td className="p-4 text-center">
                                                         {renderBadgeEstadoNota(item.estado)}
                                                     </td>
-                                                    
+
                                                     {/* Acciones */}
                                                     {esPeriodoActivo && (
                                                         <td className="p-4 text-center">

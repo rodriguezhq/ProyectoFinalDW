@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-    Loader2, 
-    FileText, 
-    Search, 
-    Filter, 
-    CheckCircle2, 
-    AlertCircle, 
+import {
+    Loader2,
+    FileText,
+    Search,
+    Filter,
+    CheckCircle2,
+    AlertCircle,
     ChevronRight,
     GraduationCap,
     BookOpen
@@ -20,25 +20,25 @@ export default function ValidarMatriculasAdmin() {
     const [cargando, setCargando] = useState(true);
     const [matriculas, setMatriculas] = useState([]);
     const [periodos, setPeriodos] = useState([]);
-    
+
     // Estados de filtros
     const [filtroPeriodo, setFiltroPeriodo] = useState('');
     const [filtroEstado, setFiltroEstado] = useState('pendiente');
     const [filtroCiclo, setFiltroCiclo] = useState('');
     const [filtroEspecialidad, setFiltroEspecialidad] = useState('');
-    
+
     const [especialidades, setEspecialidades] = useState([]);
 
     const inicializarDatos = async () => {
         try {
             setCargando(true);
-            
+
             // Cargar periodos
             const resPeriodos = await consultarApi('/api/admin/periodos/', { method: 'GET' });
             const datosPeriodos = resPeriodos.ok ? await resPeriodos.json() : null;
             const listaPeriodos = datosPeriodos ? (datosPeriodos.periodos || []) : [];
             setPeriodos(listaPeriodos);
-            
+
             // Establecer por defecto el periodo activo para matricularse si existe
             const activo = listaPeriodos.find(p => p.es_matricula_activa);
             if (activo) {
@@ -104,8 +104,8 @@ export default function ValidarMatriculasAdmin() {
     };
 
     return (
-        <div className="max-w-6xl mx-auto flex flex-col gap-6 animate-fade-in pb-12">
-            
+        <div className="mx-auto lg:px-2 flex flex-col gap-6 animate-fade-in pb-12">
+
             {/* Header */}
             <div className="bg-bg-alt/50 border border-border p-5 rounded-2xl flex flex-wrap justify-between items-center gap-4">
                 <div className="flex flex-col gap-1">
@@ -125,7 +125,7 @@ export default function ValidarMatriculasAdmin() {
                     {/* Periodo */}
                     <div className="flex flex-col gap-1">
                         <label className="text-[0.68rem] font-bold text-text-light uppercase">Periodo Académico</label>
-                        <select 
+                        <select
                             value={filtroPeriodo}
                             onChange={(e) => setFiltroPeriodo(e.target.value)}
                             className="w-full px-3 py-2 bg-bg-alt/25 border border-border rounded-lg text-xs font-semibold text-text-heading focus:border-primary focus:outline-none"
@@ -142,7 +142,7 @@ export default function ValidarMatriculasAdmin() {
                     {/* Estado */}
                     <div className="flex flex-col gap-1">
                         <label className="text-[0.68rem] font-bold text-text-light uppercase">Estado de la Matrícula</label>
-                        <select 
+                        <select
                             value={filtroEstado}
                             onChange={(e) => setFiltroEstado(e.target.value)}
                             className="w-full px-3 py-2 bg-bg-alt/25 border border-border rounded-lg text-xs font-semibold text-text-heading focus:border-primary focus:outline-none"
@@ -156,7 +156,7 @@ export default function ValidarMatriculasAdmin() {
                     {/* Especialidad */}
                     <div className="flex flex-col gap-1">
                         <label className="text-[0.68rem] font-bold text-text-light uppercase">Carrera Profesional</label>
-                        <select 
+                        <select
                             value={filtroEspecialidad}
                             onChange={(e) => setFiltroEspecialidad(e.target.value)}
                             className="w-full px-3 py-2 bg-bg-alt/25 border border-border rounded-lg text-xs font-semibold text-text-heading focus:border-primary focus:outline-none"
@@ -173,7 +173,7 @@ export default function ValidarMatriculasAdmin() {
                     {/* Ciclo */}
                     <div className="flex flex-col gap-1">
                         <label className="text-[0.68rem] font-bold text-text-light uppercase">Ciclo Académico</label>
-                        <select 
+                        <select
                             value={filtroCiclo}
                             onChange={(e) => setFiltroCiclo(e.target.value)}
                             className="w-full px-3 py-2 bg-bg-alt/25 border border-border rounded-lg text-xs font-semibold text-text-heading focus:border-primary focus:outline-none"

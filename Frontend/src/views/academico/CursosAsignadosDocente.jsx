@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { 
-    BookOpen, 
-    Calendar, 
-    Clock, 
-    ArrowRight, 
-    Loader2, 
-    GraduationCap 
+import {
+    BookOpen,
+    Calendar,
+    Clock,
+    ArrowRight,
+    Loader2,
+    GraduationCap
 } from 'lucide-react';
 import { obtenerPeriodosDocente, obtenerCursosDocentePorPeriodo } from '../../services/servicioCursos';
 
@@ -28,7 +28,7 @@ export default function CursosAsignadosDocente() {
             setCargandoPeriodos(true);
             const periodosObtenidos = await obtenerPeriodosDocente();
             setListaPeriodos(periodosObtenidos);
-            
+
             if (periodosObtenidos.length > 0) {
                 // Buscar si existe un periodo activo
                 const periodoActivo = periodosObtenidos.find(p => p.estado === 'activo');
@@ -77,7 +77,7 @@ export default function CursosAsignadosDocente() {
     }
 
     return (
-        <div className="mx-auto py-2 px-4 sm:px-6 lg:px-8 space-y-6 animate-fade-in">
+        <div className="mx-auto py-2 px-4 sm:px-6 lg:px-2 space-y-6 animate-fade-in">
             {/* Cabecera de la Página */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-border">
                 <div>
@@ -91,14 +91,14 @@ export default function CursosAsignadosDocente() {
             </div>
 
             {listaPeriodos.length === 0 ? (
-                <div className="p-8 bg-amber-50 border border-amber-200 rounded-xl text-center">
+                <div className="p-8 bg-amber-50 border border-amber-200 rounded-none text-center">
                     <p className="font-bold text-amber-800">Sin historial académico</p>
                     <p className="text-sm text-amber-700 mt-1">No se encontraron periodos académicos asignados a tu cuenta docente.</p>
                 </div>
             ) : (
                 <div className="space-y-6">
                     {/* Selector de Periodo Académico */}
-                    <div className="bg-bg-alt p-5 border border-border rounded-xl flex flex-col md:flex-row items-center gap-4 shadow-sm">
+                    <div className="bg-bg-alt p-5 border border-border rounded-none flex flex-col md:flex-row items-center gap-4 shadow-sm">
                         <div className="flex items-center gap-2.5 text-primary shrink-0">
                             <Calendar size={20} />
                             <span className="font-heading font-extrabold text-text-heading text-sm uppercase tracking-wider">
@@ -125,7 +125,7 @@ export default function CursosAsignadosDocente() {
                             <p className="text-text-muted text-xs font-semibold">Cargando asignaturas...</p>
                         </div>
                     ) : listaAsignaturas.length === 0 ? (
-                        <div className="p-12 bg-white border border-border rounded-xl text-center shadow-xs">
+                        <div className="p-12 bg-white border border-border rounded-none text-center shadow-xs">
                             <BookOpen size={40} className="mx-auto text-text-muted mb-3 opacity-60" />
                             <p className="font-bold text-text-heading text-lg">No tienes asignaturas registradas</p>
                             <p className="text-sm text-text-muted mt-1">No se detectó carga académica programada para tu cuenta en este periodo.</p>
@@ -137,9 +137,9 @@ export default function CursosAsignadosDocente() {
                                 const esPeriodoActivo = periodo?.estado === 'activo';
 
                                 return (
-                                    <div 
+                                    <div
                                         key={asignatura.id_curso}
-                                        className="bg-white border border-border rounded-xl shadow-xs hover:shadow-md hover:border-primary/30 transition-all duration-300 flex flex-col justify-between"
+                                        className="bg-white border border-border rounded-none shadow-xs hover:shadow-md hover:border-primary/30 transition-all duration-300 flex flex-col justify-between"
                                     >
                                         <div className="p-5 space-y-4">
                                             {/* Cabecera del Card */}

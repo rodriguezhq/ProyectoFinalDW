@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { 
-    ChevronLeft, 
-    BookOpen, 
-    FileText, 
-    UploadCloud, 
-    Download, 
-    CheckCircle2, 
-    AlertTriangle, 
-    Clock, 
-    Loader2, 
+import {
+    ChevronLeft,
+    BookOpen,
+    FileText,
+    UploadCloud,
+    Download,
+    CheckCircle2,
+    AlertTriangle,
+    Clock,
+    Loader2,
     Award,
     Sparkles
 } from 'lucide-react';
@@ -111,7 +111,7 @@ export default function DetalleCursoDocente() {
     const esPeriodoActivo = periodo.activo;
 
     return (
-        <div className="mx-auto py-2 px-4 sm:px-6 lg:px-8 space-y-6 animate-fade-in">
+        <div className="mx-auto py-2 px-4 sm:px-6 lg:px-2 space-y-6 animate-fade-in">
             {/* Botón de Retorno */}
             <button
                 type="button"
@@ -179,7 +179,7 @@ export default function DetalleCursoDocente() {
                             </h2>
                         </div>
                         <p className="text-text-muted text-sm leading-relaxed">
-                            {esPeriodoActivo 
+                            {esPeriodoActivo
                                 ? 'El periodo académico está activo. Puedes registrar, actualizar o modificar las notas de los estudiantes matriculados en este curso.'
                                 : 'El periodo académico se encuentra cerrado. Puedes visualizar la nómina completa de estudiantes y sus calificaciones correspondientes en modo lectura.'}
                         </p>
@@ -254,7 +254,7 @@ export default function DetalleCursoDocente() {
                             <label className="block text-xs font-bold text-text-muted uppercase">
                                 {silabo ? 'Actualizar Sílabo (PDF)' : 'Subir Sílabo (PDF)'}
                             </label>
-                            
+
                             <div className="border-2 border-dashed border-border/80 hover:border-primary/50 rounded-xl p-6 text-center cursor-pointer relative bg-bg-alt/25 transition-all">
                                 <input
                                     type="file"
