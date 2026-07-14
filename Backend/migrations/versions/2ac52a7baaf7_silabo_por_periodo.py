@@ -29,12 +29,28 @@ def upgrade():
     except Exception as e:
         print(f"Advertencia al eliminar indice id_curso: {e}")
 
-    # 3. Agregar la columna id_periodo si no existe
+    # 3. Agregar la columna id_periodo (nullable por ahora: la tabla ya
+    # puede tener filas, y una columna NOT NULL sin default falla en MySQL
+    # en modo estricto si hay datos existentes).
     connection = op.get_bind()
     inspector = sa.inspect(connection)
     columns = [col['name'] for col in inspector.get_columns('silabo')]
     if 'id_periodo' not in columns:
-        op.add_column('silabo', sa.Column('id_periodo', sa.Integer(), nullable=False))
+        op.add_column('silabo', sa.Column('id_periodo', sa.Integer(), nullable=True))
+
+    # 3b. Rellenar los silabos existentes con el periodo activo (o, si no
+    # hubiera ninguno activo, el mas reciente). Recien despues de esto se
+    # puede volver la columna obligatoria.
+    connection.execute(sa.text("""
+        UPDATE silabo
+        SET id_periodo = (
+            SELECT id_periodo FROM periodo_academico
+            ORDER BY es_matricula_activa DESC, id_periodo DESC
+            LIMIT 1
+        )
+        WHERE id_periodo IS NULL
+    """))
+    op.alter_column('silabo', 'id_periodo', existing_type=sa.Integer(), nullable=False)
 
     # 4. Crear el constraint compuesto uq_silabo_periodo_curso
     op.create_unique_constraint('uq_silabo_periodo_curso', 'silabo', ['id_periodo', 'id_curso'])
