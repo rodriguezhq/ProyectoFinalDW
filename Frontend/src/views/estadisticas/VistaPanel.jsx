@@ -89,54 +89,62 @@ export default function VistaPanel({ isDirection = false }) {
 
       if (esDireccion) {
         // --- PANEL DE DIRECCIÓN ESTRATÉGICA ---
-        
-        // Cargar desempeño de cohortes (para promedio acumulado, tasa aprobación y gráfico)
+        // Las 4 consultas son independientes entre si: se disparan en paralelo
+        // en vez de una tras otra, para no sumar la latencia de red de cada una.
+        const [
+          resultadoDesempeno,
+          resultadoCarga,
+          resultadoDocs,
+          resultadoAuditoria
+        ] = await Promise.allSettled([
+          obtenerDesempenoCohortes('', 1, 1000),
+          idPeriodoActivo ? obtenerCargaDocente(idPeriodoActivo) : Promise.resolve(null),
+          obtenerTodosLosDocumentos(1, 1000),
+          obtenerAuditoria('', '', 1, 4)
+        ]);
+
+        // Desempeño de cohortes (promedio acumulado, tasa aprobación y gráfico)
         let desempeno = [];
         let ppaGlobal = 0;
         let tasaAprobacion = 0;
-        try {
-          const respuestaDesempeno = await obtenerDesempenoCohortes('', 1, 1000);
+        if (resultadoDesempeno.status === 'fulfilled') {
+          const respuestaDesempeno = resultadoDesempeno.value;
           desempeno = respuestaDesempeno.desempeno || [];
           if (respuestaDesempeno.resumen_global) {
             ppaGlobal = respuestaDesempeno.resumen_global.promedio_ppa_global || 0;
             tasaAprobacion = respuestaDesempeno.resumen_global.tasa_aprobacion_global || 0;
           }
-        } catch (err) {
-          console.error("Error al obtener desempeño para dirección:", err);
+        } else {
+          console.error("Error al obtener desempeño para dirección:", resultadoDesempeno.reason);
         }
 
-        // Cargar carga docente (promedio de horas asignadas)
+        // Carga docente (promedio de horas asignadas)
         let promedioCargaDocente = 0;
-        if (idPeriodoActivo) {
-          try {
-            const respuestaCarga = await obtenerCargaDocente(idPeriodoActivo);
-            const listaCarga = respuestaCarga.carga || [];
-            if (listaCarga.length > 0) {
-              const sumaHoras = listaCarga.reduce((sum, item) => sum + (item.total_horas || 0), 0);
-              promedioCargaDocente = Math.round((sumaHoras / listaCarga.length) * 10) / 10;
-            }
-          } catch (err) {
-            console.error("Error al obtener carga docente:", err);
+        if (resultadoCarga.status === 'fulfilled' && resultadoCarga.value) {
+          const listaCarga = resultadoCarga.value.carga || [];
+          if (listaCarga.length > 0) {
+            const sumaHoras = listaCarga.reduce((sum, item) => sum + (item.total_horas || 0), 0);
+            promedioCargaDocente = Math.round((sumaHoras / listaCarga.length) * 10) / 10;
           }
+        } else if (resultadoCarga.status === 'rejected') {
+          console.error("Error al obtener carga docente:", resultadoCarga.reason);
         }
 
-        // Cargar certificados emitidos (filtrado de todos los documentos)
+        // Certificados emitidos (filtrado de todos los documentos)
         let totalCertificados = 0;
-        try {
-          const respuestaDocs = await obtenerTodosLosDocumentos(1, 1000);
-          const documentos = respuestaDocs.documentos || [];
+        if (resultadoDocs.status === 'fulfilled') {
+          const documentos = resultadoDocs.value.documentos || [];
           totalCertificados = documentos.filter(d => d.estado === 'emitido').length;
-        } catch (err) {
-          console.error("Error al obtener documentos para dirección:", err);
+        } else {
+          console.error("Error al obtener documentos para dirección:", resultadoDocs.reason);
         }
 
-        // Cargar bitácora de auditoría reciente (las últimas 4 operaciones)
+        // Bitácora de auditoría reciente (las últimas 4 operaciones)
         let auditoriaReciente = [];
-        try {
-          const respuestaAuditoria = await obtenerAuditoria('', '', 1, 4);
-          auditoriaReciente = respuestaAuditoria.auditorias || [];
-        } catch (err) {
-          console.error("Error al obtener bitácora de auditoría:", err);
+        if (resultadoAuditoria.status === 'fulfilled') {
+          auditoriaReciente = resultadoAuditoria.value.auditorias || [];
+        } else {
+          console.error("Error al obtener bitácora de auditoría:", resultadoAuditoria.reason);
         }
 
         // Procesar rendimiento académico por especialidad para la gráfica
