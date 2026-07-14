@@ -1,4 +1,5 @@
 from collections import defaultdict
+from sqlalchemy.orm import joinedload, selectinload
 from app.extensions import db
 from app.models.estudiante import Estudiante
 from app.models.matricula import Matricula
@@ -9,6 +10,22 @@ from app.models.periodo_academico import PeriodoAcademico
 from app.models.especialidad import Especialidad
 from app.models.facultad import Facultad
 from app.utils.helpers import calcular_promedio_ponderado
+
+
+def _con_matriculas_precargadas(query):
+    """Evita el patron N+1: sin esto, cada acceso a estudiante.matriculas,
+    matricula.detalles, detalle.curso y detalle.nota dispara una consulta
+    aparte por fila, lo que con cientos de estudiantes se vuelve miles de
+    round-trips a la BD (el origen real de la lentitud del dashboard)."""
+    return query.options(
+        joinedload(Estudiante.especialidad),
+        selectinload(Estudiante.matriculas)
+            .selectinload(Matricula.detalles)
+            .joinedload(MatriculaDetalle.curso),
+        selectinload(Estudiante.matriculas)
+            .selectinload(Matricula.detalles)
+            .joinedload(MatriculaDetalle.nota),
+    )
 
 
 def obtener_record_estudiante(id_estudiante):
@@ -147,7 +164,7 @@ def obtener_reporte_consolidado(id_especialidad=None, page=1, per_page=10):
     Genera un reporte consolidado con estadísticas académicas globales de los estudiantes.
     Para uso de Administradores.
     """
-    query = Estudiante.query
+    query = _con_matriculas_precargadas(Estudiante.query)
     if id_especialidad:
         query = query.filter_by(id_especialidad=id_especialidad)
         
@@ -210,7 +227,7 @@ def obtener_desempeno_cohortes(id_especialidad=None, page=1, per_page=10):
     Analiza el desempeño de los alumnos agrupados por cohorte (año de ingreso extraído del código del alumno)
     y su respectiva Especialidad. Para uso de la Dirección.
     """
-    query = Estudiante.query
+    query = _con_matriculas_precargadas(Estudiante.query)
     if id_especialidad:
         query = query.filter_by(id_especialidad=id_especialidad)
         

@@ -1,5 +1,6 @@
 from flask_openapi3.openapi import OpenAPI
 from flask_openapi3.models.info import Info
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from app.config import config_by_name
 from app.extensions import cors, db, jwt, limiter, migrate
@@ -14,6 +15,14 @@ def create_app(env="development"):
     }
     app = OpenAPI(__name__, info=info, security_schemes=security_schemes)
     app.config.from_object(config_by_name[env])
+
+    # En produccion las peticiones pasan por 2 proxies antes de llegar aca
+    # (el rewrite de Vercel y el edge de Railway), asi que sin esto
+    # request.remote_addr apunta a esos proxies en vez del cliente real -
+    # rompe tanto la IP que se guarda en Auditoria como el rate limiting
+    # por IP de flask-limiter (todos comparten la IP del proxy).
+    if env == "production":
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=2, x_proto=1, x_host=1)
 
     db.init_app(app)
     migrate.init_app(app, db)
