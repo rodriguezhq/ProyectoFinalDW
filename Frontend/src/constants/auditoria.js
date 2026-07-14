@@ -15,5 +15,8 @@ export const ACCIONES_AUDITORIA = [
   'validar_acta',
   'crear_periodo',
   'activar_periodo',
-  'establecer_periodo_matricula'
+  'establecer_periodo_matricula',
+  'solicitar_documento',
+  'autorizar_documento',
+  'emitir_documento'
 ];

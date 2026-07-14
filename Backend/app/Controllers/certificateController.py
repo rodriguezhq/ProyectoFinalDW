@@ -1,6 +1,7 @@
-from flask import Response
+from flask import Response, request
 
 from app.schemas.certificate_schema import DocumentoResponse, VerificacionResponse
+from app.services.audit_service import registrar_auditoria
 from app.services.auth_service import usuario_actual
 from app.services.certificate_service import (
     DocumentoNoEncontradoError,
@@ -46,6 +47,10 @@ def solicitar(body):
         return {"msg": "Estudiante no encontrado"}, 404
     except EstudianteInactivoError:
         return {"msg": "El estudiante no está activo"}, 403
+    registrar_auditoria(
+        "solicitar_documento", "documento", registro=doc.id_documento,
+        id_usuario=usuario.id_usuario, ip=request.remote_addr
+    )
     return _serializar_documento(doc), 201
 
 
@@ -60,6 +65,10 @@ def autorizar(id_documento):
         return {
             "msg": "El documento debe estar en estado 'solicitado' para autorizarlo"
         }, 409
+    registrar_auditoria(
+        "autorizar_documento", "documento", registro=doc.id_documento,
+        id_usuario=usuario.id_usuario, ip=request.remote_addr
+    )
     return _serializar_documento(doc), 200
 
 
@@ -74,6 +83,10 @@ def emitir(id_documento):
         return {
             "msg": "El documento debe estar en estado 'autorizado' para emitirlo"
         }, 409
+    registrar_auditoria(
+        "emitir_documento", "documento", registro=doc.id_documento,
+        id_usuario=usuario.id_usuario, ip=request.remote_addr
+    )
     return _serializar_documento(doc), 200
 
 
