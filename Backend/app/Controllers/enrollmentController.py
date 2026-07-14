@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 from io import BytesIO
 from flask import request, send_file
+from sqlalchemy.orm import joinedload, selectinload
 from app.extensions import db
 from app.models.usuario import Usuario
 from app.models.estudiante import Estudiante
@@ -14,6 +15,7 @@ from app.models.curso import Curso
 from app.models.horario import Horario
 from app.models.docente import Docente
 from app.models.especialidad import Especialidad
+from app.models.pago import Pago
 from app.services.auth_service import usuario_actual
 from app.services.audit_service import registrar_auditoria
 from app.schemas.enrollment_schema import BloqueHorarioSchema
@@ -555,7 +557,16 @@ def descargar_ficha_matricula_pdf_ctrl(id_matricula):
     )
 
 
-def _serializar_matricula_admin(matricula):
+def _serializar_matricula_admin(matricula, horarios_cache=None, docentes_cache=None, pagos_cache=None):
+    """Serializa una matricula para el admin/direccion.
+
+    Los 3 caches son opcionales: si no se pasan, cada uno hace su propia
+    consulta individual (comportamiento original, usado por mis_matriculas
+    donde solo hay una matricula). Cuando se listan MUCHAS matriculas a la
+    vez (listar_todas_matriculas_ctrl), se prearman los 3 caches con
+    consultas masivas para evitar un N+1 (antes: una consulta a Horario por
+    cada curso matriculado, y una a Docente por cada bloque de horario).
+    """
     estudiante = matricula.estudiante
     ciclo_est = 1
     if matricula.detalles:
@@ -563,25 +574,33 @@ def _serializar_matricula_admin(matricula):
             if det.seccion and det.seccion.ciclo:
                 ciclo_est = det.seccion.ciclo
                 break
-                
+
     cursos_serialized = []
     for d in matricula.detalles:
-        h_obj = Horario.query.filter_by(
-            id_periodo=matricula.id_periodo,
-            id_especialidad=estudiante.id_especialidad,
-            ciclo=d.seccion.ciclo if d.seccion else d.curso.ciclo
-        ).first()
-        
+        ciclo_bloque = d.seccion.ciclo if d.seccion else d.curso.ciclo
+        if horarios_cache is not None:
+            h_obj = horarios_cache.get((matricula.id_periodo, estudiante.id_especialidad, ciclo_bloque))
+        else:
+            h_obj = Horario.query.filter_by(
+                id_periodo=matricula.id_periodo,
+                id_especialidad=estudiante.id_especialidad,
+                ciclo=ciclo_bloque
+            ).first()
+
         horarios_lista = []
         if h_obj:
             bloques = [
-                b for b in h_obj.detalles 
+                b for b in h_obj.detalles
                 if b.get("id_curso") == d.id_curso and (b.get("seccion") or 'A') == d.seccion.codigo
             ]
             for b in bloques:
                 docente_nombre = ""
                 if b.get("id_docente"):
-                    docente = db.session.get(Docente, int(b.get("id_docente")))
+                    id_docente = int(b.get("id_docente"))
+                    if docentes_cache is not None:
+                        docente = docentes_cache.get(id_docente)
+                    else:
+                        docente = db.session.get(Docente, id_docente)
                     if docente:
                         docente_nombre = f"{docente.nombres} {docente.apellidos}"
                 horarios_lista.append({
@@ -600,8 +619,10 @@ def _serializar_matricula_admin(matricula):
             "horarios": horarios_lista
         })
 
-    from app.models.pago import Pago
-    pago_obj = Pago.query.filter_by(id_matricula=matricula.id_matricula, estado="confirmado").first()
+    if pagos_cache is not None:
+        pago_obj = pagos_cache.get(matricula.id_matricula)
+    else:
+        pago_obj = Pago.query.filter_by(id_matricula=matricula.id_matricula, estado="confirmado").first()
     pago_det = None
     if pago_obj:
         pago_det = {
@@ -666,8 +687,64 @@ def listar_todas_matriculas_ctrl():
         else:
             query = query.filter_by(estado=estado)
 
-    matriculas = query.order_by(Matricula.fecha_matricula.desc()).all()
-    return {"matriculas": [_serializar_matricula_admin(m) for m in matriculas]}, 200
+    matriculas = (
+        query
+        .options(
+            joinedload(Matricula.estudiante).joinedload(Estudiante.especialidad),
+            joinedload(Matricula.periodo),
+            selectinload(Matricula.detalles).joinedload(MatriculaDetalle.seccion),
+            selectinload(Matricula.detalles).joinedload(MatriculaDetalle.curso),
+        )
+        .order_by(Matricula.fecha_matricula.desc())
+        .all()
+    )
+
+    # Sin esto, _serializar_matricula_admin dispara una consulta a Horario
+    # por cada curso matriculado y otra a Docente por cada bloque de
+    # horario -> con muchas matriculas eran miles de consultas. Se prearman
+    # los 3 lookups con consultas masivas (in_) en vez de una por fila.
+    claves_horario = set()
+    for m in matriculas:
+        for d in m.detalles:
+            ciclo_bloque = d.seccion.ciclo if d.seccion else d.curso.ciclo
+            claves_horario.add((m.id_periodo, m.estudiante.id_especialidad, ciclo_bloque))
+
+    horarios_cache = {}
+    if claves_horario:
+        periodos_ids = {c[0] for c in claves_horario}
+        especialidades_ids = {c[1] for c in claves_horario}
+        ciclos = {c[2] for c in claves_horario}
+        for h in Horario.query.filter(
+            Horario.id_periodo.in_(periodos_ids),
+            Horario.id_especialidad.in_(especialidades_ids),
+            Horario.ciclo.in_(ciclos),
+        ).all():
+            horarios_cache[(h.id_periodo, h.id_especialidad, h.ciclo)] = h
+
+    ids_docente = set()
+    for h in horarios_cache.values():
+        for b in (h.detalles or []):
+            if b.get("id_docente"):
+                ids_docente.add(int(b["id_docente"]))
+    docentes_cache = {}
+    if ids_docente:
+        for doc in Docente.query.filter(Docente.id_docente.in_(ids_docente)).all():
+            docentes_cache[doc.id_docente] = doc
+
+    ids_matricula = [m.id_matricula for m in matriculas]
+    pagos_cache = {}
+    if ids_matricula:
+        for p in Pago.query.filter(
+            Pago.id_matricula.in_(ids_matricula), Pago.estado == "confirmado"
+        ).all():
+            pagos_cache[p.id_matricula] = p
+
+    return {
+        "matriculas": [
+            _serializar_matricula_admin(m, horarios_cache, docentes_cache, pagos_cache)
+            for m in matriculas
+        ]
+    }, 200
 
 
 def obtener_detalle_matricula_ctrl(id_matricula):

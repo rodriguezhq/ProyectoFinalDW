@@ -194,27 +194,27 @@ export default function VistaPanel({ isDirection = false }) {
 
       } else {
         // --- PANEL DE ADMINISTRACIÓN DE CONTROL ---
-        
-        // Cargar todas las matrículas del periodo activo
+        // Matriculas y secciones son independientes entre si: se piden en
+        // paralelo en vez de una tras otra.
+        const [resultadoMatriculas, resultadoSecciones] = idPeriodoActivo
+          ? await Promise.allSettled([
+              listarMatriculasAdmin(idPeriodoActivo),
+              obtenerSecciones('', '', idPeriodoActivo)
+            ])
+          : [{ status: 'fulfilled', value: null }, { status: 'fulfilled', value: null }];
+
         let matriculas = [];
-        if (idPeriodoActivo) {
-          try {
-            const respuestaMatriculas = await listarMatriculasAdmin(idPeriodoActivo);
-            matriculas = respuestaMatriculas.matriculas || [];
-          } catch (err) {
-            console.error("Error al obtener matrículas para administrador:", err);
-          }
+        if (resultadoMatriculas.status === 'fulfilled' && resultadoMatriculas.value) {
+          matriculas = resultadoMatriculas.value.matriculas || [];
+        } else if (resultadoMatriculas.status === 'rejected') {
+          console.error("Error al obtener matrículas para administrador:", resultadoMatriculas.reason);
         }
 
-        // Cargar todas las secciones aperturadas del periodo activo
         let totalSecciones = 0;
-        if (idPeriodoActivo) {
-          try {
-            const respuestaSecciones = await obtenerSecciones('', '', idPeriodoActivo);
-            totalSecciones = (respuestaSecciones.secciones || []).length;
-          } catch (err) {
-            console.error("Error al obtener secciones para administrador:", err);
-          }
+        if (resultadoSecciones.status === 'fulfilled' && resultadoSecciones.value) {
+          totalSecciones = (resultadoSecciones.value.secciones || []).length;
+        } else if (resultadoSecciones.status === 'rejected') {
+          console.error("Error al obtener secciones para administrador:", resultadoSecciones.reason);
         }
 
         const validacionesPendientes = matriculas.filter(m => m.estado === 'pendiente').length;
