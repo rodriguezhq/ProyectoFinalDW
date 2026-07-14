@@ -79,7 +79,7 @@ export default function DetalleCursoDocente() {
         try {
             setSubiendoSilabo(true);
             await subirSilaboCurso(id_curso, archivoSeleccionado);
-            toast.success('Sílabo cargado correctamente. Se encuentra en estado Pendiente.');
+            toast.success('Silabo cargado correctamente.');
             setArchivoSeleccionado(null);
             cargarDetalle(); // Recargar datos
         } catch (error) {
@@ -222,8 +222,8 @@ export default function DetalleCursoDocente() {
                                 <CheckCircle2 className="text-emerald-600 shrink-0" size={24} />
                                 <div className="grow">
                                     <p className="text-xs font-semibold text-text-muted uppercase">Estado de Sílabo</p>
-                                    <p className="text-sm font-bold text-text-heading">
-                                        Cargado - <span className="capitalize font-extrabold text-primary">{silabo.estado}</span>
+                                    <p className="text-sm font-bold text-text-heading text-emerald-700">
+                                        Cargado
                                     </p>
                                 </div>
                                 <a
@@ -241,7 +241,7 @@ export default function DetalleCursoDocente() {
                                 <AlertTriangle className="text-amber-600 shrink-0" size={24} />
                                 <div className="grow">
                                     <p className="text-xs font-semibold text-text-muted uppercase">Estado de Sílabo</p>
-                                    <p className="text-sm font-bold text-text-heading">No registrado</p>
+                                    <p className="text-sm font-bold text-text-heading text-amber-700">No cargado</p>
                                 </div>
                             </>
                         )}

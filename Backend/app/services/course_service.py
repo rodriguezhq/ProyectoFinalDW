@@ -333,23 +333,23 @@ def obtener_horario_docente(id_periodo, id_docente):
 
 # ---------------- Silabo ----------------
 
-def subir_silabo(curso, archivo_storage):
-    # Carga de sílabos por curso
+def subir_silabo(curso, archivo_storage, id_periodo):
+    # Carga de sílabos por curso y periodo académico
     os.makedirs(UPLOAD_DIR, exist_ok=True)
-    nombre_archivo = f"curso_{curso.id_curso}_{secure_filename(archivo_storage.filename)}"
+    nombre_archivo = f"curso_{curso.id_curso}_periodo_{id_periodo}_{secure_filename(archivo_storage.filename)}"
     ruta_absoluta = os.path.join(UPLOAD_DIR, nombre_archivo)
     archivo_storage.save(ruta_absoluta)
     ruta_relativa = os.path.join("static", "uploads", "silabos", nombre_archivo)
 
     from app.models.silabo import Silabo
-    silabo_existente = Silabo.query.filter_by(id_curso=curso.id_curso).first()
+    silabo_existente = Silabo.query.filter_by(id_curso=curso.id_curso, id_periodo=id_periodo).first()
 
     if silabo_existente:
         silabo_existente.archivo = ruta_relativa
         silabo_existente.estado = "pendiente"
         silabo = silabo_existente
     else:
-        silabo = Silabo(archivo=ruta_relativa, estado="pendiente", id_curso=curso.id_curso)
+        silabo = Silabo(archivo=ruta_relativa, estado="pendiente", id_curso=curso.id_curso, id_periodo=id_periodo)
         db.session.add(silabo)
 
     db.session.commit()

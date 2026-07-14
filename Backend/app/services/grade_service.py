@@ -62,9 +62,9 @@ def _nota_a_dict(nota):
                 break
 
     silabo_archivo = None
-    if curso:
+    if curso and periodo:
         from app.models.silabo import Silabo
-        silabo_obj = Silabo.query.filter_by(id_curso=curso.id_curso).first()
+        silabo_obj = Silabo.query.filter_by(id_curso=curso.id_curso, id_periodo=periodo.id_periodo).first()
         if silabo_obj:
             silabo_archivo = silabo_obj.archivo
 

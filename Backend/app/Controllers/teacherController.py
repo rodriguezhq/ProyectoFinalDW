@@ -63,7 +63,7 @@ def subir_silabo_ctrl(id_curso, form):
     if not es_su_curso:
         return {"msg": "No tienes permiso para subir el sílabo de este curso"}, 403
 
-    silabo = subir_silabo(curso, form.archivo)
+    silabo = subir_silabo(curso, form.archivo, periodo_activo.id_periodo)
     return SilaboResponse(id_silabo=silabo.id_silabo, archivo=silabo.archivo, estado=silabo.estado).model_dump(), 201
 
 
@@ -133,9 +133,9 @@ def curso_detalle_docente_ctrl(id_curso, id_periodo):
     if not es_su_curso:
         return {"msg": "No tienes permiso para ver el detalle de este curso"}, 403
 
-    # Obtener el silabo del curso
+    # Obtener el silabo del curso en este periodo
     from app.models.silabo import Silabo
-    silabo_objeto = Silabo.query.filter_by(id_curso=id_curso).first()
+    silabo_objeto = Silabo.query.filter_by(id_curso=id_curso, id_periodo=id_periodo).first()
 
     diccionario_silabo = None
     if silabo_objeto:
