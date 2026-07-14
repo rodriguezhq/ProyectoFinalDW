@@ -1,5 +1,6 @@
 import React from 'react';
 import { Search, X } from 'lucide-react';
+import { formatearFechaHora } from '../../../utils/fecha';
 
 export default function ModalDetalleAuditoria({
   isOpen,
@@ -79,7 +80,7 @@ export default function ModalDetalleAuditoria({
           <div className="border-t border-border pt-4 flex flex-col gap-1.5">
             <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Fecha y Hora de la Operación</span>
             <span className="text-xs font-bold text-text-heading">
-              {audit?.fecha ? new Date(audit.fecha).toLocaleString('es-PE') : '-'}
+              {formatearFechaHora(audit?.fecha)}
             </span>
             <span className="text-[10px] text-text-muted font-mono">
               {audit?.fecha}

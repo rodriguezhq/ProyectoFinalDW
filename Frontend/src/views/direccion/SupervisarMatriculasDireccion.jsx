@@ -20,6 +20,7 @@ import {
   obtenerEstadisticasMatricula 
 } from '../../services/servicioAcademico';
 import { listarMatriculasAdmin } from '../../services/servicioMatriculaAdmin';
+import { formatearFecha } from '../../utils/fecha';
 
 export default function SupervisarMatriculasDireccion() {
   const [activoTab, setActivoTab] = useState('estadisticas');
@@ -410,7 +411,7 @@ export default function SupervisarMatriculasDireccion() {
                               {m.estudiante_especialidad}
                             </td>
                             <td className="p-4 text-center text-[0.85rem] text-text-muted">
-                              {new Date(m.fecha_matricula).toLocaleDateString('es-PE')}
+                              {formatearFecha(m.fecha_matricula)}
                             </td>
                             <td className="p-4 text-center">
                               <span className={`inline-block py-1 px-3.5 rounded-none text-[0.78rem] font-bold border ${

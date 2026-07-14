@@ -14,9 +14,10 @@ import {
 import { 
   obtenerTodosLosDocumentos 
 } from '../../services/servicioCertificados';
-import { 
-  listarMatriculasAdmin 
+import {
+  listarMatriculasAdmin
 } from '../../services/servicioMatriculaAdmin';
+import { fechaUTCaDate } from '../../utils/fecha';
 
 export default function VistaPanel({ isDirection = false }) {
   const esDireccion = isDirection;
@@ -49,12 +50,10 @@ export default function VistaPanel({ isDirection = false }) {
   function formatearTiempo(fechaTexto) {
     if (!fechaTexto) return '';
     
-    // Normalizar formato de fecha reemplazando el espacio por la 'T' para navegadores
-    const fechaEstandar = fechaTexto.replace(' ', 'T');
-    const fecha = new Date(fechaEstandar);
+    const fecha = fechaUTCaDate(fechaTexto);
     const ahora = new Date();
-    
-    if (isNaN(fecha.getTime())) return fechaTexto;
+
+    if (!fecha) return fechaTexto;
     
     const difMs = ahora - fecha;
     const difMinutos = Math.floor(difMs / 60000);

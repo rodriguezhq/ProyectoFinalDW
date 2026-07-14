@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { FileText, Send, QrCode, Download } from 'lucide-react';
 import { solicitarDocumento, obtenerMisDocumentos, urlPdfDocumento } from '../../services/servicioCertificados';
 import Paginacion from '../../components/Paginacion';
+import { formatearFecha } from '../../utils/fecha';
 
 const POR_PAGINA = 10;
 
@@ -127,7 +128,7 @@ export default function MisCertificados() {
                     <tr key={doc.id_documento} className={`border-b border-border ${isEven ? 'bg-white' : 'bg-[#F8FAFC]'}`}>
                       <td className="p-2 border-r border-border/60 font-semibold text-text-heading">{doc.tipo_documento}</td>
                       <td className="p-2 border-r border-border/60 text-center text-text-muted">
-                        {new Date(doc.fecha_solicitado).toLocaleDateString()}
+                        {formatearFecha(doc.fecha_solicitado)}
                       </td>
                       <td className="p-2 border-r border-border/60 text-center">
                         <span className={`inline-block py-0.5 px-2 rounded-none font-bold border ${ESTADO_ESTILOS[doc.estado] || 'bg-slate-100 text-slate-600 border-slate-200'}`}>

@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { ShieldCheck, ShieldX } from 'lucide-react';
 import { verificarDocumento } from '../../services/servicioCertificados';
 import uncpImagen from '../../assets/Escudo_UNCP.png';
+import { formatearFechaHora } from '../../utils/fecha';
 
 export default function VerificarDocumento() {
   const { codigoQr } = useParams();
@@ -52,7 +53,7 @@ export default function VerificarDocumento() {
               <div>
                 <span className="block text-[0.72rem] font-bold text-text-muted uppercase tracking-wider">Fecha de emisión</span>
                 <span className="font-semibold text-text-heading">
-                  {new Date(resultado.fecha_emision).toLocaleString()}
+                  {formatearFechaHora(resultado.fecha_emision)}
                 </span>
               </div>
               <div>

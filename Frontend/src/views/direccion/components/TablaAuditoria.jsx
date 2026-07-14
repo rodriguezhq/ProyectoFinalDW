@@ -1,6 +1,7 @@
 import React from 'react';
 import { Search } from 'lucide-react';
 import Paginacion from '../../../components/Paginacion';
+import { formatearFechaHora } from '../../../utils/fecha';
 
 export default function TablaAuditoria({
   auditorias = [],
@@ -65,7 +66,7 @@ export default function TablaAuditoria({
                   {audit.ip || '-'}
                 </td>
                 <td className="p-3 text-[0.82rem] font-semibold text-text-muted border-r border-border/40">
-                  {new Date(audit.fecha).toLocaleString('es-PE')}
+                  {formatearFechaHora(audit.fecha)}
                 </td>
                 <td className="p-3 text-center">
                   <button
