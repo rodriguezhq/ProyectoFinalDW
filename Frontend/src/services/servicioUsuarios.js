@@ -1,9 +1,12 @@
 import { consultarApi } from './clienteApi';
 
 // Obtiene una página de usuarios del sistema, opcionalmente filtrada por rol
-export async function obtenerUsuarios(page = 1, perPage = 10, rol = '') {
+export async function obtenerUsuarios(page = 1, perPage = 10, rol = '', nombre = '', idFacultad = '', ciclo = '') {
   let url = `/api/admin/usuarios?page=${page}&per_page=${perPage}`;
   if (rol) url += `&rol=${encodeURIComponent(rol)}`;
+  if (nombre) url += `&nombre=${encodeURIComponent(nombre)}`;
+  if (idFacultad) url += `&id_facultad=${encodeURIComponent(idFacultad)}`;
+  if (ciclo) url += `&ciclo=${encodeURIComponent(ciclo)}`;
   const respuesta = await consultarApi(url, { method: 'GET' });
   if (!respuesta.ok) throw new Error('Error al cargar los usuarios');
   return respuesta.json();

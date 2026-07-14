@@ -81,6 +81,7 @@ def crear_usuario_ctrl(body):
             body.id_facultad,
             body.id_especialidad,
             ciclo=body.ciclo,
+            password=body.password,
         )
     except UsernameDuplicadoError:
         return {"msg": "Ese username ya está en uso"}, 409
@@ -124,8 +125,8 @@ def crear_usuario_ctrl(body):
     ).model_dump(), 201
 
 
-def listar_usuarios_ctrl(page=1, per_page=10, rol=None):
-    usuarios, total = listar_usuarios(page, per_page, rol)
+def listar_usuarios_ctrl(page=1, per_page=10, rol=None, nombre=None, id_facultad=None, ciclo=None):
+    usuarios, total = listar_usuarios(page, per_page, rol, nombre, id_facultad, ciclo)
     return {
         "usuarios": [_serializar_usuario(u) for u in usuarios],
         "total": total,

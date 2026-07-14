@@ -139,7 +139,7 @@ export default function Login() {
                         >
                             {isLoading ? (
                                 <>
-                                    <span className="w-5 h-5 border-2 border-white/30 rounded-none border-t-white animate-spin"></span>
+                                    <span className="w-5 h-5 border-2 border-white/30 rounded-full border-t-white animate-spin"></span>
                                     Autenticando...
                                 </>
                             ) : (

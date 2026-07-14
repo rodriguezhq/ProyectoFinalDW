@@ -15,10 +15,22 @@ export function useUsuarios(rolFiltrado = '') {
   const [total, setTotal] = useState(0);
   const totalPaginas = Math.max(1, Math.ceil(total / POR_PAGINA));
 
+  // Estados de filtros
+  const [filtroNombre, setFiltroNombre] = useState('');
+  const [filtroFacultad, setFiltroFacultad] = useState('');
+  const [filtroCiclo, setFiltroCiclo] = useState('');
+
   const cargarUsuarios = useCallback(async (numeroPagina = 1) => {
     setEstaCargando(true);
     try {
-      const datosUsuarios = await obtenerUsuarios(numeroPagina, POR_PAGINA, rolFiltrado);
+      const datosUsuarios = await obtenerUsuarios(
+        numeroPagina,
+        POR_PAGINA,
+        rolFiltrado,
+        filtroNombre,
+        filtroFacultad,
+        filtroCiclo
+      );
       setUsuarios(datosUsuarios.usuarios || []);
       setPagina(numeroPagina);
       setTotal(datosUsuarios.total || 0);
@@ -27,7 +39,7 @@ export function useUsuarios(rolFiltrado = '') {
     } finally {
       setEstaCargando(false);
     }
-  }, [rolFiltrado]);
+  }, [rolFiltrado, filtroNombre, filtroFacultad, filtroCiclo]);
 
   const cargarCatalogos = useCallback(async () => {
     try {
@@ -48,7 +60,14 @@ export function useUsuarios(rolFiltrado = '') {
     cargarCatalogos();
   }, [cargarCatalogos]);
 
-  // Al cambiar de pestaña de rol, siempre se vuelve a la página 1
+  // Al cambiar de pestaña de rol, se vuelven a los filtros por defecto y página 1
+  useEffect(() => {
+    setFiltroNombre('');
+    setFiltroFacultad('');
+    setFiltroCiclo('');
+  }, [rolFiltrado]);
+
+  // Recargar cuando cambien los filtros o el rol
   useEffect(() => {
     cargarUsuarios(1);
   }, [cargarUsuarios]);
@@ -86,6 +105,12 @@ export function useUsuarios(rolFiltrado = '') {
     pagina,
     totalPaginas,
     total,
+    filtroNombre,
+    setFiltroNombre,
+    filtroFacultad,
+    setFiltroFacultad,
+    filtroCiclo,
+    setFiltroCiclo,
     irAPagina: cargarUsuarios,
     recargarDatos: () => cargarUsuarios(pagina),
     registrarUsuario,

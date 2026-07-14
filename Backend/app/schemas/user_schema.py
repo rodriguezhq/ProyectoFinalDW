@@ -18,6 +18,7 @@ class UserData(BaseModel):
 class UsuarioCreateBody(BaseModel):
     username: str
     id_rol: int
+    password: str | None = None
     id_estudiante: int | None = None
     id_docente: int | None = None
     nombres: str | None = None

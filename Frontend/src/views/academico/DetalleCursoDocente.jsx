@@ -12,7 +12,7 @@ import {
     Clock,
     Loader2,
     Award,
-    Sparkles
+    Pencil
 } from 'lucide-react';
 import { obtenerDetalleCursoDocente, subirSilaboCurso } from '../../services/servicioCursos';
 
@@ -191,7 +191,7 @@ export default function DetalleCursoDocente() {
                                 onClick={() => navegar(`/docente/cursos/${id_curso}/calificaciones?id_periodo=${idPeriodo}`)}
                                 className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-primary text-white hover:bg-primary-hover rounded-none font-bold text-sm shadow-xs transition-all cursor-pointer"
                             >
-                                <Sparkles size={16} />
+                                <Pencil size={16} />
                                 Ingresar Calificaciones
                             </button>
                         ) : (

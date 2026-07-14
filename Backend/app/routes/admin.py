@@ -39,6 +39,9 @@ class UsuariosQuery(BaseModel):
     page: int = 1
     per_page: int = 10
     rol: str | None = None
+    nombre: str | None = None
+    id_facultad: int | None = None
+    ciclo: int | None = None
 
 
 @admin_bp.post(
@@ -55,7 +58,9 @@ def crear_usuario(body: UsuarioCreateBody):
 @admin_bp.get("/usuarios", responses={200: UsuarioListResponse}, security=[{"jwt": []}])
 @role_required("Administrador", "Direccion")
 def listar_usuarios(query: UsuariosQuery):
-    response, status = userController.listar_usuarios_ctrl(query.page, query.per_page, query.rol)
+    response, status = userController.listar_usuarios_ctrl(
+        query.page, query.per_page, query.rol, query.nombre, query.id_facultad, query.ciclo
+    )
     return response, status
 
 

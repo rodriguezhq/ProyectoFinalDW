@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
-import { User, Plus, Pencil, X, KeyRound, AlertTriangle } from 'lucide-react';
+import { User, Plus, Pencil, X, KeyRound, AlertTriangle, Eye, EyeOff } from 'lucide-react';
 import { useUsuarios } from '../../hooks/usuarios/useUsuarios';
 import Paginacion from '../../components/Paginacion';
 
@@ -15,6 +15,12 @@ export default function Usuarios({ rolFiltrado }) {
     pagina,
     totalPaginas,
     total,
+    filtroNombre,
+    setFiltroNombre,
+    filtroFacultad,
+    setFiltroFacultad,
+    filtroCiclo,
+    setFiltroCiclo,
     irAPagina,
     registrarUsuario,
     modificarUsuarioExistente
@@ -25,6 +31,8 @@ export default function Usuarios({ rolFiltrado }) {
   const [editingId, setEditingId] = useState(null);
   
   const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [verContrasena, setVerContrasena] = useState(false);
   const [nombres, setNombres] = useState('');
   const [apellidos, setApellidos] = useState('');
   const [correo, setCorreo] = useState('');
@@ -46,6 +54,8 @@ export default function Usuarios({ rolFiltrado }) {
   const abrirModalAgregar = () => {
     setEditingId(null);
     setUsername('');
+    setPassword('');
+    setVerContrasena(false);
     setNombres('');
     setApellidos('');
     setCorreo('');
@@ -108,7 +118,8 @@ export default function Usuarios({ rolFiltrado }) {
         id_rol: parseInt(idRol),
         nombres: nombres.trim() || null,
         apellidos: apellidos.trim() || null,
-        correo: correo.trim() || null
+        correo: correo.trim() || null,
+        password: password.trim() || null
       };
 
       // Si es Estudiante, agregar campos obligatorios
@@ -180,25 +191,68 @@ export default function Usuarios({ rolFiltrado }) {
   return (
     <>
       <div className="flex flex-col gap-6 animate-slide-up">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start md:items-center gap-4">
-          <div>
-            <h3 className="flex items-center gap-2 font-heading text-[1.25rem] font-extrabold text-text-heading mb-1">
-              <User size={20} /> {rolFiltrado ? `Cuentas de ${rolFiltrado}s` : 'Cuentas de Usuario'}
-            </h3>
-            <p className="text-[0.88rem] text-text-muted">
-              Listado y gestión de credenciales, accesos y estado para {rolFiltrado ? `usuarios con rol ${rolFiltrado}` : 'todas las cuentas'}.
-            </p>
+        {/* Barra de Filtros y Acciones */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white border border-border rounded-none p-4 shadow-xs">
+          {/* Contenedor de Filtros */}
+          <div className="flex flex-col sm:flex-row flex-1 items-stretch sm:items-center gap-3">
+            {/* Búsqueda por Nombre (en todos) */}
+            <div className="flex-1 min-w-[200px]">
+              <input
+                id="filtro-nombre"
+                type="text"
+                value={filtroNombre}
+                onChange={(e) => setFiltroNombre(e.target.value)}
+                placeholder="Buscar por nombre, apellido o usuario..."
+                className="p-2.5 border border-border rounded-none focus:outline-none focus:border-primary text-[0.85rem] bg-white w-full h-10"
+              />
+            </div>
+
+            {/* Filtro de Facultad (para Estudiante y Docente) */}
+            {(rolFiltrado === 'Estudiante' || rolFiltrado === 'Docente') && (
+              <div className="min-w-[180px] flex-1 sm:flex-none">
+                <select
+                  id="filtro-facultad"
+                  value={filtroFacultad}
+                  onChange={(e) => setFiltroFacultad(e.target.value)}
+                  className="p-2.5 border border-border rounded-none focus:outline-none focus:border-primary text-[0.85rem] bg-white cursor-pointer w-full h-10"
+                >
+                  <option value="">Todas las Facultades</option>
+                  {facultades.map(fac => (
+                    <option key={fac.id_facultad} value={fac.id_facultad}>{fac.nombre}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {/* Filtro de Ciclo (solo para Estudiante) */}
+            {rolFiltrado === 'Estudiante' && (
+              <div className="w-[110px] shrink-0">
+                <select
+                  id="filtro-ciclo"
+                  value={filtroCiclo}
+                  onChange={(e) => setFiltroCiclo(e.target.value)}
+                  className="p-2.5 border border-border rounded-none focus:outline-none focus:border-primary text-[0.85rem] bg-white cursor-pointer w-full h-10"
+                >
+                  <option value="">Ciclo</option>
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(c => (
+                    <option key={c} value={c}>{c}°</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
+
+          {/* Botón Agregar */}
           <button
             type="button"
             onClick={abrirModalAgregar}
-            className="flex items-center gap-1.5 bg-primary text-white py-2 px-4 text-[0.88rem] font-bold rounded-md transition-all duration-300 hover:bg-primary-hover shadow-sm self-start sm:self-auto cursor-pointer"
+            className="flex items-center justify-center gap-1.5 bg-primary text-white py-2 px-5 text-[0.88rem] font-bold rounded-none transition-all duration-300 hover:bg-primary-hover shadow-xs shrink-0 cursor-pointer h-10 w-full sm:w-auto"
           >
             <Plus size={16} /> Agregar {rolFiltrado || 'Usuario'}
           </button>
         </div>
 
-        <div className="bg-white border border-border rounded-xl shadow-sm overflow-hidden">
+        <div className="bg-white border border-border rounded-none shadow-xs overflow-hidden">
           {estaCargando ? (
             <div className="p-12 text-center">
               <div className="inline-block w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-3"></div>
@@ -322,6 +376,30 @@ export default function Usuarios({ rolFiltrado }) {
                     className="p-2.5 border border-border rounded-md focus:outline-none focus:border-primary text-[0.88rem] disabled:bg-slate-100 disabled:text-slate-500"
                   />
                 </div>
+
+                {!editingId && (
+                  <div className="flex flex-col gap-1.5 animate-slide-up">
+                    <label htmlFor="user-password" className="text-[0.82rem] font-bold text-text-muted uppercase">Contraseña (Opcional)</label>
+                    <div className="relative">
+                      <input
+                        id="user-password"
+                        type={verContrasena ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Dejar vacío para autogenerar"
+                        className="p-2.5 pr-10 border border-border rounded-md focus:outline-none focus:border-primary text-[0.88rem] w-full"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setVerContrasena(!verContrasena)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-primary transition-colors cursor-pointer"
+                        title={verContrasena ? "Ocultar contraseña" : "Mostrar contraseña"}
+                      >
+                        {verContrasena ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="user-nombres" className="text-[0.82rem] font-bold text-text-muted uppercase">Nombres</label>

@@ -71,7 +71,7 @@ class DniDuplicadoError(Exception):
     pass
 
 
-def crear_usuario(username, id_rol, id_estudiante=None, id_docente=None, nombres=None, apellidos=None, correo=None, codigo=None, dni=None, id_facultad=None, id_especialidad=None, ciclo=None):
+def crear_usuario(username, id_rol, id_estudiante=None, id_docente=None, nombres=None, apellidos=None, correo=None, codigo=None, dni=None, id_facultad=None, id_especialidad=None, ciclo=None, password=None):
     if Usuario.query.filter_by(username=username).first():
         raise UsernameDuplicadoError()
     rol = db.session.get(Rol, id_rol)
@@ -149,7 +149,10 @@ def crear_usuario(username, id_rol, id_estudiante=None, id_docente=None, nombres
         db.session.flush()
         id_docente = nuevo_doc.id_docente
 
-    password_temporal = secrets.token_urlsafe(9)
+    if password:
+        password_temporal = password
+    else:
+        password_temporal = secrets.token_urlsafe(9)
     usuario = Usuario(
         username=username,
         password_hash=hash_password(password_temporal),
@@ -166,10 +169,32 @@ def crear_usuario(username, id_rol, id_estudiante=None, id_docente=None, nombres
     return usuario, password_temporal
 
 
-def listar_usuarios(page=1, per_page=10, rol=None):
+def listar_usuarios(page=1, per_page=10, rol=None, nombre=None, id_facultad=None, ciclo=None):
     query = Usuario.query
     if rol:
         query = query.join(Rol).filter(Rol.nombre == rol)
+    
+    if nombre:
+        nombre_patron = f"%{nombre}%"
+        query = query.filter(
+            Usuario.username.like(nombre_patron) |
+            Usuario.nombres.like(nombre_patron) |
+            Usuario.apellidos.like(nombre_patron)
+        )
+        
+    if rol == "Estudiante" and (id_facultad or ciclo):
+        from app.models.estudiante import Estudiante
+        query = query.join(Estudiante, Usuario.id_estudiante == Estudiante.id_estudiante)
+        if id_facultad:
+            from app.models.especialidad import Especialidad
+            query = query.join(Especialidad, Estudiante.id_especialidad == Especialidad.id_especialidad).filter(Especialidad.id_facultad == id_facultad)
+        if ciclo:
+            query = query.filter(Estudiante.ciclo == ciclo)
+            
+    elif rol == "Docente" and id_facultad:
+        from app.models.docente import Docente
+        query = query.join(Docente, Usuario.id_docente == Docente.id_docente).filter(Docente.id_facultad == id_facultad)
+        
     query = query.order_by(Usuario.id_usuario.desc())
     return paginar_query(query, page, per_page)
 

@@ -145,57 +145,105 @@ export default function DisenoHorario() {
     toast.success(`${cursoAProgramar.nombre} agregado al horario.`);
   };
 
-  // Manejar el soltado (drop) de una tarjeta de curso sobre una celda del horario
-  const manejarDropCurso = (e, dia, horaInicio) => {
+  const manejarDropCelda = (e, dia, horaInicio) => {
     e.preventDefault();
     if (!esPeriodoActivo()) return;
 
-    const idCursoStr = e.dataTransfer.getData("id_curso");
-    if (!idCursoStr) return;
+    const tipoArrastre = e.dataTransfer.getData("tipo_arrastre");
 
-    const idCurso = parseInt(idCursoStr);
-    const curso = cursos.find(c => c.id_curso === idCurso);
-    if (!curso) return;
+    if (tipoArrastre === "mover_bloque") {
+      const indiceStr = e.dataTransfer.getData("indice_bloque");
+      if (!indiceStr) return;
+      const index = parseInt(indiceStr);
+      const sec = secciones[index];
+      if (!sec) return;
 
-    // Calcular hora de fin por defecto (2 horas después)
-    const hInicioIndex = horasDisponibles.indexOf(horaInicio);
-    const hFinIndex = Math.min(hInicioIndex + 2, horasDisponibles.length - 1);
-    const horaFin = horasDisponibles[hFinIndex];
+      // Calcular la duración original del bloque
+      const hInicioIndexOriginal = horasDisponibles.indexOf(sec.horaInicio);
+      const hFinIndexOriginal = horasDisponibles.indexOf(sec.horaFin);
+      const duracion = hFinIndexOriginal - hInicioIndexOriginal;
 
-    // Validar cruces de horarios en el rango calculado
-    const colision = secciones.some(sec => {
-      if ((sec.seccion || 'A') !== filtroSeccion) return false;
-      if (sec.dia !== dia) return false;
-      const inicioA = hInicioIndex;
-      const finA = hFinIndex;
-      const inicioB = horasDisponibles.indexOf(sec.horaInicio);
-      const finB = horasDisponibles.indexOf(sec.horaFin);
-      return (inicioA < finB && finA > inicioB);
-    });
+      // Calcular nueva hora de fin manteniendo la duración
+      const hInicioIndexNuevo = horasDisponibles.indexOf(horaInicio);
+      const hFinIndexNuevo = Math.min(hInicioIndexNuevo + duracion, horasDisponibles.length - 1);
+      const nuevaHoraFin = horasDisponibles[hFinIndexNuevo];
 
-    if (colision) {
-      toast.error(`¡Cruce de horario detectado! No se puede programar "${curso.nombre}" en este bloque.`);
-      return;
+      // Validar colisiones con otros bloques, excluyendo el bloque que se está moviendo
+      const colision = secciones.some((otraSec, idx) => {
+        if (idx === index) return false;
+        if ((otraSec.seccion || 'A') !== filtroSeccion) return false;
+        if (otraSec.dia !== dia) return false;
+        const inicioA = hInicioIndexNuevo;
+        const finA = hFinIndexNuevo;
+        const inicioB = horasDisponibles.indexOf(otraSec.horaInicio);
+        const finB = horasDisponibles.indexOf(otraSec.horaFin);
+        return (inicioA < finB && finA > inicioB);
+      });
+
+      if (colision) {
+        toast.error('¡Cruce de horario detectado! No se puede mover a este bloque.');
+        return;
+      }
+
+      // Actualizar el bloque de horario
+      const actualizadas = [...secciones];
+      actualizadas[index] = {
+        ...actualizadas[index],
+        dia: dia,
+        horaInicio: horaInicio,
+        horaFin: nuevaHoraFin
+      };
+      setSecciones(actualizadas);
+      toast.success(`Se movió "${sec.curso_nombre}" a ${dia} de ${horaInicio} a ${nuevaHoraFin}.`);
+    } else {
+      // Arrastrar y soltar un curso nuevo desde el panel superior
+      const idCursoStr = e.dataTransfer.getData("id_curso");
+      if (!idCursoStr) return;
+
+      const idCurso = parseInt(idCursoStr);
+      const curso = cursos.find(c => c.id_curso === idCurso);
+      if (!curso) return;
+
+      // Calcular hora de fin por defecto (2 horas después)
+      const hInicioIndex = horasDisponibles.indexOf(horaInicio);
+      const hFinIndex = Math.min(hInicioIndex + 2, horasDisponibles.length - 1);
+      const horaFin = horasDisponibles[hFinIndex];
+
+      // Validar cruces de horarios en el rango calculado
+      const colision = secciones.some(sec => {
+        if ((sec.seccion || 'A') !== filtroSeccion) return false;
+        if (sec.dia !== dia) return false;
+        const inicioA = hInicioIndex;
+        const finA = hFinIndex;
+        const inicioB = horasDisponibles.indexOf(sec.horaInicio);
+        const finB = horasDisponibles.indexOf(sec.horaFin);
+        return (inicioA < finB && finA > inicioB);
+      });
+
+      if (colision) {
+        toast.error(`¡Cruce de horario detectado! No se puede programar "${curso.nombre}" en este bloque.`);
+        return;
+      }
+
+      const num = secciones.length + 1;
+      const codigoGenerado = `SEC-${String(num).padStart(2, '0')}`;
+
+      const nuevaSec = {
+        id_seccion: null,
+        codigo: codigoGenerado,
+        seccion: filtroSeccion,
+        dia: dia,
+        horaInicio,
+        horaFin,
+        capacidad: 30,
+        id_curso: curso.id_curso,
+        id_docente: '',
+        curso_nombre: curso.nombre,
+      };
+
+      setSecciones([...secciones, nuevaSec]);
+      toast.success(`"${curso.nombre}" programado los ${dia} de ${horaInicio} a ${horaFin}.`);
     }
-
-    const num = secciones.length + 1;
-    const codigoGenerado = `SEC-${String(num).padStart(2, '0')}`;
-
-    const nuevaSec = {
-      id_seccion: null,
-      codigo: codigoGenerado,
-      seccion: filtroSeccion,
-      dia: dia,
-      horaInicio,
-      horaFin,
-      capacidad: 30,
-      id_curso: curso.id_curso,
-      id_docente: '',
-      curso_nombre: curso.nombre,
-    };
-
-    setSecciones([...secciones, nuevaSec]);
-    toast.success(`"${curso.nombre}" programado los ${dia} de ${horaInicio} a ${horaFin}.`);
   };
 
   // Redimensionar duración arrastrando el borde inferior del bloque
@@ -606,7 +654,7 @@ export default function DisenoHorario() {
                                 evento.preventDefault();
                               }
                             }}
-                            onDrop={(evento) => manejarDropCurso(evento, dia, hora)}
+                            onDrop={(evento) => manejarDropCelda(evento, dia, hora)}
                           />
                         ))}
                       </React.Fragment>
@@ -627,6 +675,12 @@ export default function DisenoHorario() {
                       return (
                         <div
                           key={index}
+                          draggable={esPeriodoActivo()}
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData("tipo_arrastre", "mover_bloque");
+                            e.dataTransfer.setData("indice_bloque", index.toString());
+                            e.dataTransfer.effectAllowed = "move";
+                          }}
                           style={{
                             gridColumn: col,
                             gridRowStart: gridPos.gridRowStart,
@@ -645,6 +699,7 @@ export default function DisenoHorario() {
                             {esPeriodoActivo() && (
                               <button
                                 type="button"
+                                onDragStart={(e) => e.stopPropagation()}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   removerSeccion(index);
@@ -671,6 +726,7 @@ export default function DisenoHorario() {
                           {esPeriodoActivo() && (
                             <div
                               className="absolute top-0 left-0 right-0 h-2.5 cursor-ns-resize bg-transparent hover:bg-primary/20 group-hover:bg-primary/10 transition-colors rounded-t-xl z-20"
+                              onDragStart={(e) => e.stopPropagation()}
                               onMouseDown={(evento) => {
                                 evento.stopPropagation();
                                 iniciarRedimensionSuperior(evento, index);
@@ -683,6 +739,7 @@ export default function DisenoHorario() {
                           {esPeriodoActivo() && (
                             <div
                               className="absolute bottom-0 left-0 right-0 h-2.5 cursor-ns-resize bg-transparent hover:bg-primary/20 group-hover:bg-primary/10 transition-colors rounded-b-xl z-20"
+                              onDragStart={(e) => e.stopPropagation()}
                               onMouseDown={(evento) => {
                                 evento.stopPropagation();
                                 iniciarRedimension(evento, index);

@@ -35,6 +35,24 @@ def crear_periodo_ctrl(body):
         es_matricula_activa=True,
     )
     db.session.add(periodo)
+    db.session.flush()
+
+    # Se crean de forma automatica las secciones 'A' para cada especialidad y ciclo (1 al 10)
+    from app.models.especialidad import Especialidad
+    from app.models.seccion import Seccion
+    especialidades = Especialidad.query.all()
+    for esp in especialidades:
+        for c in range(1, 11):
+            nueva_seccion = Seccion(
+                codigo="A",
+                id_especialidad=esp.id_especialidad,
+                ciclo=c,
+                id_periodo=periodo.id_periodo,
+                capacidad=30,
+                estado="abierta"
+            )
+            db.session.add(nueva_seccion)
+
     db.session.commit()
 
     actor = usuario_actual()
